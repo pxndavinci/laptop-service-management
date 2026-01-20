@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: KS Tech Service Management API
+  version: 1.0.0
+  description: 
+    API for managing customers, products, and service orders
+    in a laptop/service-center environment.
+
+servers:
+  - url: http://localhost:3000/api/v1
+
+tags:
+  - name: Users
+  - name: Products
+  - name: User Products
+  - name: Service Orders
+  - name: Service Timeline
+  - name: Reference Data
+
+paths: {}
+components:
+  schemas: {}
