@@ -16,7 +16,6 @@ CREATE TABLE role (
 CREATE TABLE user (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
     role_id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -33,6 +32,7 @@ CREATE TABLE contact (
     contact_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     contact_number TEXT NOT NULL,
     user_id UUID NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
