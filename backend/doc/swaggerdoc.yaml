@@ -1,10 +1,12 @@
 openapi: 3.0.3
+
 info:
   title: KS Tech Service Management API
   version: 1.0.0
-  description: 
-    API for managing customers, products, and service orders
-    in a laptop/service-center environment.
+  description: >
+    API for managing users, products, and service orders
+    in a service-center / repair business.
+    Designed using API-first principles.
 
 servers:
   - url: http://localhost:3000/api/v1
@@ -12,58 +14,291 @@ servers:
 tags:
   - name: Users
   - name: Products
-  - name: User Products
   - name: Service Orders
   - name: Service Timeline
   - name: Reference Data
 
-paths: 
+paths:
+
   /users:
     get:
-      tags:
-        - Users
-      summary: Get all users
+      tags: [Users]
+      summary: Search users
+      description: Used for autocomplete and user lookup
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
       responses:
         '200':
-          description: A list of users
+          description: List of users
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-  /create-user:
+
+  /products:
+    get:
+      tags: [Products]
+      summary: Search products by serial number
+      parameters:
+        - name: serialNumber
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+  /service-orders:
     post:
-      tags:
-        - Users
-      summary: Create a new user
+      tags: [Service Orders]
+      summary: Create a service order
+      description: >
+        Creates a service order.
+        Automatically creates user and product if they do not exist
+        and initializes the service status timeline.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreateRequest'
+              $ref: '#/components/schemas/CreateServiceOrderRequest'
       responses:
         '201':
-          description: User created successfully
+          description: Service order created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-  /delete-user/{contactNumber}:
-    delete:
-      tags:
-        - Users
-      summary: Delete a user by ID
+                $ref: '#/components/schemas/ServiceOrder'
+
+  /service-orders/{serviceOrderId}:
+    get:
+      tags: [Service Orders]
+      summary: Get service order details
       parameters:
-        - name: userId
+        - name: serviceOrderId
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       responses:
-        '204':
-          description: User deleted successfully
-  
+        '200':
+          description: Service order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
+
+  /service-orders/{serviceOrderId}/timeline:
+    get:
+      tags: [Service Timeline]
+      summary: Get service order status timeline
+      parameters:
+        - name: serviceOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Status timeline
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceStatus'
+
+  /reference/brands:
+    get:
+      tags: [Reference Data]
+      summary: Get brands
+      responses:
+        '200':
+          description: List of brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+
+  /reference/product-types:
+    get:
+      tags: [Reference Data]
+      summary: Get product types
+      responses:
+        '200':
+          description: List of product types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductType'
+
+  /reference/statuses:
+    get:
+      tags: [Reference Data]
+      summary: Get service statuses
+      responses:
+        '200':
+          description: List of statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+
 components:
-  schemas: {}
+
+  schemas:
+
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        brandId:
+          type: string
+          format: uuid
+        productTypeId:
+          type: string
+          format: uuid
+
+    Brand:
+      type: object
+      properties:
+        brandId:
+          type: string
+          format: uuid
+        brandName:
+          type: string
+
+    ProductType:
+      type: object
+      properties:
+        productTypeId:
+          type: string
+          format: uuid
+        typeName:
+          type: string
+
+    Status:
+      type: object
+      properties:
+        statusId:
+          type: string
+          format: uuid
+        statusName:
+          type: string
+
+    CreateServiceOrderRequest:
+      type: object
+      required:
+        - customer
+        - product
+        - issue
+      properties:
+        customer:
+          type: object
+          required:
+            - userName
+            - contact
+          properties:
+            userName:
+              type: string
+            contact:
+              type: object
+              required:
+                - email
+                - contactNumber
+              properties:
+                email:
+                  type: string
+                  format: email
+                contactNumber:
+                  type: string
+
+        product:
+          type: object
+          required:
+            - brandId
+            - productTypeId
+            - serialNumber
+          properties:
+            brandId:
+              type: string
+              format: uuid
+            productTypeId:
+              type: string
+              format: uuid
+            serialNumber:
+              type: string
+
+        issue:
+          type: object
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum:
+                - HARDWARE
+                - SOFTWARE
+                - NETWORK
+                - OTHER
+            notes:
+              type: string
+
+    ServiceOrder:
+      type: object
+      properties:
+        serviceOrderId:
+          type: string
+          format: uuid
+        paymentStatus:
+          type: string
+        priorityLevel:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    ServiceStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        assignedTo:
+          type: string
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
