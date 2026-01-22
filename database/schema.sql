@@ -43,6 +43,7 @@ CREATE TABLE contact (
 );
 
 CREATE INDEX idx_contact_user_id ON contact(user_id);
+CREATE INDEX idx_contact_contact_number ON contact(contact_number);
 
 CREATE TABLE brand (
     brand_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -74,6 +75,7 @@ CREATE TABLE product (
         REFERENCES product_type(product_type_id)
 );
 
+CREATE INDEX idx_product_product_name ON product(product_name);
 CREATE INDEX idx_product_brand_id ON product(brand_id);
 CREATE INDEX idx_product_product_type_id ON product(product_type_id);
 
@@ -173,6 +175,7 @@ CREATE TABLE service_order (
         REFERENCES user_data(user_id)
 );
 
+CREATE INDEX idx_service_order_tag_no ON service_order(tag_no);
 CREATE INDEX idx_service_order_user_product_id ON service_order(user_product_id);
 CREATE INDEX idx_service_order_entry_by ON service_order(entry_by);
 CREATE INDEX idx_service_order_created_at ON service_order(created_at DESC);
