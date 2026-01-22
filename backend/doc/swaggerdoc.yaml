@@ -13,6 +13,7 @@ servers:
 
 tags:
   - name: Users
+  - name: Contacts
   - name: Products
   - name: Service Orders
   - name: Service Timeline
