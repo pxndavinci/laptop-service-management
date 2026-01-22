@@ -19,25 +19,52 @@ tags:
   - name: Reference Data
 
 paths:
+  # ==================== USERS ====================
   /users:
     get:
       tags: [Users]
-      summary: Get all the users
-      description: Used for autocomplete and user lookup
+      summary: Get all users
+      description: Retrieve all users with optional filtering and pagination
       parameters:
-        - name: query
+        - name: search
           in: query
           schema:
             type: string
+          description: Search by username or email
+        - name: role_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by role ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
       responses:  
         '200':
           description: List of users
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
 
     post:
       tags: [Users]
@@ -48,7 +75,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:  
         '201':
           description: User created successfully
@@ -57,28 +84,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
 
-  /users/{userId}:
-    delete:
+  /users/{user_id}:
+    get:
       tags: [Users]
-      summary: Delete user by ID
-      description: Remove a user from the system using their unique ID
+      summary: Get user by ID
+      description: Retrieve a specific user with their contacts and products
       parameters:
-        - name: userId
+        - name: user_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
-      responses:  
+      responses:
         '200':
-          description: User deleted successfully
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  contacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserProduct'
+        '404':
+          description: User not found
 
     put:
       tags: [Users]
-      summary: Update user by ID
-      description: Update user details using their unique ID
+      summary: Update user
+      description: Update user details
       parameters:
-        - name: userId
+        - name: user_id
           in: path
           required: true
           schema:
@@ -89,280 +133,79 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:  
         '200':
           description: User updated successfully
-  
-
-  /users?contactnumber={contactnumber}:
-    get:
-      tags: [Users]
-      summary: Get all user by contact number
-      description: Retrieve all user details using contact number
-      parameters:
-        - name: contactnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '200':
-          description: User details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  
-  /users?productserial={productserial}:
-    get:
-      tags: [Users]
-      summary: Get user by product serial number
-      description: Retrieve user details associated with a specific product serial number
-      parameters:
-        - name: productserial
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-  
-  /users/{userId}/contacts:
-    get:
-      tags: [Users]
-      summary: Get all contact numbers for user
-      description: Retrieve all contact numbers associated with a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:  
-        '200':
-          description: List of contact numbers
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-
-  /users/{userId}/contact/{contactnumber}:
-    post:
-      tags: [Users]
-      summary: Add contact number to user
-      description: Add a new contact number for a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: contactnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '201':
-          description: Contact number added successfully
 
     delete:
       tags: [Users]
-      summary: Delete contact number from user
-      description: Remove a contact number from a specific user
+      summary: Delete user
+      description: Remove a user from the system
       parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: contactnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '200':
-          description: Contact number deleted successfully
-          
-    put:
-      tags: [Users]
-      summary: Update contact number for user
-      description: Update a contact number for a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: contactnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                newContactNumber:
-                  type: string
-      responses:  
-        '200':
-          description: Contact number updated successfully
-  
-  /users/{userId}/products:
-    get:
-      tags: [Users]
-      summary: Get all products for user
-      description: Retrieve all products associated with a specific user
-      parameters:
-        - name: userId
+        - name: user_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
       responses:  
-        '200':
-          description: List of products for the user
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
-  
-  /users/{userid}/products/{serialnumber}:
-    post:
-      tags: [Users]
-      summary: Add product to user
-      description: Associate a new product with a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: serialnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '201':
-          description: Product added to user successfully
+        '204':
+          description: User deleted successfully
 
-    delete:
-      tags: [Users]
-      summary: Delete product from user
-      description: Remove a product association from a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: serialnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:  
-        '200':
-          description: Product deleted from user successfully
-    
-    put:
-      tags: [Users]
-      summary: Update product for user
-      description: Update a product association for a specific user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: serialnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                newSerialNumber:
-                  type: string
-      responses:  
-        '200':
-          description: Product updated for user successfully
-
+  # ==================== CONTACTS ====================
   /contacts:
     get:
-      tags: [Users]
-      summary: Get all the contacts
-      description: Used for autocomplete and contact lookup
+      tags: [Contacts]
+      summary: Get all contacts
+      description: Retrieve all contacts with optional filtering
       parameters:
-        - name: query
+        - name: contact_number
           in: query
           schema:
             type: string
+          description: Filter by contact number
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by user ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
       responses:  
         '200':
           description: List of contacts
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+                  total:
+                    type: integer
 
-  /products:
+  /contacts/{contact_id}:
     get:
-      tags: [Products]
-      summary: Get all the products list
+      tags: [Contacts]
+      summary: Get contact by ID
       parameters:
-        - name: serialNumber
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Matching products
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
-
-  /products?userId={userId}:
-    get:
-      tags: [Products]
-      summary: Get products by user ID
-      description: Retrieve all products associated with a specific user
-      parameters:
-        - name: userId
+        - name: contact_id
           in: path
           required: true
           schema:
@@ -370,25 +213,172 @@ paths:
             format: uuid
       responses:
         '200':
-          description: List of products for the user
+          description: Contact details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+
+    put:
+      tags: [Contacts]
+      summary: Update contact
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+
+    delete:
+      tags: [Contacts]
+      summary: Delete contact
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Contact deleted successfully
+
+  /users/{user_id}/contacts:
+    get:
+      tags: [Contacts]
+      summary: Get all contacts for user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:  
+        '200':
+          description: List of contacts for the user
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
-  
-  /products?serialNumber={serialNumber}:
-    get:
-      tags: [Products]
-      summary: Get product by serial number
-      description: Retrieve product details using serial number
+                  $ref: '#/components/schemas/Contact'
+
+    post:
+      tags: [Contacts]
+      summary: Add contact to user
       parameters:
-        - name: serialNumber
+        - name: user_id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:  
+        '201':
+          description: Contact added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+
+  # ==================== PRODUCTS ====================
+  /products:
+    get:
+      tags: [Products]
+      summary: Get all products
+      description: Retrieve all products with optional filtering
+      parameters:
+        - name: serial_number
+          in: query
+          schema:
+            type: string
+          description: Filter by serial number
+        - name: brand_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by brand
+        - name: product_type_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by product type
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+
+    post:
+      tags: [Products]
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /products/{product_id}:
+    get:
+      tags: [Products]
+      summary: Get product by ID
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Product details
@@ -396,27 +386,251 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
-  
+
+    put:
+      tags: [Products]
+      summary: Update product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+    delete:
+      tags: [Products]
+      summary: Delete product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Product deleted successfully
+
+  # ==================== USER PRODUCTS ====================
+  /user-products:
+    get:
+      tags: [Products]
+      summary: Get all user products
+      description: Retrieve user products with optional filtering
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by user ID
+        - name: product_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by product ID
+        - name: serial_number
+          in: query
+          schema:
+            type: string
+          description: Filter by serial number
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of user products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserProduct'
+                  total:
+                    type: integer
+
+  /user-products/{user_product_id}:
+    get:
+      tags: [Products]
+      summary: Get user product by ID
+      parameters:
+        - name: user_product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProduct'
+
+    put:
+      tags: [Products]
+      summary: Update user product
+      parameters:
+        - name: user_product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserProductRequest'
+      responses:
+        '200':
+          description: User product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProduct'
+
+    delete:
+      tags: [Products]
+      summary: Delete user product
+      parameters:
+        - name: user_product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User product deleted successfully
+
+  /users/{user_id}/products:
+    get:
+      tags: [Products]
+      summary: Get all products for user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of products for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProduct'
+
+    post:
+      tags: [Products]
+      summary: Add product to user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserProductRequest'
+      responses:
+        '201':
+          description: Product added to user successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProduct'
+
+  # ==================== SERVICE ORDERS ====================
   /service-orders:
     get:
       tags: [Service Orders]
       summary: Get all service orders
+      description: Retrieve all service orders with optional filtering
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, IN_PROGRESS, COMPLETED, ON_HOLD]
+          description: Filter by status
+        - name: priority_level
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Filter by priority level
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by user (product owner)
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
       responses:
         '200':
           description: List of service orders
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceOrder'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceOrder'
+                  total:
+                    type: integer
+
     post:
       tags: [Service Orders]
-      summary: Create a service order
-      description: >
-        Creates a service order.
-        Automatically creates user and product if they do not exist
-        and initializes the service status timeline.
+      summary: Create service order
+      description: Create a new service order
       requestBody:
         required: true
         content:
@@ -425,36 +639,23 @@ paths:
               $ref: '#/components/schemas/CreateServiceOrderRequest'
       responses:
         '201':
-          description: Service order created
+          description: Service order created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceOrder'
 
-  /service-orders/activelist:
+  /service-orders/{service_order_id}:
     get:
       tags: [Service Orders]
-      summary: Get all active service orders
-      responses:
-        '200':
-          description: List of active service orders
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceOrder'
-
-  /service-orders/{tagnumber}:
-    get:
-      tags: [Service Orders]
-      summary: Get service order by tag number
+      summary: Get service order by ID
       parameters:
-        - name: tagnumber
+        - name: service_order_id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '200':
           description: Service order details
@@ -462,52 +663,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceOrder'
-    
-    delete:
-      tags: [Service Orders]
-      summary: Delete service order by tag number
-      parameters:
-        - name: tagnumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Service order deleted successfully 
+        '404':
+          description: Service order not found
 
     put:
       tags: [Service Orders]
-      summary: Update service order by tag number
+      summary: Update service order
       parameters:
-        - name: tagnumber
+        - name: service_order_id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceOrder'
+              $ref: '#/components/schemas/CreateServiceOrderRequest'
       responses:
         '200':
-          description: Service order updated successfully 
+          description: Service order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
 
-  /service-orders/{tagnumber}/timeline:
-    get:
-      tags: [Service Timeline]
-      summary: Get service timeline for a service order
+    delete:
+      tags: [Service Orders]
+      summary: Delete service order
       parameters:
-        - name: tagnumber
+        - name: service_order_id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
+      responses:
+        '204':
+          description: Service order deleted successfully
+
+  # ==================== SERVICE STATUS ====================
+  /service-orders/{service_order_id}/status-history:
+    get:
+      tags: [Service Timeline]
+      summary: Get service status history
+      description: Retrieve all status updates for a service order (timeline)
+      parameters:
+        - name: service_order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Service timeline details
+          description: Service status history
           content:
             application/json:
               schema:
@@ -517,34 +729,35 @@ paths:
 
     post:
       tags: [Service Timeline]
-      summary: Add status update to service order timeline
+      summary: Add status update to service order
+      description: Create a status update in the service timeline
       parameters:
-        - name: tagnumber
+        - name: service_order_id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceStatus'
+              $ref: '#/components/schemas/CreateServiceStatusRequest'
       responses:
         '201':
           description: Status update added to timeline
-  
-  /service-orders/{tagnumber}/timeline/{statusId}:
-    delete:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatus'
+
+  /service-status/{service_status_id}:
+    get:
       tags: [Service Timeline]
-      summary: Delete status update from service order timeline
+      summary: Get specific status update
       parameters:
-        - name: tagnumber
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: statusId
+        - name: service_status_id
           in: path
           required: true
           schema:
@@ -552,18 +765,17 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Status update deleted from timeline successfully
+          description: Status update details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatus'
 
     put:
       tags: [Service Timeline]
-      summary: Update status update in service order timeline
+      summary: Update status comment
       parameters:
-        - name: tagnumber
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: statusId
+        - name: service_status_id
           in: path
           required: true
           schema:
@@ -574,10 +786,105 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceStatus'
+              $ref: '#/components/schemas/CreateServiceStatusRequest'
       responses:
         '200':
-          description: Status update updated in timeline successfully
+          description: Status update modified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatus'
+
+    delete:
+      tags: [Service Timeline]
+      summary: Delete status update
+      parameters:
+        - name: service_status_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Status update deleted successfully
+
+  # ==================== REFERENCE DATA ====================
+  /statuses:
+    get:
+      tags: [Reference Data]
+      summary: Get all statuses
+      responses:
+        '200':
+          description: List of all service statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+
+  /brands:
+    get:
+      tags: [Reference Data]
+      summary: Get all brands
+      responses:
+        '200':
+          description: List of all brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+
+    post:
+      tags: [Reference Data]
+      summary: Create brand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandRequest'
+      responses:
+        '201':
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+
+  /product-types:
+    get:
+      tags: [Reference Data]
+      summary: Get all product types
+      responses:
+        '200':
+          description: List of all product types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductType'
+
+    post:
+      tags: [Reference Data]
+      summary: Create product type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductTypeRequest'
+      responses:
+        '201':
+          description: Product type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
     
 
 components:
@@ -670,9 +977,13 @@ components:
     Contact:
       type: object
       properties:
+        contact_id:
+          type: string
+          format: uuid
+          description: Unique contact identifier
         contact_number:
           type: string
-          description: Phone number (primary key)
+          description: Phone number
         user_id:
           type: string
           format: uuid
@@ -685,6 +996,25 @@ components:
         updated_at:
           type: string
           format: date-time
+
+    CreateContactRequest:
+      type: object
+      required:
+        - contact_number
+        - user_id
+      properties:
+        contact_number:
+          type: string
+          example: "+91-9876543210"
+        user_id:
+          type: string
+          format: uuid
+
+    UpdateContactRequest:
+      type: object
+      properties:
+        contact_number:
+          type: string
 
     # ==================== BRAND ====================
     Brand:
@@ -859,6 +1189,9 @@ components:
         service_order_id:
           type: string
           format: uuid
+        tag_no:
+          type: string
+          description: Auto-generated order number (YYDDDDD format, e.g., 2600001)
         user_product_id:
           type: string
           format: uuid
