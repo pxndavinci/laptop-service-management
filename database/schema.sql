@@ -13,7 +13,7 @@ CREATE TABLE role (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE user (
+CREATE TABLE user_data (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL UNIQUE,
     role_id UUID NOT NULL,
@@ -21,23 +21,24 @@ CREATE TABLE user (
     address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    CONSTRAINT fk_user_role_id
+    CONSTRAINT fk_user_data_role_id
         FOREIGN KEY (role_id)
         REFERENCES role(role_id)
         ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_user_email ON user(email);
-CREATE INDEX idx_user_role_id ON user(role_id);
+CREATE INDEX idx_user_data_email ON user_data(email);
+CREATE INDEX idx_user_data_role_id ON user_data(role_id);
 
 CREATE TABLE contact (
-    contact_number NOT NULL NUMERIC PRIMARY KEY,
+    contact_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contact_number TEXT NOT NULL,
     user_id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT fk_contact_user_id
         FOREIGN KEY (user_id)
-        REFERENCES user(user_id)
+        REFERENCES user_data(user_id)
         ON DELETE CASCADE
 );
 
@@ -87,7 +88,7 @@ CREATE TABLE user_product (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT fk_user_product_user_id
         FOREIGN KEY (user_id)
-        REFERENCES user(user_id)
+        REFERENCES user_data(user_id)
         ON DELETE CASCADE,
     CONSTRAINT fk_user_product_product_id
         FOREIGN KEY (product_id)
@@ -121,8 +122,35 @@ CREATE TYPE payment_status_type AS ENUM (
     'REFUNDED'
 );
 
+-- Sequence for auto-generating service order numbers (YYDDDDD format)
+CREATE SEQUENCE service_order_seq START 1;
+
+CREATE OR REPLACE FUNCTION generate_service_order_number()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_year TEXT;
+    day_of_year INT;
+    seq_val INT;
+BEGIN
+    current_year := TO_CHAR(CURRENT_DATE, 'YY');
+    day_of_year := EXTRACT(DOY FROM CURRENT_DATE)::INT;
+    seq_val := NEXTVAL('service_order_seq');
+    
+    -- Reset sequence if year changed
+    IF (SELECT EXTRACT(YEAR FROM (SELECT NOW())))::INT > 
+       (SELECT EXTRACT(YEAR FROM (SELECT MAX(created_at) FROM service_order)))::INT THEN
+        PERFORM SETVAL('service_order_seq', 1);
+        seq_val := 1;
+    END IF;
+    
+    NEW.tag_no := current_year || LPAD(day_of_year::TEXT, 5, '0') || LPAD(seq_val::TEXT, 1, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TABLE service_order (
     service_order_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tag_no TEXT UNIQUE,
     user_product_id UUID NOT NULL,
     estimated_price NUMERIC(10, 2) CHECK (estimated_price >= 0),
     final_price NUMERIC(10, 2) CHECK (final_price >= 0),
@@ -142,12 +170,17 @@ CREATE TABLE service_order (
         ON DELETE CASCADE,
     CONSTRAINT fk_service_order_entry_by
         FOREIGN KEY (entry_by)
-        REFERENCES user(user_id)
+        REFERENCES user_data(user_id)
 );
 
 CREATE INDEX idx_service_order_user_product_id ON service_order(user_product_id);
 CREATE INDEX idx_service_order_entry_by ON service_order(entry_by);
 CREATE INDEX idx_service_order_created_at ON service_order(created_at DESC);
+
+CREATE TRIGGER trigger_service_order_number
+BEFORE INSERT ON service_order
+FOR EACH ROW
+EXECUTE FUNCTION generate_service_order_number();
 
 CREATE TABLE status (
     status_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -174,7 +207,7 @@ CREATE TABLE service_status (
         REFERENCES status(status_id),
     CONSTRAINT fk_service_status_assigned_to
         FOREIGN KEY (assigned_to)
-        REFERENCES user(user_id)
+        REFERENCES user_data(user_id)
 );
 
 CREATE INDEX idx_service_status_service_order_id ON service_status(service_order_id);
