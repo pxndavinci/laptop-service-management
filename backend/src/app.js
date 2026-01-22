@@ -38,4 +38,10 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+initialize({
+  app,
+  apiDoc: './api/api-docs.json',
+  paths: './api/paths',
+});
+
 module.exports = app;
