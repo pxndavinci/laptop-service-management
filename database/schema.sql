@@ -17,6 +17,8 @@ CREATE TABLE user (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL UNIQUE,
     role_id UUID NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT fk_user_role_id
@@ -29,11 +31,8 @@ CREATE INDEX idx_user_email ON user(email);
 CREATE INDEX idx_user_role_id ON user(role_id);
 
 CREATE TABLE contact (
-    contact_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    contact_number TEXT NOT NULL,
+    contact_number NOT NULL NUMERIC PRIMARY KEY,
     user_id UUID NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT fk_contact_user_id
@@ -43,7 +42,6 @@ CREATE TABLE contact (
 );
 
 CREATE INDEX idx_contact_user_id ON contact(user_id);
-CREATE INDEX idx_contact_number ON contact(contact_number);
 
 CREATE TABLE brand (
     brand_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -154,7 +152,6 @@ CREATE INDEX idx_service_order_created_at ON service_order(created_at DESC);
 CREATE TABLE status (
     status_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     status_name TEXT NOT NULL UNIQUE,
-    need_approval BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -165,6 +162,7 @@ CREATE TABLE service_status (
     status_id UUID NOT NULL,
     assigned_to UUID NOT NULL,
     comment TEXT,
+    notify_customer BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT fk_service_status_service_order_id
