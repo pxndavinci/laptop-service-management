@@ -584,435 +584,138 @@ components:
 
   schemas:
 
-    # ==================== ROLE ====================
-    Role:
-      type: object
-      properties:
-        role_id:
-          type: string
-          format: uuid
-          description: Unique role identifier
-        role_name:
-          type: string
-          description: Name of the role (e.g., customer, servicer, customer_servicer, b2b_customer)
-        is_servicer:
-          type: boolean
-          default: false
-          description: Whether this role can perform service work
-        is_customer:
-          type: boolean
-          default: false
-          description: Whether this role can be a customer
-        is_business:
-          type: boolean
-          default: false
-          description: Whether this role is a B2B business entity
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    # ==================== USER ====================
     User:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
           format: uuid
-          description: Unique user identifier
-        user_name:
+        userName:
           type: string
-          description: Username (must be unique)
-        email:
-          type: string
-          format: email
-          description: User email address (must be unique)
-        address:
-          type: string
-          description: User's physical address
-        role_id:
-          type: string
-          format: uuid
-          description: Reference to user's role
-        role:
-          $ref: '#/components/schemas/Role'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
 
-    CreateUserRequest:
-      type: object
-      required:
-        - user_name
-        - email
-        - role_id
-      properties:
-        user_name:
-          type: string
-          example: john_doe
-        email:
-          type: string
-          format: email
-          example: john@example.com
-        address:
-          type: string
-          example: "123 Main St, City"
-        role_id:
-          type: string
-          format: uuid
-
-    # ==================== CONTACT ====================
-    Contact:
-      type: object
-      properties:
-        contact_number:
-          type: string
-          description: Phone number (primary key)
-        user_id:
-          type: string
-          format: uuid
-          description: Reference to user
-        user:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    # ==================== BRAND ====================
-    Brand:
-      type: object
-      properties:
-        brand_id:
-          type: string
-          format: uuid
-        brand_name:
-          type: string
-          description: Name of the brand (e.g., Dell, HP, Lenovo)
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    CreateBrandRequest:
-      type: object
-      required:
-        - brand_name
-      properties:
-        brand_name:
-          type: string
-          example: "Dell"
-
-    # ==================== PRODUCT TYPE ====================
-    ProductType:
-      type: object
-      properties:
-        product_type_id:
-          type: string
-          format: uuid
-        type_name:
-          type: string
-          description: Type name (e.g., Laptop, Desktop, Tablet)
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    CreateProductTypeRequest:
-      type: object
-      required:
-        - type_name
-      properties:
-        type_name:
-          type: string
-          example: "Laptop"
-
-    # ==================== PRODUCT ====================
     Product:
       type: object
       properties:
-        product_id:
+        productId:
           type: string
           format: uuid
-        product_name:
+        productName:
           type: string
-          example: "Dell Inspiron 15"
-        description:
-          type: string
-          example: "15-inch laptop with Intel Core i7"
-        brand_id:
+        brandId:
           type: string
           format: uuid
-        brand:
-          $ref: '#/components/schemas/Brand'
-        product_type_id:
-          type: string
-          format: uuid
-        product_type:
-          $ref: '#/components/schemas/ProductType'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    CreateProductRequest:
-      type: object
-      required:
-        - product_name
-        - brand_id
-        - product_type_id
-      properties:
-        product_name:
-          type: string
-        description:
-          type: string
-        brand_id:
-          type: string
-          format: uuid
-        product_type_id:
+        productTypeId:
           type: string
           format: uuid
 
-    # ==================== USER PRODUCT ====================
-    UserProduct:
+    Brand:
       type: object
       properties:
-        user_product_id:
+        brandId:
           type: string
           format: uuid
-        user_id:
+        brandName:
           type: string
-          format: uuid
-        user:
-          $ref: '#/components/schemas/User'
-        product_id:
-          type: string
-          format: uuid
-        product:
-          $ref: '#/components/schemas/Product'
-        serial_number:
-          type: string
-          description: Unique serial number
-        login_password:
-          type: string
-          description: Encrypted password for the device
-        additional_info:
-          type: string
-          description: Extra information (e.g., RAM, Storage specs)
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
 
-    CreateUserProductRequest:
+    ProductType:
       type: object
-      required:
-        - product_id
-        - serial_number
       properties:
-        product_id:
+        productTypeId:
           type: string
           format: uuid
-        serial_number:
-          type: string
-        login_password:
-          type: string
-        additional_info:
+        typeName:
           type: string
 
-    # ==================== STATUS ====================
     Status:
       type: object
       properties:
-        status_id:
+        statusId:
           type: string
           format: uuid
-        status_name:
+        statusName:
           type: string
-          description: Status name (e.g., PENDING, IN_PROGRESS, COMPLETED, ON_HOLD)
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    # ==================== SERVICE ORDER ====================
-    ServiceOrder:
-      type: object
-      properties:
-        service_order_id:
-          type: string
-          format: uuid
-        user_product_id:
-          type: string
-          format: uuid
-        user_product:
-          $ref: '#/components/schemas/UserProduct'
-        estimated_price:
-          type: number
-          format: double
-          description: Estimated repair cost
-        final_price:
-          type: number
-          format: double
-          description: Final repair cost
-        payment_method:
-          type: string
-          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
-          description: Payment method used
-        payment_status:
-          type: string
-          enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
-          description: Payment status
-        priority_level:
-          type: integer
-          minimum: 1
-          maximum: 5
-          default: 3
-          description: Priority level (1=highest, 5=lowest)
-        estimated_completion_date:
-          type: string
-          format: date-time
-        actual_completion_date:
-          type: string
-          format: date-time
-        issue_description:
-          type: string
-          enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
-          description: Type of issue
-        issue_notes:
-          type: string
-          description: Detailed notes about the issue
-        entry_by:
-          type: string
-          format: uuid
-          description: User ID of servicer who created the order
-        entry_user:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
 
     CreateServiceOrderRequest:
       type: object
       required:
-        - user_product_id
-        - issue_description
-        - entry_by
+        - customer
+        - product
+        - issue
       properties:
-        user_product_id:
+        customer:
+          type: object
+          required:
+            - userName
+            - contact
+          properties:
+            userName:
+              type: string
+            contact:
+              type: object
+              required:
+                - email
+                - contactNumber
+              properties:
+                email:
+                  type: string
+                  format: email
+                contactNumber:
+                  type: string
+
+        product:
+          type: object
+          required:
+            - brandId
+            - productTypeId
+            - serialNumber
+          properties:
+            brandId:
+              type: string
+              format: uuid
+            productTypeId:
+              type: string
+              format: uuid
+            serialNumber:
+              type: string
+
+        issue:
+          type: object
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum:
+                - HARDWARE
+                - SOFTWARE
+                - NETWORK
+                - OTHER
+            notes:
+              type: string
+
+    ServiceOrder:
+      type: object
+      properties:
+        serviceOrderId:
           type: string
           format: uuid
-        estimated_price:
-          type: number
-          format: double
-          minimum: 0
-        payment_method:
+        paymentStatus:
           type: string
-          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
-        priority_level:
+        priorityLevel:
           type: integer
-          minimum: 1
-          maximum: 5
-          default: 3
-        estimated_completion_date:
+        createdAt:
           type: string
           format: date-time
-        issue_description:
-          type: string
-          enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
-        issue_notes:
-          type: string
-        entry_by:
-          type: string
-          format: uuid
-          description: Must be a servicer or admin user
 
-    # ==================== SERVICE STATUS ====================
     ServiceStatus:
       type: object
       properties:
-        service_status_id:
-          type: string
-          format: uuid
-        service_order_id:
-          type: string
-          format: uuid
-        service_order:
-          $ref: '#/components/schemas/ServiceOrder'
-        status_id:
-          type: string
-          format: uuid
         status:
-          $ref: '#/components/schemas/Status'
-        assigned_to:
           type: string
-          format: uuid
-          description: User ID of assigned servicer
-        assigned_user:
-          $ref: '#/components/schemas/User'
+        assignedTo:
+          type: string
         comment:
           type: string
-          description: Status update comments
-        notify_customer:
-          type: boolean
-          default: false
-          description: Whether customer should be notified
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    CreateServiceStatusRequest:
-      type: object
-      required:
-        - service_order_id
-        - status_id
-        - assigned_to
-      properties:
-        service_order_id:
-          type: string
-          format: uuid
-        status_id:
-          type: string
-          format: uuid
-        assigned_to:
-          type: string
-          format: uuid
-        comment:
-          type: string
-        notify_customer:
-          type: boolean
-          default: false
-
-    # ==================== ERROR ====================
-    Error:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: object
