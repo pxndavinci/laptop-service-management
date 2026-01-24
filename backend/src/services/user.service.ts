@@ -1,26 +1,21 @@
-import {userRepository} from '../repositories/user.repository';
-
-interface UserQueryParams {
-    search?: string;
-    role_id?: number;
-    page?: number;
-    limit?: number;
-}
+import {userRepo} from '../repo/user.repo';
+import * as UserDTO from '../dtos/user.dto';
 
 export const userService = {
-    async getUsers(params: UserQueryParams) {
+    async getUsers(params: UserDTO.UserQueryParams) {
         const page: number = params.page && params.page > 0 ? params.page : 1;
         const limit: number = params.limit && params.limit > 0 ? params.limit : 10;
         const offset: number = (page - 1) * limit;
 
         const [users, total] = await Promise.all([
-            userRepository.getUsers({
+            userRepo.getUsers({
+                user_id: params.user_id,
                 search: params.search,
                 role_id: params.role_id,
                 limit,
                 offset
             }),
-            userRepository.countUsers({
+            userRepo.countUsers({
                 search: params.search,
                 role_id: params.role_id
             })
@@ -32,7 +27,17 @@ export const userService = {
             limit
         };
     },
-    async createUser(data: { user_name: string; email: string; role_id: number }) {
-        return await userRepository.createUser(data);
+    async createUser(data: UserDTO.CreateUser) {
+        return (await userRepo.createUser(data)).rows[0];
+    },
+    async updateUser(user_id: string, data: UserDTO.UpdateUser) {
+        const result = await userRepo.updateUser(user_id, data)
+        if (result === null) {
+            return "No updates performed or user not found";
+        }
+        return result.rows[0];
+    },
+    async deleteUser(user_id: string) {
+        return await userRepo.deleteUser(user_id);
     }
 }

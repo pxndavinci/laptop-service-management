@@ -20,21 +20,21 @@ router.get('/health', function(req, res, next) {
 
 // Users
 
-router.use('/users', userRouter);
+router.use('/user', userRouter);
 
 // Contacts
-router.use('/contacts', contactRouter);
+router.use('/contact', contactRouter);
 
 // Products
-router.use('/products', productRouter);
+router.use('/product', productRouter);
 
 // Service Orders
-router.use('/service-orders', serviceOrderRouter);
+router.use('/service-order', serviceOrderRouter);
 
 // Service Timelines
-router.use('/service-timelines', servicetimelineRouter);
+router.use('/service-timeline', servicetimelineRouter);
 
 // References
-router.use('/references', referenceRouter);
+router.use('/reference', referenceRouter);
 
 export default router;

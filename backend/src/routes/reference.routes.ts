@@ -15,12 +15,13 @@ router.get('/roles', async (req, res, next) => {
 
 router.post('/roles', async (req, res, next) => {
   const {
+    role_id,
     role_name,
     is_customer = false,
     is_business = false,
     is_servicer = false,
   } = req.body;
-  const result = await referenceService.createRole({role_name, is_customer, is_business, is_servicer});
+  const result = await referenceService.createRole({role_id, role_name, is_customer, is_business, is_servicer});
   return res.status(201).json(result);
 });
 

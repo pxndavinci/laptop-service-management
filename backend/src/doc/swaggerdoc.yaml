@@ -35,8 +35,8 @@ paths:
         - name: role_id
           in: query
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: number
           description: Filter by role ID
         - name: page
           in: query
@@ -907,7 +907,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Role'
+              $ref: '#/components/schemas/CreateRoleRequest'
       responses:
         '201':
           description: Role created
@@ -955,8 +955,8 @@ components:
       type: object
       properties:
         role_id:
-          type: string
-          format: uuid
+          type: integer
+          format: number
           description: Unique role identifier
         role_name:
           type: string
@@ -979,6 +979,26 @@ components:
         updated_at:
           type: string
           format: date-time
+    CreateRoleRequest:
+      type: object
+      required:
+        - role_name
+      properties:
+        role_id:
+          type: integer
+          format: number
+        role_name:
+          type: string
+          example: "servicer"
+        is_servicer:
+          type: boolean
+          example: true
+        is_customer:
+          type: boolean
+          example: false
+        is_business:
+          type: boolean
+          example: false
 
     # ==================== USER ====================
     User:
@@ -998,10 +1018,6 @@ components:
         address:
           type: string
           description: User's physical address
-        role_id:
-          type: string
-          format: uuid
-          description: Reference to user's role
         role:
           $ref: '#/components/schemas/Role'
         created_at:
@@ -1029,8 +1045,8 @@ components:
           type: string
           example: "123 Main St, City"
         role_id:
-          type: string
-          format: uuid
+          type: integer
+          format: number
 
     # ==================== CONTACT ====================
     Contact:
@@ -1043,10 +1059,6 @@ components:
         contact_number:
           type: string
           description: Phone number
-        user_id:
-          type: string
-          format: uuid
-          description: Reference to user
         user:
           $ref: '#/components/schemas/User'
         created_at:
