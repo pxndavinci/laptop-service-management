@@ -8,7 +8,7 @@ import { dirname } from 'path';
 import createDebug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig'; 
-import indexRouter from './routes/index.ts';
+import indexRouter from './route/index.ts';
 import api from './config/openAPIBackend.ts';
 import { errorMiddleware } from './middlewares/error.middleware';
 

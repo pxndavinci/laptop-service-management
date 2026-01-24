@@ -13,7 +13,7 @@ export const userRepo = {
             idx++;
         }
         if (params.user_name) {
-            query += ` AND (user_name ILIKE $${idx}::text OR email ILIKE $${idx}::text)`;
+            query += ` AND user_name ILIKE $${idx}::text`;
             values.push(`%${params.user_name}%`);
             idx++;
         }

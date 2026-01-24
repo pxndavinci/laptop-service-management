@@ -4,7 +4,7 @@ info:
   title: KS Tech Service Management API
   version: 1.0.0
   description: >
-    API for managing users, products, and service orders
+    API for managing users, Product, and service orders
     in a service-center / repair business.
     Designed using API-first principles.
 
@@ -12,26 +12,31 @@ servers:
   - url: http://localhost:3000/api/v1
 
 tags:
-  - name: Users
+  - name: User
   - name: Contacts
-  - name: Products
+  - name: Product
   - name: Service Orders
   - name: Service Timeline
   - name: Reference Data
 
 paths:
   # ==================== USERS ====================
-  /users:
+  /user:
     get:
-      tags: [Users]
+      tags: [User]
       summary: Get all users
       description: Retrieve all users with optional filtering and pagination
       parameters:
-        - name: search
+        - name: user_name
           in: query
           schema:
             type: string
-          description: Search by username or email
+          description: Search by username
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Search by email
         - name: role_id
           in: query
           schema:
@@ -68,7 +73,7 @@ paths:
                     type: integer
 
     post:
-      tags: [Users]
+      tags: [User]
       summary: Create a new user
       description: Add a new user to the system
       requestBody:
@@ -85,41 +90,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
 
-  /users/{user_id}:
-    get:
-      tags: [Users]
-      summary: Get user by ID
-      description: Retrieve a specific user with their contacts and products
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user:
-                    $ref: '#/components/schemas/User'
-                  contacts:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Contact'
-                  products:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UserProduct'
-        '404':
-          description: User not found
-
-    put:
-      tags: [Users]
+    patch:
+      tags: [User]
       summary: Update user
       description: Update user details
       parameters:
@@ -144,7 +116,7 @@ paths:
                 $ref: '#/components/schemas/User'
 
     delete:
-      tags: [Users]
+      tags: [User]
       summary: Delete user
       description: Remove a user from the system
       parameters:
@@ -159,9 +131,9 @@ paths:
           description: User deleted successfully
 
   # ==================== CONTACTS ====================
-  /contacts:
+  /contact:
     get:
-      tags: [Contacts]
+      tags: [Contact]
       summary: Get all contacts
       description: Retrieve all contacts with optional filtering
       parameters:
@@ -201,9 +173,9 @@ paths:
                   total:
                     type: integer
 
-  /contacts/{contact_id}:
+  /contact/{contact_id}:
     get:
-      tags: [Contacts]
+      tags: [Contact]
       summary: Get contact by ID
       parameters:
         - name: contact_id
@@ -220,8 +192,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Contact'
 
-    put:
-      tags: [Contacts]
+    patch:
+      tags: [Contact]
       summary: Update contact
       parameters:
         - name: contact_id
@@ -245,7 +217,7 @@ paths:
                 $ref: '#/components/schemas/Contact'
 
     delete:
-      tags: [Contacts]
+      tags: [Contact]
       summary: Delete contact
       parameters:
         - name: contact_id
@@ -258,9 +230,9 @@ paths:
         '204':
           description: Contact deleted successfully
 
-  /users/{user_id}/contacts:
+  /user/{user_id}/contact:
     get:
-      tags: [Contacts]
+      tags: [Contact]
       summary: Get all contacts for user
       parameters:
         - name: user_id
@@ -280,7 +252,7 @@ paths:
                   $ref: '#/components/schemas/Contact'
 
     post:
-      tags: [Contacts]
+      tags: [Contact]
       summary: Add contact to user
       parameters:
         - name: user_id
@@ -303,12 +275,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Contact'
 
-  # ==================== PRODUCTS ====================
-  /products:
+  # ==================== Product ====================
+  /product:
     get:
-      tags: [Products]
-      summary: Get all products
-      description: Retrieve all products with optional filtering
+      tags: [Product]
+      summary: Get all Product
+      description: Retrieve all Product with optional filtering
       parameters:
         - name: serial_number
           in: query
@@ -339,7 +311,7 @@ paths:
             default: 20
       responses:
         '200':
-          description: List of products
+          description: List of Product
           content:
             application/json:
               schema:
@@ -353,7 +325,7 @@ paths:
                     type: integer
 
     post:
-      tags: [Products]
+      tags: [Product]
       summary: Create product
       requestBody:
         required: true
@@ -369,9 +341,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Product'
 
-  /products/{product_id}:
+  /Product/{product_id}:
     get:
-      tags: [Products]
+      tags: [Product]
       summary: Get product by ID
       parameters:
         - name: product_id
@@ -388,8 +360,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Product'
 
-    put:
-      tags: [Products]
+    patch:
+      tags: [Product]
       summary: Update product
       parameters:
         - name: product_id
@@ -413,7 +385,7 @@ paths:
                 $ref: '#/components/schemas/Product'
 
     delete:
-      tags: [Products]
+      tags: [Product]
       summary: Delete product
       parameters:
         - name: product_id
@@ -426,12 +398,12 @@ paths:
         '204':
           description: Product deleted successfully
 
-  # ==================== USER PRODUCTS ====================
-  /user-products:
+  # ==================== USER Product ====================
+  /user-Product:
     get:
-      tags: [Products]
-      summary: Get all user products
-      description: Retrieve user products with optional filtering
+      tags: [Product]
+      summary: Get all user Product
+      description: Retrieve user Product with optional filtering
       parameters:
         - name: user_id
           in: query
@@ -462,7 +434,7 @@ paths:
             default: 10
       responses:
         '200':
-          description: List of user products
+          description: List of user Product
           content:
             application/json:
               schema:
@@ -475,9 +447,9 @@ paths:
                   total:
                     type: integer
 
-  /user-products/{user_product_id}:
+  /user-Product/{user_product_id}:
     get:
-      tags: [Products]
+      tags: [Product]
       summary: Get user product by ID
       parameters:
         - name: user_product_id
@@ -494,8 +466,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProduct'
 
-    put:
-      tags: [Products]
+    patch:
+      tags: [Product]
       summary: Update user product
       parameters:
         - name: user_product_id
@@ -519,7 +491,7 @@ paths:
                 $ref: '#/components/schemas/UserProduct'
 
     delete:
-      tags: [Products]
+      tags: [Product]
       summary: Delete user product
       parameters:
         - name: user_product_id
@@ -532,10 +504,10 @@ paths:
         '204':
           description: User product deleted successfully
 
-  /users/{user_id}/products:
+  /User/{user_id}/Product:
     get:
-      tags: [Products]
-      summary: Get all products for user
+      tags: [Product]
+      summary: Get all Product for user
       parameters:
         - name: user_id
           in: path
@@ -545,7 +517,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: List of products for the user
+          description: List of Product for the user
           content:
             application/json:
               schema:
@@ -554,7 +526,7 @@ paths:
                   $ref: '#/components/schemas/UserProduct'
 
     post:
-      tags: [Products]
+      tags: [Product]
       summary: Add product to user
       parameters:
         - name: user_id
@@ -667,7 +639,7 @@ paths:
         '404':
           description: Service order not found
 
-    put:
+    patch:
       tags: [Service Orders]
       summary: Update service order
       parameters:
@@ -772,7 +744,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceStatus'
 
-    put:
+    patch:
       tags: [Service Timeline]
       summary: Update status comment
       parameters:
@@ -928,7 +900,7 @@ paths:
       responses:
         '204':
           description: Role deleted successfully
-    put:
+    patch:
       tags: [Reference Data]
       summary: Update role
       requestBody:
