@@ -1,4 +1,4 @@
-import createError from 'http-errors';
+import 'express-async-errors';
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -10,6 +10,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig'; 
 import indexRouter from './routes/index.ts';
 import api from './config/openAPIBackend.ts';
+import { errorMiddleware } from './middlewares/error.middleware';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,10 +34,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', indexRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+app.use(errorMiddleware);
 
 // Server initialization
 const port: number = parseInt(process.env.PORT || '3000', 10);

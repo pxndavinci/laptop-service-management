@@ -1,6 +1,6 @@
 import express from 'express';
 import { Router } from 'express';
-import indexRouter from './user.routes';
+import userRouter from './user.routes';
 import contactRouter from './contact.routes';
 import productRouter from './product.routes';
 import serviceOrderRouter from './service-order.routes';
@@ -20,39 +20,21 @@ router.get('/health', function(req, res, next) {
 
 // Users
 
-router.get('/users', function(req, res, next) {
-  router.use('/users', indexRouter);
-  next();
-});
+router.use('/users', userRouter);
 
 // Contacts
-router.get('/contacts', function(req, res, next) {
-  router.use('/contacts', contactRouter);
-  next();
-});
+router.use('/contacts', contactRouter);
 
 // Products
-router.get('/products', function(req, res, next) {
-  router.use('/products', productRouter);
-  next();
-});
+router.use('/products', productRouter);
 
 // Service Orders
-router.get('/service-orders', function(req, res, next) {
-  router.use('/service-orders', serviceOrderRouter);
-  next();
-});
+router.use('/service-orders', serviceOrderRouter);
 
 // Service Timelines
-router.get('/service-timelines', function(req, res, next) {
-  router.use('/service-timelines', servicetimelineRouter);
-  next();
-});
+router.use('/service-timelines', servicetimelineRouter);
 
 // References
-router.get('/references', function(req, res, next) {
-  router.use('/references', referenceRouter);
-  next();
-});
+router.use('/references', referenceRouter);
 
 export default router;

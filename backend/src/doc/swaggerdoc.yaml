@@ -811,7 +811,7 @@ paths:
           description: Status update deleted successfully
 
   # ==================== REFERENCE DATA ====================
-  /statuses:
+  /references/status:
     get:
       tags: [Reference Data]
       summary: Get all statuses
@@ -825,7 +825,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Status'
 
-  /brands:
+  /references/brands:
     get:
       tags: [Reference Data]
       summary: Get all brands
@@ -856,7 +856,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Brand'
 
-  /product-types:
+  /references/product-types:
     get:
       tags: [Reference Data]
       summary: Get all product types
@@ -886,6 +886,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductType'
+  /references/roles:
+    get:
+      tags: [Reference Data]
+      summary: Get all roles
+      responses:
+        '200':
+          description: List of all roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      tags: [Reference Data]
+      summary: Create role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    delete:
+      tags: [Reference Data]
+      summary: Delete role
+      parameters:
+        - name: role_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Role deleted successfully
+    put:
+      tags: [Reference Data]
+      summary: Update role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
     
 
 components:
