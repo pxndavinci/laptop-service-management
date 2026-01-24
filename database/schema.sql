@@ -1,10 +1,7 @@
-CREATE DATABASE kstech;
-
-
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE role (
-    role_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    role_id NUMERIC(2) NOT NULL PRIMARY KEY,
     role_name TEXT NOT NULL UNIQUE,
     is_servicer BOOLEAN NOT NULL DEFAULT FALSE,
     is_customer BOOLEAN NOT NULL DEFAULT FALSE,
@@ -16,7 +13,7 @@ CREATE TABLE role (
 CREATE TABLE user_data (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL UNIQUE,
-    role_id UUID NOT NULL,
+    role_id NUMERIC(2) NOT NULL,
     email TEXT NOT NULL UNIQUE,
     address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -54,7 +51,7 @@ CREATE TABLE brand (
 
 CREATE TABLE product_type (
     product_type_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type_name TEXT NOT NULL UNIQUE,
+    product_type_name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
