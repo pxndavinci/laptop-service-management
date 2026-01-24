@@ -1,6 +1,6 @@
 import 'express-async-errors';
 import express, { Router } from 'express';
-import { referenceService } from '../services/reference.service';
+import { referenceService } from '../service/reference.service';
 
 const router: Router = express.Router();
 

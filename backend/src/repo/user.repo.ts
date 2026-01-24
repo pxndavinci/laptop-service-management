@@ -1,8 +1,9 @@
 import db from '../db/index';
-import * as dto from '../dtos/user.dto';
+import * as dto from '../dto/user.dto';
+import { User } from '../model/user.model';
 
 export const userRepo = {
-    async getUsers(params: dto.UserQueryParams) {
+    async getUsers(params: dto.UserQueryParams) : Promise<[User[], number]> {
         let query = `SELECT * FROM user_data WHERE 1=1`;
         let values: any[] = [];
         let idx: number = 1;
@@ -11,9 +12,14 @@ export const userRepo = {
             values.push(params.user_id);
             idx++;
         }
-        if (params.search) {
+        if (params.user_name) {
             query += ` AND (user_name ILIKE $${idx}::text OR email ILIKE $${idx}::text)`;
-            values.push(`%${params.search}%`);
+            values.push(`%${params.user_name}%`);
+            idx++;
+        }
+        if (params.email) {
+            query += ` AND email ILIKE $${idx}::text`;
+            values.push(`%${params.email}%`);
             idx++;
         }
         if (params.role_id !== undefined) {
@@ -27,27 +33,10 @@ export const userRepo = {
         query += ` OFFSET $${idx}::int`;
         values.push(params.offset);
         idx++;
-        return await db.query(query, values);
+        const result = (await db.query(query, values));
+        return [result.rows as User[], result.rowCount ?? 0];
     },
-    async countUsers(params: { search?: string; role_id?: number }) {
-        let query = `SELECT COUNT(*) FROM user_data WHERE 1=1`;
-        let values: any[] = [];
-        let idx: number = 1;
-
-        if (params.search) {
-            query += ` AND (user_name ILIKE $${idx}::text OR email ILIKE $${idx}::text)`;
-            values.push(`%${params.search}%`);
-            idx++;
-        }
-
-        if (params.role_id !== undefined) {
-            query += ` AND role_id = $${idx}::int`;
-            values.push(params.role_id);
-            idx++;
-        }
-        return await db.query(query, values);
-    },
-    async createUser(params: dto.CreateUser) {
+    async createUser(params: dto.CreateUser) : Promise<User> {
         const query = `
             INSERT INTO user_data (user_name, email, address, role_id)
             VALUES ($1::text, $2::text, $3::text, $4::int)
@@ -59,9 +48,10 @@ export const userRepo = {
             params.address,
             params.role_id
         ];
-        return await db.query(query, values);
+        const result: User = (await db.query(query, values)).rows[0];
+        return result;
     },
-    async updateUser(user_id: string, params: dto.UpdateOrDeleteUser) {
+    async updateUser(user_id: string, params: dto.UpdateOrDeleteUser) : Promise<User | null> {
         let query = `UPDATE user_data SET `;
         let values: any[] = [];
         let idx: number = 1;
@@ -97,10 +87,10 @@ export const userRepo = {
 
         query += updates.join(', ') + ` WHERE user_id = $${idx}::string RETURNING *;`;
         values.push(user_id);
-
-        return await db.query(query, values);
+        const result: User = (await db.query(query, values)).rows[0];
+        return result ?? null;
     },
-    async deleteUser(user_id: string, params: dto.UpdateOrDeleteUser) {
+    async deleteUser(user_id: string, params: dto.UpdateOrDeleteUser)  {
         const query = `DELETE FROM user_data WHERE user_id = $1::string;`;
         let values: any[] = [];
         let idx: number = 1;

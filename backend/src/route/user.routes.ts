@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
-import { userService } from '../services/user.service';
-import * as UserDTO from '../dtos/user.dto';
+import { userService } from '../service/user.service';
+import * as UserDTO from '../dto/user.dto';
 
 const router: Router = express.Router();
 

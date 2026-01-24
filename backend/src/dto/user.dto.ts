@@ -1,6 +1,7 @@
 export interface UserQueryParams {
     user_id?: string;
-    search?: string;
+    user_name?: string;
+    email?:string;
     role_id?: number;
     page?: number;
     limit?: number;
