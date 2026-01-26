@@ -24,7 +24,7 @@ export const userService = {
         }
         return result;
     },
-    async deleteUser(user_id: string, data: UserDTO.UpdateOrDeleteUser) {
-        return await userRepo.deleteUser(user_id, data);
+    async deleteUser(user_id: string) {
+        return await userRepo.deleteUser(user_id);
     }
 }

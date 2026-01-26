@@ -1,33 +1,48 @@
 import express, { Router } from 'express';
+import { productService } from '../service/product.service';
+import * as ProductDTO from '../dto/product.dto';
 
 const router: Router = express.Router();
 
-/* GET products listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.get('/', async (req, res, next)  => {    
+  const input: ProductDTO.ProductQueryParams = {
+    product_id: req.query.product_id as string | undefined,
+    product_name: req.query.product_name as string | undefined,
+    brand_id: req.query.brand_id as string | undefined,
+    product_type_id: req.query.product_type_id  as string | undefined,
+    page: req.query.page ? parseInt(req.query.page as string) : undefined,
+    limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+    offset: undefined,
+  }
+  const result = await productService.getProducts(input);
+  res.json(result);
 });
 
-router.post('/', function(req, res, next) {
-  // Logic to create a new product
-  res.status(201).send('Product created');
+router.post('/', async (req, res, next) => {
+  const input: ProductDTO.CreateProduct = {
+    product_name: req.query.product_name as string,
+    brand_id: req.query.brand_id as string,
+    product_type_id: req.query.product_type_id  as string
+  };
+  const result = await productService.createProduct(input);
+  res.status(201).json(result);
 });
 
-router.get('/:product_id', function(req, res, next) {
-  const productId = req.params.product_id;
-  // Logic to get product by ID
-  res.send(`Product details for ID: ${productId}`);
+router.patch('/:product_id', async (req, res, next) => {
+  const input: ProductDTO.UpdateOrDeleteProduct = {
+    product_name: req.query.product_name as string | undefined,
+    brand_id: req.query.brand_id as string | undefined,
+    product_type_id: req.query.product_type_id  as string | undefined
+  };
+  const product_id: string = req.params.product_id;
+  const result = await productService.updateProduct(product_id, input);
+  res.status(200).json(result);
 });
 
-router.put('/:product_id', function(req, res, next) {
-  const productId = req.params.product_id;
-  // Logic to update product by ID
-  res.send(`Product with ID: ${productId} updated`);
-});
-
-router.delete('/:product_id', function(req, res, next) {
-  const productId = req.params.product_id;
-  // Logic to delete product by ID
-  res.send(`Product with ID: ${productId} deleted`);
+router.delete('/:product_id', async (req, res, next) => {
+  const productId: string = req.params.product_id;
+  const result = await productService.deleteProduct(productId);
+  res.status(200).json(result);
 });
 
 export default router;

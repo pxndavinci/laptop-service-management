@@ -4,6 +4,7 @@ export interface ContactQueryParams {
     contact_number?: string;
     page?: number;
     limit?: number;
+    offset?: number;
 }
 
 export interface CreateContact {

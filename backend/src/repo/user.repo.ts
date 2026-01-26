@@ -8,7 +8,7 @@ export const userRepo = {
         let values: any[] = [];
         let idx: number = 1;
         if (params.user_id) {
-            query += ` AND user_id = $${idx}::int`;
+            query += ` AND user_id = $${idx}::uuid`;
             values.push(params.user_id);
             idx++;
         }
@@ -85,40 +85,13 @@ export const userRepo = {
             return null;
         }
 
-        query += updates.join(', ') + ` WHERE user_id = $${idx}::string RETURNING *;`;
+        query += updates.join(', ') + ` WHERE user_id = $${idx}::uuid RETURNING *;`;
         values.push(user_id);
         const result: User = (await db.query(query, values)).rows[0];
         return result ?? null;
     },
-    async deleteUser(user_id: string, params: dto.UpdateOrDeleteUser)  {
-        const query = `DELETE FROM user_data WHERE user_id = $1::string;`;
-        let values: any[] = [];
-        let idx: number = 1;
-
-        if (params.user_name !== undefined) {
-            values.push(` AND user_name = $${idx}::text`);
-            values.push(params.user_name);
-            idx++;
-        }
-
-        if (params.email !== undefined) {
-            values.push(` ANDemail = $${idx}::text`);
-            values.push(params.email);
-            idx++;
-        }
-
-        if (params.address !== undefined) {
-            values.push(` AND address = $${idx}::text`);
-            values.push(params.address);
-            idx++;
-        }
-
-        if (params.role_id !== undefined) {
-            values.push(` AND role_id = $${idx}::int`);
-            values.push(params.role_id);
-            idx++;
-        }
-        
-        return await db.query(query, values);
+    async deleteUser(user_id: string)  {
+        let query = `DELETE FROM user_data WHERE user_id = $1::uuid;`;
+        return await db.query(query, [user_id]);
     }
 };

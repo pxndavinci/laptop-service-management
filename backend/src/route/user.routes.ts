@@ -42,14 +42,8 @@ router.patch('/:user_id', async (req, res, next) => {
 });
 
 router.delete('/:user_id', async (req, res, next) => {
-  const input:UserDTO.UpdateOrDeleteUser = {
-    user_name: req.body.user_name as string | undefined,
-    email: req.body.email as string | undefined,
-    address: req.body.address as string | undefined,
-    role_id: req.body.role_id as number | undefined
-  };
   const userId: string = req.params.user_id;
-  const result = await userService.deleteUser(userId, input);
+  const result = await userService.deleteUser(userId);
   res.status(200).json(result);
 });
 

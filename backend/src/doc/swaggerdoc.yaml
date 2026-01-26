@@ -13,7 +13,7 @@ servers:
 
 tags:
   - name: User
-  - name: Contacts
+  - name: Contact
   - name: Product
   - name: Service Orders
   - name: Service Timeline
@@ -89,7 +89,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-
+  /user/{user_id}:
     patch:
       tags: [User]
       summary: Update user
@@ -126,6 +126,12 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:  
         '204':
           description: User deleted successfully
@@ -172,26 +178,24 @@ paths:
                       $ref: '#/components/schemas/Contact'
                   total:
                     type: integer
-
-  /contact/{contact_id}:
-    get:
+    post:
       tags: [Contact]
-      summary: Get contact by ID
-      parameters:
-        - name: contact_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      summary: Create contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
       responses:
-        '200':
-          description: Contact details
+        '201':
+          description: Contact created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Contact'
 
+  /contact/{contact_id}:
     patch:
       tags: [Contact]
       summary: Update contact
@@ -207,7 +211,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateContactRequest'
+              $ref: '#/components/schemas/UpdateOrDeleteContactRequest'
       responses:
         '200':
           description: Contact updated successfully
@@ -215,7 +219,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Contact'
-
     delete:
       tags: [Contact]
       summary: Delete contact
@@ -226,54 +229,15 @@ paths:
           schema:
             type: string
             format: uuid
-      responses:
-        '204':
-          description: Contact deleted successfully
-
-  /user/{user_id}/contact:
-    get:
-      tags: [Contact]
-      summary: Get all contacts for user
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:  
-        '200':
-          description: List of contacts for the user
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Contact'
-
-    post:
-      tags: [Contact]
-      summary: Add contact to user
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateContactRequest'
-      responses:  
-        '201':
-          description: Contact added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Contact'
+              $ref: '#/components/schemas/UpdateOrDeleteContactRequest'
+      responses:
+        '204':
+          description: Contact deleted successfully
 
   # ==================== Product ====================
   /product:
@@ -783,81 +747,6 @@ paths:
           description: Status update deleted successfully
 
   # ==================== REFERENCE DATA ====================
-  /references/status:
-    get:
-      tags: [Reference Data]
-      summary: Get all statuses
-      responses:
-        '200':
-          description: List of all service statuses
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Status'
-
-  /references/brands:
-    get:
-      tags: [Reference Data]
-      summary: Get all brands
-      responses:
-        '200':
-          description: List of all brands
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Brand'
-
-    post:
-      tags: [Reference Data]
-      summary: Create brand
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateBrandRequest'
-      responses:
-        '201':
-          description: Brand created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Brand'
-
-  /references/product-types:
-    get:
-      tags: [Reference Data]
-      summary: Get all product types
-      responses:
-        '200':
-          description: List of all product types
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProductType'
-
-    post:
-      tags: [Reference Data]
-      summary: Create product type
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateProductTypeRequest'
-      responses:
-        '201':
-          description: Product type created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProductType'
   /references/roles:
     get:
       tags: [Reference Data]
@@ -916,7 +805,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+
+  /references/brands:
+    get:
+      tags: [Reference Data]
+      summary: Get all brands
+      responses:
+        '200':
+          description: List of all brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+
+    post:
+      tags: [Reference Data]
+      summary: Create brand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandRequest'
+      responses:
+        '201':
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
     
+    patch:
+      tags: [Reference Data]
+      summary: Update brand
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandRequest'
+      responses:
+        '201':
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+    delete:
+      tags: [Reference Data]
+      summary: Dalete brand
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandRequest'
+      responses:
+        '201':
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+
+
+
+  /references/product-types:
+    get:
+      tags: [Reference Data]
+      summary: Get all product types
+      responses:
+        '200':
+          description: List of all product types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductType'
+
+    post:
+      tags: [Reference Data]
+      summary: Create product type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductTypeRequest'
+      responses:
+        '201':
+          description: Product type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+    patch:
+      tags: [Reference Data]
+      summary: Create product type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductTypeRequest'
+      responses:
+        '201':
+          description: Product type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+    delete:
+      tags: [Reference Data]
+      summary: Create product type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductTypeRequest'
+      responses:
+        '201':
+          description: Product type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+    
+
+  /references/status:
+    get:
+      tags: [Reference Data]
+      summary: Get all statuses
+      responses:
+        '200':
+          description: List of all service statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+
 
 components:
 
@@ -1053,11 +1084,14 @@ components:
           type: string
           format: uuid
 
-    UpdateContactRequest:
+    UpdateOrDeleteContactRequest:
       type: object
       properties:
         contact_number:
           type: string
+        user_id:
+          type: string
+          format: uuid
 
     # ==================== BRAND ====================
     Brand:
