@@ -14,6 +14,9 @@ export const userService = {
             limit: params.limit
         };
     },
+    async getUserByID(user_id: string) {
+        return await userRepo.getUserByID(user_id);
+    },
     async createUser(data: UserDTO.CreateUser) {
         return await userRepo.createUser(data);
     },

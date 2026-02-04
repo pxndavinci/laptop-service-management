@@ -6,7 +6,6 @@ const router: Router = express.Router();
 
 router.get('/', async (req, res, next)  => {    
   const input: UserDTO.UserQueryParams = {
-    user_id: req.query.user_id as string | undefined,
     user_name: req.query.user_name as string | undefined,
     email: req.query.email as string | undefined,
     role_id: req.query.role_id ? parseInt(req.query.role_id as string) : undefined,
@@ -27,6 +26,12 @@ router.post('/', async (req, res, next) => {
   };
   const result = await userService.createUser(input);
   res.status(201).json(result);
+});
+
+router.get('/:user_id', async(req, res, next) => {
+  const user_id: string = req.params.user_id;
+  const result = await userService.getUserByID(user_id);
+  res.status(200).json(result);
 });
 
 router.patch('/:user_id', async (req, res, next) => {

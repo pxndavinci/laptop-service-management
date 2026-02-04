@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE role (
+CREATE TABLE IF NOT EXISTS role (
     role_id NUMERIC(2) NOT NULL PRIMARY KEY,
     role_name TEXT NOT NULL UNIQUE,
     is_servicer BOOLEAN NOT NULL DEFAULT FALSE,
@@ -10,7 +10,7 @@ CREATE TABLE role (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE user_data (
+CREATE TABLE IF NOT EXISTS user_data (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL UNIQUE,
     role_id NUMERIC(2) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE user_data (
 CREATE INDEX idx_user_data_email ON user_data(email);
 CREATE INDEX idx_user_data_role_id ON user_data(role_id);
 
-CREATE TABLE contact (
+CREATE TABLE IF NOT EXISTS contact (
     contact_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     contact_number TEXT NOT NULL,
     user_id UUID NOT NULL,
@@ -42,21 +42,21 @@ CREATE TABLE contact (
 CREATE INDEX idx_contact_user_id ON contact(user_id);
 CREATE INDEX idx_contact_contact_number ON contact(contact_number);
 
-CREATE TABLE brand (
+CREATE TABLE IF NOT EXISTS brand (
     brand_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     brand_name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE product_type (
+CREATE TABLE IF NOT EXISTS product_type (
     product_type_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     product_type_name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE product (
+CREATE TABLE IF NOT EXISTS product (
     product_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     product_name TEXT NOT NULL,
     description TEXT,
@@ -76,7 +76,7 @@ CREATE INDEX idx_product_product_name ON product(product_name);
 CREATE INDEX idx_product_brand_id ON product(brand_id);
 CREATE INDEX idx_product_product_type_id ON product(product_type_id);
 
-CREATE TABLE user_product (
+CREATE TABLE IF NOT EXISTS user_product (
     user_product_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
     product_id UUID NOT NULL,
@@ -147,7 +147,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TABLE service_order (
+CREATE TABLE IF NOT EXISTS service_order (
     service_order_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     tag_no TEXT UNIQUE,
     user_product_id UUID NOT NULL,
@@ -182,14 +182,14 @@ BEFORE INSERT ON service_order
 FOR EACH ROW
 EXECUTE FUNCTION generate_service_order_number();
 
-CREATE TABLE status (
+CREATE TABLE IF NOT EXISTS status (
     status_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     status_name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE service_status (
+CREATE TABLE IF NOT EXISTS service_status (
     service_status_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     service_order_id UUID NOT NULL,
     status_id UUID NOT NULL,

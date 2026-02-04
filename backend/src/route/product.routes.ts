@@ -6,7 +6,6 @@ const router: Router = express.Router();
 
 router.get('/', async (req, res, next)  => {    
   const input: ProductDTO.ProductQueryParams = {
-    product_id: req.query.product_id as string | undefined,
     product_name: req.query.product_name as string | undefined,
     brand_id: req.query.brand_id as string | undefined,
     product_type_id: req.query.product_type_id  as string | undefined,
@@ -26,6 +25,12 @@ router.post('/', async (req, res, next) => {
   };
   const result = await productService.createProduct(input);
   res.status(201).json(result);
+});
+
+router.get('/:product_id', async(req, res, next) => {
+  const product_id: string = req.params.product_id;
+  const result = await productService.getProductByID(product_id);
+  res.status(200).json(result);
 });
 
 router.patch('/:product_id', async (req, res, next) => {

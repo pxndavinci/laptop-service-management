@@ -7,11 +7,6 @@ export const userRepo = {
         let query = `SELECT * FROM user_data WHERE 1=1`;
         let values: any[] = [];
         let idx: number = 1;
-        if (params.user_id) {
-            query += ` AND user_id = $${idx}::uuid`;
-            values.push(params.user_id);
-            idx++;
-        }
         if (params.user_name) {
             query += ` AND user_name ILIKE $${idx}::text`;
             values.push(`%${params.user_name}%`);
@@ -35,6 +30,13 @@ export const userRepo = {
         idx++;
         const result = (await db.query(query, values));
         return [result.rows as User[], result.rowCount ?? 0];
+    },
+    async getUserByID(user_id: string): Promise<User>{
+        const query = `
+            SELECT * FROM user WHERE user_id = $1::uuid;    
+        `
+        const result = await db.query(query, [user_id]);
+        return result.rows[0];
     },
     async createUser(params: dto.CreateUser) : Promise<User> {
         const query = `

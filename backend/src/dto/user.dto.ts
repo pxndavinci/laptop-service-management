@@ -1,5 +1,4 @@
 export interface UserQueryParams {
-    user_id?: string;
     user_name?: string;
     email?:string;
     role_id?: number;

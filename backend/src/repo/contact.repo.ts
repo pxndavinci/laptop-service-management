@@ -7,11 +7,6 @@ export const contactRepo = {
         let query = `SELECT * FROM contact WHERE 1=1`;
         let values: any[] = [];
         let idx: number = 1;
-        if (params.contact_id) {
-            query += ` AND contact_id ILIKE $${idx}::guid`;
-            values.push(`%${params.contact_id}%`);
-            idx++;
-        }
         if (params.contact_number) {
             query += ` AND contact_number ILIKE $${idx}::text`;
             values.push(`%${params.contact_number}%`);
@@ -44,7 +39,14 @@ export const contactRepo = {
         const result: Contact = (await db.query(query, values)).rows[0];
         return result;
     },
-    async UpdateOrDeleteContact(contact_id: string, params: dto.UpdateOrDeleteContact) : Promise<Contact | null> {
+    async getContactByID(contact_id: string) : Promise<Contact>{
+        const query = `
+        SELECT * FROM contact WHERE contact_id = $1::uuid;
+        `;
+        const result: Contact = (await db.query(query, [contact_id])).rows[0];
+        return result;
+    },
+    async updateContact(contact_id: string, params: dto.UpdateOrDeleteContact) : Promise<Contact | null> {
         console.log("Update contact repo called");
         let query = `UPDATE contact SET `;
         let values: any[] = [];

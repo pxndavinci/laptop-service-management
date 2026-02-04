@@ -8,13 +8,9 @@ import { dirname } from 'path';
 import createDebug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig'; 
-import indexRouter from './route/index.ts';
-import api from './config/openAPIBackend.ts';
+import indexRouter from './route/index';
+import api from './config/openAPIBackend';
 import { errorMiddleware } from './middlewares/error.middleware';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const debug = createDebug('backend:server');
 
 api.init();
 var app = express();

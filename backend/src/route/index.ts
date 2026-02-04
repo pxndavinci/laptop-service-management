@@ -20,19 +20,19 @@ router.get('/health', function(req, res, next) {
 
 // Users
 
-router.use('/user', userRouter);
+router.use('/users', userRouter);
 
 // Contacts
-router.use('/contact', contactRouter);
+router.use('/contacts', contactRouter);
 
 // Products
-router.use('/product', productRouter);
+router.use('/products', productRouter);
 
 // Service Orders
-router.use('/service-order', serviceOrderRouter);
+router.use('/service-orders', serviceOrderRouter);
 
 // Service Timelines
-router.use('/service-timeline', servicetimelineRouter);
+router.use('/service-timelines', servicetimelineRouter);
 
 // References
 router.use('/reference', referenceRouter);

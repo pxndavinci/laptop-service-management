@@ -6,7 +6,6 @@ const router: Router = express.Router();
 
 router.get('/', async (req, res, next)  => {    
   const input: ContactDTO.ContactQueryParams = {
-    contact_id: req.query.contact_id as string | undefined,
     contact_number: req.query.contact_number as string | undefined,
     user_id: req.query.user_id as string | undefined,
     page: req.query.page ? parseInt(req.query.page as string) : undefined,
@@ -26,6 +25,12 @@ router.post('/', async (req, res, next) => {
   res.status(201).json(result);
 });
 
+router.get('/:contact_id', async (req, res, next) => {
+  const contact_id: string = req.params.contact_id;
+  const result = await contactService.getContactByID(contact_id);
+  res.status(200).json(result);
+})
+
 router.patch('/:contact_id', async (req, res, next) => {
   console.log("Patch contact request received");
   const input: ContactDTO.UpdateOrDeleteContact = {
@@ -33,7 +38,7 @@ router.patch('/:contact_id', async (req, res, next) => {
     user_id: req.body.user_id as string | undefined,
   };
   const contact_id: string = req.params.contact_id;
-  const result = await contactService.UpdateOrDeleteContact(contact_id, input);
+  const result = await contactService.updateContact(contact_id, input);
   res.status(200).json(result);
 });
 

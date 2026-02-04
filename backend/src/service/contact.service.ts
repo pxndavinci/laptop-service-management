@@ -17,9 +17,12 @@ export const contactService = {
     async createContact(data: ContactDTO.CreateContact) {
         return await contactRepo.createContact(data);
     },
-    async UpdateOrDeleteContact(contact_id: string, data: ContactDTO.UpdateOrDeleteContact) {
+    async getContactByID(contact_id: string){
+        return await contactRepo.getContactByID(contact_id);
+    },
+    async updateContact(contact_id: string, data: ContactDTO.UpdateOrDeleteContact) {
         console.log("Update contact service called");
-        const result = await contactRepo.UpdateOrDeleteContact(contact_id, data)
+        const result = await contactRepo.updateContact(contact_id, data)
         if (result === null) {
             return "No updates performed or contact not found";
         }
