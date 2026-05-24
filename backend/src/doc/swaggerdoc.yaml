@@ -3,20 +3,20 @@ openapi: 3.0.3
 info:
   title: KS Tech Service Management API
   version: 1.0.0
-  description: >
+  description: 
     API for managing users, Products, and service orders
     in a service-center / repair business.
     Designed using API-first principles.
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:3000
 
 tags:
   - name: Users
   - name: Contacts
   - name: Products
   - name: Service Orders
-  - name: Service Timeline
+  - name: Service Status
   - name: Reference Data
 
 paths:
@@ -27,7 +27,7 @@ paths:
       summary: Get all users
       description: Retrieve all users with optional filtering and pagination
       parameters:
-        - name: user_name
+        - name: userName
           in: query
           schema:
             type: string
@@ -37,7 +37,7 @@ paths:
           schema:
             type: string
           description: Search by email
-        - name: role_id
+        - name: roleId
           in: query
           schema:
             type: integer
@@ -81,7 +81,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUsersRequest'
+              $ref: '#/components/schemas/CreateUser'
       responses:  
         '201':
           description: Users created successfully
@@ -89,13 +89,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Users'
-  /users/{user_id}:
+  /users/{userId}:
     get:
       tags: [Users]
       summary: Get user by ID
       description: Get user by ID
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           required: true
           schema:
@@ -114,7 +114,7 @@ paths:
       summary: Update user
       description: Update user details
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           required: true
           schema:
@@ -125,7 +125,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUsersRequest'
+              $ref: '#/components/schemas/PatchUser'
       responses:  
         '200':
           description: Users updated successfully
@@ -139,18 +139,12 @@ paths:
       summary: Delete user
       description: Remove a user from the system
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUsersRequest'
       responses:  
         '204':
           description: Users deleted successfully
@@ -162,12 +156,12 @@ paths:
       summary: Get all contacts
       description: Retrieve all contacts with optional filtering
       parameters:
-        - name: contact_number
+        - name: contactNumber
           in: query
           schema:
             type: string
           description: Filter by contact number
-        - name: user_id
+        - name: userId
           in: query
           schema:
             type: string
@@ -205,7 +199,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateContactsRequest'
+              $ref: '#/components/schemas/CreateContact'
       responses:
         '201':
           description: Contacts created successfully
@@ -214,13 +208,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Contacts'
 
-  /contacts/{contact_id}:
-    get:
+  /contacts/{contactId}:
+    get: 
       tags: [Contacts]
       summary: Get contact by ID
       description: Get contact by ID
       parameters:
-        - name: contact_id
+        - name: contactId
           in: path
           required: true
           schema:
@@ -237,7 +231,7 @@ paths:
       tags: [Contacts]
       summary: Update contact
       parameters:
-        - name: contact_id
+        - name: contactId
           in: path
           required: true
           schema:
@@ -248,7 +242,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateOrDeleteContactsRequest'
+              $ref: '#/components/schemas/PatchContact'
       responses:
         '200':
           description: Contacts updated successfully
@@ -260,18 +254,12 @@ paths:
       tags: [Contacts]
       summary: Delete contact
       parameters:
-        - name: contact_id
+        - name: contactId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateOrDeleteContactsRequest'
       responses:
         '204':
           description: Contacts deleted successfully
@@ -283,18 +271,18 @@ paths:
       summary: Get all Products
       description: Retrieve all Products with optional filtering
       parameters:
-        - name: serial_number
+        - name: productName
           in: query
           schema:
             type: string
-          description: Filter by serial number
-        - name: brand_id
+          description: Filter by product name
+        - name: brandId
           in: query
           schema:
             type: string
             format: uuid
           description: Filter by brand
-        - name: product_type_id
+        - name: productTypeId
           in: query
           schema:
             type: string
@@ -333,7 +321,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductsRequest'
+              $ref: '#/components/schemas/CreateProduct'
       responses:
         '201':
           description: Products created successfully
@@ -342,12 +330,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Products'
 
-  /products/{product_id}:
+  /products/{productId}:
     get:
       tags: [Products]
       summary: Get product by ID
       parameters:
-        - name: product_id
+        - name: productId
           in: path
           required: true
           schema:
@@ -364,7 +352,7 @@ paths:
       tags: [Products]
       summary: Update product
       parameters:
-        - name: product_id
+        - name: productId
           in: path
           required: true
           schema:
@@ -375,7 +363,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductsRequest'
+              $ref: '#/components/schemas/PatchProduct'
       responses:
         '200':
           description: Products updated successfully
@@ -388,7 +376,7 @@ paths:
       tags: [Products]
       summary: Delete product
       parameters:
-        - name: product_id
+        - name: productId
           in: path
           required: true
           schema:
@@ -405,19 +393,19 @@ paths:
       summary: Get all user Products
       description: Retrieve user Products with optional filtering
       parameters:
-        - name: user_id
+        - name: userId
           in: query
           schema:
             type: string
             format: uuid
           description: Filter by user ID
-        - name: product_id
+        - name: productId
           in: query
           schema:
             type: string
             format: uuid
           description: Filter by product ID
-        - name: serial_number
+        - name: serialNumber
           in: query
           schema:
             type: string
@@ -443,7 +431,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/UsersProducts'
+                      $ref: '#/components/schemas/UserProducts'
                   total:
                     type: integer
     post:
@@ -454,22 +442,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUsersProductsRequest'
+              $ref: '#/components/schemas/CreateUserProduct'
       responses:
-        '200':
-          description: Users product created successfully
+        '201':
+          description: User product created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UsersProducts'
+                $ref: '#/components/schemas/UserProducts'
 
 
-  /user-products/{user_product_id}:
+  /user-products/{userProductId}:
     get:
       tags: [Products]
       summary: Get user product by ID
       parameters:
-        - name: user_product_id
+        - name: userProductId
           in: path
           required: true
           schema:
@@ -481,13 +469,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UsersProducts'
+                $ref: '#/components/schemas/UserProducts'
 
     patch:
       tags: [Products]
       summary: Update user product
       parameters:
-        - name: user_product_id
+        - name: userProductId
           in: path
           required: true
           schema:
@@ -498,20 +486,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUsersProductsRequest'
+              $ref: '#/components/schemas/PatchUserProduct'
       responses:
         '200':
           description: Users product updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UsersProducts'
+                $ref: '#/components/schemas/UserProducts'
 
     delete:
       tags: [Products]
       summary: Delete user product
       parameters:
-        - name: user_product_id
+        - name: userProductId
           in: path
           required: true
           schema:
@@ -528,25 +516,66 @@ paths:
       summary: Get all service orders
       description: Retrieve all service orders with optional filtering
       parameters:
+        - name: tagNo
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 999999
+          description: Filter by tagNo
+        - name: userProductId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by userProductId
+        - name: paymentMethod
+          in: query
+          schema:
+            type: string
+            enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
+          description: Payment method used
+        - name: paymentStatus
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
+          description: Payment status
+        - name: priorityLevel
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+            default: 3
+          description: Priority level (1=highest, 5=lowest)
+        - name: estimatedCompletionDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: actualCompletionDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: issueDescription
+          in: query
+          schema:
+            type: string
+            enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         - name: status
           in: query
           schema:
             type: string
             enum: [PENDING, IN_PROGRESS, COMPLETED, ON_HOLD]
           description: Filter by status
-        - name: priority_level
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 5
-          description: Filter by priority level
-        - name: user_id
+        - name: entryBy
           in: query
           schema:
             type: string
             format: uuid
-          description: Filter by user (product owner)
+          description: Filter by entered by service order person
         - name: page
           in: query
           schema:
@@ -568,7 +597,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ServiceOrder'
+                      $ref: '#/components/schemas/ServiceOrders'
                   total:
                     type: integer
 
@@ -581,21 +610,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateServiceOrderRequest'
+              $ref: '#/components/schemas/CreateServiceOrder'
       responses:
         '201':
           description: Service order created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceOrder'
+                $ref: '#/components/schemas/ServiceOrders'
 
-  /service-orders/{service_order_id}:
+  /service-orders/{serviceOrderId}:
     get:
       tags: [Service Orders]
       summary: Get service order by ID
       parameters:
-        - name: service_order_id
+        - name: serviceOrderId
           in: path
           required: true
           schema:
@@ -607,7 +636,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceOrder'
+                $ref: '#/components/schemas/ServiceOrders'
         '404':
           description: Service order not found
 
@@ -615,7 +644,7 @@ paths:
       tags: [Service Orders]
       summary: Update service order
       parameters:
-        - name: service_order_id
+        - name: serviceOrderId
           in: path
           required: true
           schema:
@@ -626,20 +655,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateServiceOrderRequest'
+              $ref: '#/components/schemas/PatchServiceOrder'
       responses:
         '200':
           description: Service order updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceOrder'
+                $ref: '#/components/schemas/ServiceOrders'
+        '404':
+          description: Service order not found
 
     delete:
       tags: [Service Orders]
       summary: Delete service order
       parameters:
-        - name: service_order_id
+        - name: serviceOrderId
           in: path
           required: true
           schema:
@@ -650,18 +681,41 @@ paths:
           description: Service order deleted successfully
 
   # ==================== SERVICE STATUS ====================
-  /service-orders/{service_order_id}/status-history:
+  /service-status:
     get:
-      tags: [Service Timeline]
+      tags: [Service Status]
       summary: Get service status history
       description: Retrieve all status updates for a service order (timeline)
       parameters:
-        - name: service_order_id
-          in: path
-          required: true
+        - name: serviceOrderId
+          in: query
           schema:
             type: string
             format: uuid
+        - name: statusId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: notifyCustomer
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
       responses:
         '200':
           description: Service status history
@@ -670,39 +724,32 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ServiceStatus'
+                  $ref: '#/components/schemas/ServiceStatuses'
 
     post:
-      tags: [Service Timeline]
+      tags: [Service Status]
       summary: Add status update to service order
       description: Create a status update in the service timeline
-      parameters:
-        - name: service_order_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateServiceStatusRequest'
+              $ref: '#/components/schemas/CreateServiceStatuses'
       responses:
         '201':
           description: Status update added to timeline
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceStatus'
+                $ref: '#/components/schemas/ServiceStatuses'
 
-  /service-status/{service_status_id}:
+  /service-status/{serviceStatusId}:
     get:
-      tags: [Service Timeline]
+      tags: [Service Status]
       summary: Get specific status update
       parameters:
-        - name: service_status_id
+        - name: serviceStatusId
           in: path
           required: true
           schema:
@@ -714,13 +761,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceStatus'
+                $ref: '#/components/schemas/ServiceStatuses'
 
     patch:
-      tags: [Service Timeline]
+      tags: [Service Status]
       summary: Update status comment
       parameters:
-        - name: service_status_id
+        - name: serviceStatusId
           in: path
           required: true
           schema:
@@ -731,20 +778,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateServiceStatusRequest'
+              $ref: '#/components/schemas/PatchServiceStatuses'
       responses:
         '200':
           description: Status update modified successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceStatus'
+                $ref: '#/components/schemas/ServiceStatuses'
 
     delete:
-      tags: [Service Timeline]
+      tags: [Service Status]
       summary: Delete status update
       parameters:
-        - name: service_status_id
+        - name: serviceStatusId
           in: path
           required: true
           schema:
@@ -767,7 +814,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Role'
+                  $ref: '#/components/schemas/Roles'
     post:
       tags: [Reference Data]
       summary: Create role
@@ -776,20 +823,45 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateRoleRequest'
+              $ref: '#/components/schemas/CreateRole'
       responses:
         '201':
           description: Role created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/Roles'
+
+  /references/roles/{roleId}:
+    patch:
+      tags: [Reference Data]
+      summary: Update role
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchRole'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Roles'
     delete:
       tags: [Reference Data]
       summary: Delete role
       parameters:
-        - name: role_id
-          in: query
+        - name: roleId
+          in: path
           required: true
           schema:
             type: string
@@ -797,23 +869,7 @@ paths:
       responses:
         '204':
           description: Role deleted successfully
-    patch:
-      tags: [Reference Data]
-      summary: Update role
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Role'
-      responses:
-        '200':
-          description: Role updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Role'
-
+    
   /references/brands:
     get:
       tags: [Reference Data]
@@ -826,8 +882,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Brand'
-
+                  $ref: '#/components/schemas/Brands'
     post:
       tags: [Reference Data]
       summary: Create brand
@@ -836,47 +891,52 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateBrandRequest'
+              $ref: '#/components/schemas/CreateBrand'
       responses:
         '201':
           description: Brand created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Brand'
-    
+                $ref: '#/components/schemas/Brands'
+
+  /references/brands/{brandId}:
     patch:
       tags: [Reference Data]
       summary: Update brand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateBrandRequest'
+              $ref: '#/components/schemas/PatchBrand'
       responses:
-        '201':
-          description: Brand created
+        '200':
+          description: Brand updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Brand'
+                $ref: '#/components/schemas/Brands'
     delete:
       tags: [Reference Data]
-      summary: Dalete brand
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateBrandRequest'
+      summary: Delete brand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
-        '201':
-          description: Brand created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Brand'
-
-
+        '204':
+          description: Brand deleted successfully
 
   /references/product-types:
     get:
@@ -890,8 +950,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProductsType'
-
+                  $ref: '#/components/schemas/ProductTypes'
     post:
       tags: [Reference Data]
       summary: Create product type
@@ -900,114 +959,190 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductsTypeRequest'
+              $ref: '#/components/schemas/CreateProductType'
       responses:
         '201':
-          description: Products type created
+          description: Product type created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductsType'
+                $ref: '#/components/schemas/ProductTypes'
+
+  /references/product-types/{productTypeId}:
     patch:
       tags: [Reference Data]
-      summary: Create product type
+      summary: Update product type
+      parameters:
+        - name: productTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductsTypeRequest'
+              $ref: '#/components/schemas/PatchProductType'
       responses:
-        '201':
-          description: Products type created
+        '200':
+          description: Product type updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductsType'
+                $ref: '#/components/schemas/ProductTypes'
     delete:
       tags: [Reference Data]
-      summary: Create product type
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateProductsTypeRequest'
+      summary: Delete product type
+      parameters:
+        - name: productTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
-        '201':
-          description: Products type created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProductsType'
-    
+        '204':
+          description: Product type deleted successfully
 
-  /references/status:
+  /references/statuses:
     get:
       tags: [Reference Data]
       summary: Get all statuses
       responses:
         '200':
-          description: List of all service statuses
+          description: List of all statuses
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Status'
+                  $ref: '#/components/schemas/Statuses'
+    post:
+      tags: [Reference Data]
+      summary: Create status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStatus'
+      responses:
+        '201':
+          description: Status created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statuses'
 
+  /references/statuses/{statusId}:
+    patch:
+      tags: [Reference Data]
+      summary: Update status
+      parameters:
+        - name: statusId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchStatus'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statuses'
+    delete:
+      tags: [Reference Data]
+      summary: Delete status
+      parameters:
+        - name: statusId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Status deleted successfully
 
 components:
 
   schemas:
 
     # ==================== ROLE ====================
-    Role:
+    Roles:
       type: object
       properties:
-        role_id:
+        roleId:
           type: integer
           format: number
           description: Unique role identifier
-        role_name:
+        roleName:
           type: string
           description: Name of the role (e.g., customer, servicer, customer_servicer, b2b_customer)
-        is_servicer:
+        isServicer:
           type: boolean
           default: false
           description: Whether this role can perform service work
-        is_customer:
+        isCustomer:
           type: boolean
           default: false
           description: Whether this role can be a customer
-        is_business:
+        isBusiness:
           type: boolean
           default: false
           description: Whether this role is a B2B business entity
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
-    CreateRoleRequest:
+    CreateRole:
       type: object
       required:
-        - role_name
+        - roleName
       properties:
-        role_id:
+        roleId:
           type: integer
           format: number
-        role_name:
+        roleName:
           type: string
           example: "servicer"
-        is_servicer:
+        isServicer:
           type: boolean
           example: true
-        is_customer:
+        isCustomer:
           type: boolean
           example: false
-        is_business:
+        isBusiness:
+          type: boolean
+          example: false
+    PatchRole:
+      type: object
+      properties:
+        roleId:
+          type: integer
+          format: number
+        roleName:
+          type: string
+          example: "servicer"
+        isServicer:
+          type: boolean
+          example: true
+        isCustomer:
+          type: boolean
+          example: false
+        isBusiness:
           type: boolean
           example: false
 
@@ -1015,11 +1150,11 @@ components:
     Users:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
           format: uuid
           description: Unique user identifier
-        user_name:
+        userName:
           type: string
           description: Usersname (must be unique)
         email:
@@ -1030,32 +1165,43 @@ components:
           type: string
           description: Users's physical address
         role:
-          $ref: '#/components/schemas/Role'
-        created_at:
+          $ref: '#/components/schemas/Roles' 
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateUsersRequest:
+    CreateUser:
       type: object
       required:
-        - user_name
+        - userName
         - email
-        - role_id
+        - roleId
       properties:
-        user_name:
+        userName:
           type: string
           example: john_doe
         email:
           type: string
           format: email
           example: john@example.com
-        address:
+        roleId:
+          type: integer
+          format: number
+    
+    PatchUser:
+      type: object
+      properties:
+        userName:
           type: string
-          example: "123 Main St, City"
-        role_id:
+          example: john_doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        roleId:
           type: integer
           format: number
 
@@ -1063,93 +1209,105 @@ components:
     Contacts:
       type: object
       properties:
-        contact_id:
+        contactId:
           type: string
           format: uuid
           description: Unique contact identifier
-        contact_number:
+        contactNumber:
           type: string
           description: Phone number
         user:
           $ref: '#/components/schemas/Users'
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateContactsRequest:
+    CreateContact:
       type: object
       required:
-        - contact_number
-        - user_id
+        - contactNumber
+        - userId
       properties:
-        contact_number:
+        contactNumber:
           type: string
-          example: "+91-9876543210"
-        user_id:
+          example: "9876543210"
+        userId:
           type: string
           format: uuid
 
-    UpdateOrDeleteContactsRequest:
+    PatchContact:
       type: object
       properties:
-        contact_number:
+        contactNumber:
           type: string
-        user_id:
+          example: "9876543210"
+        userId:
           type: string
           format: uuid
 
     # ==================== BRAND ====================
-    Brand:
+    Brands:
       type: object
       properties:
-        brand_id:
+        brandId:
           type: string
           format: uuid
-        brand_name:
+        brandName:
           type: string
           description: Name of the brand (e.g., Dell, HP, Lenovo)
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateBrandRequest:
+    CreateBrand:
       type: object
       required:
-        - brand_name
+        - brandName
       properties:
-        brand_name:
+        brandName:
           type: string
           example: "Dell"
-
-    # ==================== PRODUCT TYPE ====================
-    ProductsType:
+    PatchBrand:
       type: object
       properties:
-        product_type_id:
+        brandName:
+          type: string
+          example: "Dell"
+    # ==================== PRODUCT TYPE ====================
+    ProductTypes:
+      type: object
+      properties:
+        productTypeId:
           type: string
           format: uuid
-        type_name:
+        typeName:
           type: string
           description: Type name (e.g., Laptop, Desktop, Tablet)
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateProductsTypeRequest:
+    CreateProductType:
       type: object
       required:
-        - type_name
+        - typeName
       properties:
-        type_name:
+        typeName:
+          type: string
+          example: "Laptop"
+    PatchProductType:
+      type: object
+      properties:
+        typeName:
           type: string
           example: "Laptop"
 
@@ -1157,270 +1315,335 @@ components:
     Products:
       type: object
       properties:
-        product_id:
+        productId:
           type: string
           format: uuid
-        product_name:
+        productName:
           type: string
           example: "Dell Inspiron 15"
         description:
           type: string
           example: "15-inch laptop with Intel Core i7"
-        brand_id:
-          type: string
-          format: uuid
         brand:
-          $ref: '#/components/schemas/Brand'
-        product_type_id:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/Brands'
         product_type:
-          $ref: '#/components/schemas/ProductsType'
-        created_at:
+          $ref: '#/components/schemas/ProductTypes'
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateProductsRequest:
+    CreateProduct:
       type: object
       required:
-        - product_name
-        - brand_id
-        - product_type_id
+        - productName
+        - brandId
+        - productTypeId
       properties:
-        product_name:
+        productName:
           type: string
         description:
           type: string
-        brand_id:
+        brandId:
           type: string
           format: uuid
-        product_type_id:
+        productTypeId:
           type: string
           format: uuid
-
-    # ==================== USER PRODUCT ====================
-    UsersProducts:
+    PatchProduct:
       type: object
       properties:
-        user_product_id:
+        productName:
+          type: string
+        description:
+          type: string
+        brandId:
           type: string
           format: uuid
-        user_id:
+        productTypeId:
+          type: string
+          format: uuid
+    # ==================== USER PRODUCT ====================
+    UserProducts:
+      type: object
+      properties:
+        userProductId:
           type: string
           format: uuid
         user:
           $ref: '#/components/schemas/Users'
-        product_id:
-          type: string
-          format: uuid
         product:
           $ref: '#/components/schemas/Products'
-        serial_number:
+        serialNumber:
           type: string
           description: Unique serial number
-        login_password:
+        loginPassword:
           type: string
           description: Encrypted password for the device
-        additional_info:
+        additionalInfo:
           type: string
           description: Extra information (e.g., RAM, Storage specs)
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateUsersProductsRequest:
+    CreateUserProduct:
       type: object
       required:
-        - product_id
-        - serial_number
+        - productId
+        - serialNumber
       properties:
-        product_id:
+        userId:
           type: string
           format: uuid
-        serial_number:
+        productId:
           type: string
-        login_password:
+          format: uuid
+        serialNumber:
           type: string
-        additional_info:
+        loginPassword:
+          type: string
+        additionalInfo:
           type: string
 
-    # ==================== STATUS ====================
-    Status:
+    PatchUserProduct:
       type: object
       properties:
-        status_id:
+        productId:
           type: string
           format: uuid
-        status_name:
+        serialNumber:
           type: string
-          description: Status name (e.g., PENDING, IN_PROGRESS, COMPLETED, ON_HOLD)
-        created_at:
+        loginPassword:
           type: string
-          format: date-time
-        updated_at:
+        additionalInfo:
           type: string
-          format: date-time
 
     # ==================== SERVICE ORDER ====================
-    ServiceOrder:
+    ServiceOrders:
       type: object
       properties:
-        service_order_id:
+        serviceOrderId:
           type: string
           format: uuid
-        tag_no:
-          type: string
-          description: Auto-generated order number (YYDDDDD format, e.g., 2600001)
-        user_product_id:
-          type: string
-          format: uuid
-        user_product:
-          $ref: '#/components/schemas/UsersProducts'
-        estimated_price:
+        tagNo:
+          type: number
+          description: Auto-generated order number (YYDDDD format, e.g., 260001)
+        userProduct:
+          $ref: '#/components/schemas/UserProducts'
+        estimatedPrice:
           type: number
           format: double
           description: Estimated repair cost
-        final_price:
+        finalPrice:
           type: number
           format: double
           description: Final repair cost
-        payment_method:
+        paymentMethod:
           type: string
           enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
           description: Payment method used
-        payment_status:
+        paymentStatus:
           type: string
           enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
           description: Payment status
-        priority_level:
+        priorityLevel:
           type: integer
           minimum: 1
           maximum: 5
           default: 3
           description: Priority level (1=highest, 5=lowest)
-        estimated_completion_date:
+        estimatedCompletionDate:
           type: string
           format: date-time
-        actual_completion_date:
+        actualCompletionDate:
           type: string
           format: date-time
-        issue_description:
+        issueDescription:
           type: string
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
           description: Type of issue
-        issue_notes:
+        issueNotes:
           type: string
           description: Detailed notes about the issue
-        entry_by:
-          type: string
-          format: uuid
-          description: Users ID of servicer who created the order
-        entry_user:
+        entryBy:
           $ref: '#/components/schemas/Users'
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateServiceOrderRequest:
+    CreateServiceOrder:
       type: object
       required:
-        - user_product_id
-        - issue_description
-        - entry_by
+        - userProductId
+        - issueDescription
+        - entryBy
       properties:
-        user_product_id:
+        userProductId:
           type: string
           format: uuid
-        estimated_price:
+        estimatedPrice:
           type: number
           format: double
           minimum: 0
-        payment_method:
-          type: string
-          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
-        priority_level:
+        priorityLevel:
           type: integer
           minimum: 1
           maximum: 5
           default: 3
-        estimated_completion_date:
+        estimatedCompletionDate:
           type: string
           format: date-time
-        issue_description:
+        issueDescription:
           type: string
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
-        issue_notes:
+        issueNotes:
           type: string
-        entry_by:
+        entryBy:
           type: string
           format: uuid
           description: Must be a servicer or admin user
 
-    # ==================== SERVICE STATUS ====================
-    ServiceStatus:
+    PatchServiceOrder:
       type: object
       properties:
-        service_status_id:
+        userProductId:
           type: string
           format: uuid
-        service_order_id:
+        estimatedPrice:
+          type: number
+          format: double
+          minimum: 0
+        finalPrice:
+          type: number
+          format: double
+          minimum: 0
+        paymentMethod:
+          type: string
+          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
+        paymentStatus:
+          type: string
+          enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
+        priorityLevel:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 3
+        estimatedCompletionDate:
+          type: string
+          format: date-time
+        issueDescription:
+          type: string
+          enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
+        issueNotes:
+          type: string
+        entryBy:
           type: string
           format: uuid
-        service_order:
-          $ref: '#/components/schemas/ServiceOrder'
-        status_id:
+          description: Must be a servicer or admin user
+
+    # ==================== STATUS ====================
+    Statuses:
+      type: object
+      properties:
+        statusId:
           type: string
           format: uuid
+        statusName:
+          type: string
+          description: Status name (e.g., PENDING, IN_PROGRESS, COMPLETED, ON_HOLD)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateStatus:
+      type: object
+      required:
+        - statusName
+      properties:
+        statusName:
+          type: string
+    PatchStatus:
+      type: object
+      properties:
+        statusName:
+          type: string
+
+
+
+    # ==================== SERVICE STATUS ====================
+    ServiceStatuses:
+      type: object
+      properties:
+        serviceStatusId:
+          type: string
+          format: uuid
+        serviceOrder:
+          $ref: '#/components/schemas/ServiceOrders'
         status:
-          $ref: '#/components/schemas/Status'
-        assigned_to:
-          type: string
-          format: uuid
-          description: Users ID of assigned servicer
-        assigned_user:
+          $ref: '#/components/schemas/Statuses'
+        assignedTo:
           $ref: '#/components/schemas/Users'
         comment:
           type: string
           description: Status update comments
-        notify_customer:
+        notifyCustomer:
           type: boolean
           default: false
           description: Whether customer should be notified
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
 
-    CreateServiceStatusRequest:
+    CreateServiceStatuses:
       type: object
       required:
-        - service_order_id
-        - status_id
-        - assigned_to
+        - serviceOrderId
+        - statusId
+        - assignedTo
       properties:
-        service_order_id:
+        serviceOrderId:
           type: string
           format: uuid
-        status_id:
+        statusId:
           type: string
           format: uuid
-        assigned_to:
+        assignedTo:
           type: string
           format: uuid
         comment:
           type: string
-        notify_customer:
+        notifyCustomer:
+          type: boolean
+          default: false
+    PatchServiceStatuses:
+      type: object
+      properties:
+        serviceOrderId:
+          type: string
+          format: uuid
+        statusId:
+          type: string
+          format: uuid
+        assignedTo:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        notifyCustomer:
           type: boolean
           default: false
 

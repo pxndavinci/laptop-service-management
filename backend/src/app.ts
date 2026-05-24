@@ -3,12 +3,9 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import createDebug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig'; 
-import indexRouter from './route/index';
+import indexRouter from './routes/index';
 import api from './config/openAPIBackend';
 import { errorMiddleware } from './middlewares/error.middleware';
 

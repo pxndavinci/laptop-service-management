@@ -1,0 +1,2582 @@
+openapi: 3.0.3
+info:
+  description: "API for managing users, Products, and service orders in a service-center\
+    \ / repair business. Designed using API-first principles."
+  title: KS Tech Service Management API
+  version: 1.0.0
+servers:
+- url: http://localhost:3000
+tags:
+- name: Users
+- name: Contacts
+- name: Products
+- name: Service Orders
+- name: Service Status
+- name: Reference Data
+paths:
+  /users:
+    get:
+      description: Retrieve all users with optional filtering and pagination
+      operationId: usersGET
+      parameters:
+      - description: Search by username
+        explode: true
+        in: query
+        name: userName
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Search by email
+        explode: true
+        in: query
+        name: email
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by role ID
+        explode: true
+        in: query
+        name: roleId
+        required: false
+        schema:
+          format: number
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_users_get_200_response"
+          description: List of users
+      summary: Get all users
+      tags:
+      - Users
+      x-eov-operation-handler: controllers/UsersController
+    post:
+      description: Add a new user to the system
+      operationId: usersPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUser"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          description: Users created successfully
+      summary: Create a new user
+      tags:
+      - Users
+      x-eov-operation-handler: controllers/UsersController
+  /users/{userId}:
+    delete:
+      description: Remove a user from the system
+      operationId: usersUserIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Users deleted successfully
+      summary: Delete user
+      tags:
+      - Users
+      x-eov-operation-handler: controllers/UsersController
+    get:
+      description: Get user by ID
+      operationId: usersUserIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          description: Got user successfully
+      summary: Get user by ID
+      tags:
+      - Users
+      x-eov-operation-handler: controllers/UsersController
+    patch:
+      description: Update user details
+      operationId: usersUserIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUser"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          description: Users updated successfully
+      summary: Update user
+      tags:
+      - Users
+      x-eov-operation-handler: controllers/UsersController
+  /contacts:
+    get:
+      description: Retrieve all contacts with optional filtering
+      operationId: contactsGET
+      parameters:
+      - description: Filter by contact number
+        explode: true
+        in: query
+        name: contactNumber
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by user ID
+        explode: true
+        in: query
+        name: userId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_contacts_get_200_response"
+          description: List of contacts
+      summary: Get all contacts
+      tags:
+      - Contacts
+      x-eov-operation-handler: controllers/ContactsController
+    post:
+      operationId: contactsPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContact"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contacts"
+          description: Contacts created successfully
+      summary: Create contact
+      tags:
+      - Contacts
+      x-eov-operation-handler: controllers/ContactsController
+  /contacts/{contactId}:
+    delete:
+      operationId: contactsContactIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: contactId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Contacts deleted successfully
+      summary: Delete contact
+      tags:
+      - Contacts
+      x-eov-operation-handler: controllers/ContactsController
+    get:
+      description: Get contact by ID
+      operationId: contactsContactIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: contactId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contacts"
+          description: Got contact successfully
+      summary: Get contact by ID
+      tags:
+      - Contacts
+      x-eov-operation-handler: controllers/ContactsController
+    patch:
+      operationId: contactsContactIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: contactId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchContact"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contacts"
+          description: Contacts updated successfully
+      summary: Update contact
+      tags:
+      - Contacts
+      x-eov-operation-handler: controllers/ContactsController
+  /products:
+    get:
+      description: Retrieve all Products with optional filtering
+      operationId: productsGET
+      parameters:
+      - description: Filter by product name
+        explode: true
+        in: query
+        name: productName
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by brand
+        explode: true
+        in: query
+        name: brandId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - description: Filter by product type
+        explode: true
+        in: query
+        name: productTypeId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_products_get_200_response"
+          description: List of Products
+      summary: Get all Products
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    post:
+      operationId: productsPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProduct"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Products"
+          description: Products created successfully
+      summary: Create product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+  /products/{productId}:
+    delete:
+      operationId: productsProductIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Products deleted successfully
+      summary: Delete product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    get:
+      operationId: productsProductIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Products"
+          description: Got Product successfully
+      summary: Get product by ID
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    patch:
+      operationId: productsProductIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchProduct"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Products"
+          description: Products updated successfully
+      summary: Update product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+  /user-products:
+    get:
+      description: Retrieve user Products with optional filtering
+      operationId: user_productsGET
+      parameters:
+      - description: Filter by user ID
+        explode: true
+        in: query
+        name: userId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - description: Filter by product ID
+        explode: true
+        in: query
+        name: productId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - description: Filter by serial number
+        explode: true
+        in: query
+        name: serialNumber
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_user_products_get_200_response"
+          description: List of user Products
+      summary: Get all user Products
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    post:
+      operationId: user_productsPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserProduct"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProducts"
+          description: Users product created successfully
+      summary: Create user product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+  /user-products/{userProductId}:
+    delete:
+      operationId: user_productsUserProductIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: userProductId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Users product deleted successfully
+      summary: Delete user product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    get:
+      operationId: user_productsUserProductIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: userProductId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProducts"
+          description: Users product details
+      summary: Get user product by ID
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+    patch:
+      operationId: user_productsUserProductIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: userProductId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUserProduct"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProducts"
+          description: Users product updated successfully
+      summary: Update user product
+      tags:
+      - Products
+      x-eov-operation-handler: controllers/ProductsController
+  /service-orders:
+    get:
+      description: Retrieve all service orders with optional filtering
+      operationId: service_ordersGET
+      parameters:
+      - description: Filter by tagNo
+        explode: true
+        in: query
+        name: tagNo
+        required: false
+        schema:
+          maximum: 999999
+          minimum: 0
+          type: integer
+        style: form
+      - description: Filter by userProductId
+        explode: true
+        in: query
+        name: userProductId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - description: Payment method used
+        explode: true
+        in: query
+        name: paymentMethod
+        required: false
+        schema:
+          enum:
+          - CASH
+          - CREDIT_CARD
+          - DEBIT_CARD
+          - ONLINE_PAYMENT
+          - OTHER
+          type: string
+        style: form
+      - description: Payment status
+        explode: true
+        in: query
+        name: paymentStatus
+        required: false
+        schema:
+          enum:
+          - PENDING
+          - COMPLETED
+          - PARTIAL
+          - REFUNDED
+          type: string
+        style: form
+      - description: "Priority level (1=highest, 5=lowest)"
+        explode: true
+        in: query
+        name: priorityLevel
+        required: false
+        schema:
+          default: 3
+          maximum: 5
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: estimatedCompletionDate
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: actualCompletionDate
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: issueDescription
+        required: false
+        schema:
+          enum:
+          - HARDWARE
+          - SOFTWARE
+          - NETWORK
+          - OTHER
+          type: string
+        style: form
+      - description: Filter by status
+        explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          enum:
+          - PENDING
+          - IN_PROGRESS
+          - COMPLETED
+          - ON_HOLD
+          type: string
+        style: form
+      - description: Filter by entered by service order person
+        explode: true
+        in: query
+        name: entryBy
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_service_orders_get_200_response"
+          description: List of service orders
+      summary: Get all service orders
+      tags:
+      - Service Orders
+      x-eov-operation-handler: controllers/ServiceOrdersController
+    post:
+      description: Create a new service order
+      operationId: service_ordersPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceOrder"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrders"
+          description: Service order created successfully
+      summary: Create service order
+      tags:
+      - Service Orders
+      x-eov-operation-handler: controllers/ServiceOrdersController
+  /service-orders/{serviceOrderId}:
+    delete:
+      operationId: service_ordersServiceOrderIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: serviceOrderId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Service order deleted successfully
+      summary: Delete service order
+      tags:
+      - Service Orders
+      x-eov-operation-handler: controllers/ServiceOrdersController
+    get:
+      operationId: service_ordersServiceOrderIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: serviceOrderId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrders"
+          description: Service order details
+        "404":
+          description: Service order not found
+      summary: Get service order by ID
+      tags:
+      - Service Orders
+      x-eov-operation-handler: controllers/ServiceOrdersController
+    patch:
+      operationId: service_ordersServiceOrderIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: serviceOrderId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrders"
+          description: Service order updated successfully
+        "404":
+          description: Service order not found
+      summary: Update service order
+      tags:
+      - Service Orders
+      x-eov-operation-handler: controllers/ServiceOrdersController
+  /service-status:
+    get:
+      description: Retrieve all status updates for a service order (timeline)
+      operationId: service_statusGET
+      parameters:
+      - explode: true
+        in: query
+        name: serviceOrderId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: statusId
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: assignedTo
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: notifyCustomer
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ServiceStatuses"
+                type: array
+          description: Service status history
+      summary: Get service status history
+      tags:
+      - Service Status
+      x-eov-operation-handler: controllers/ServiceStatusController
+    post:
+      description: Create a status update in the service timeline
+      operationId: service_statusPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceStatuses"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatuses"
+          description: Status update added to timeline
+      summary: Add status update to service order
+      tags:
+      - Service Status
+      x-eov-operation-handler: controllers/ServiceStatusController
+  /service-status/{serviceStatusId}:
+    delete:
+      operationId: service_statusServiceStatusIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: serviceStatusId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Status update deleted successfully
+      summary: Delete status update
+      tags:
+      - Service Status
+      x-eov-operation-handler: controllers/ServiceStatusController
+    get:
+      operationId: service_statusServiceStatusIdGET
+      parameters:
+      - explode: false
+        in: path
+        name: serviceStatusId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatuses"
+          description: Status update details
+      summary: Get specific status update
+      tags:
+      - Service Status
+      x-eov-operation-handler: controllers/ServiceStatusController
+    patch:
+      operationId: service_statusServiceStatusIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: serviceStatusId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchServiceStatuses"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatuses"
+          description: Status update modified successfully
+      summary: Update status comment
+      tags:
+      - Service Status
+      x-eov-operation-handler: controllers/ServiceStatusController
+  /references/roles:
+    get:
+      operationId: referencesRolesGET
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Roles"
+                type: array
+          description: List of all roles
+      summary: Get all roles
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    post:
+      operationId: referencesRolesPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRole"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Roles"
+          description: Role created
+      summary: Create role
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/roles/role-id:
+    delete:
+      operationId: referencesRolesRoleIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: roleId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Role deleted successfully
+      summary: Delete role
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    patch:
+      operationId: referencesRolesRoleIdPATCH
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchRole"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Roles"
+          description: Role updated
+      summary: Update role
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/brands:
+    get:
+      operationId: referencesBrandsGET
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Brands"
+                type: array
+          description: List of all brands
+      summary: Get all brands
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    post:
+      operationId: referencesBrandsPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrand"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brands"
+          description: Brand created
+      summary: Create brand
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/brands/{brandId}:
+    delete:
+      operationId: referencesBrandsBrandIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: brandId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Brand deleted successfully
+      summary: Delete brand
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    patch:
+      operationId: referencesBrandsBrandIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: brandId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrand"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brands"
+          description: Brand updated
+      summary: Update brand
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/product-types:
+    get:
+      operationId: referencesProductTypesGET
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ProductTypes"
+                type: array
+          description: List of all product types
+      summary: Get all product types
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    post:
+      operationId: referencesProductTypesPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductType"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductTypes"
+          description: Product type created
+      summary: Create product type
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/product-types/{productTypeId}:
+    delete:
+      operationId: referencesProductTypesProductTypeIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: productTypeId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Product type deleted successfully
+      summary: Delete product type
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    patch:
+      operationId: referencesProductTypesProductTypeIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: productTypeId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductType"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductTypes"
+          description: Product type updated
+      summary: Update product type
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/statuses:
+    get:
+      operationId: referencesStatusesGET
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Statuses"
+                type: array
+          description: List of all statuses
+      summary: Get all statuses
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    post:
+      operationId: referencesStatusesPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStatus"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Statuses"
+          description: Status created
+      summary: Create status
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+  /references/statuses/{statusId}:
+    delete:
+      operationId: referencesStatusesStatusIdDELETE
+      parameters:
+      - explode: false
+        in: path
+        name: statusId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Status deleted successfully
+      summary: Delete status
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+    patch:
+      operationId: referencesStatusesStatusIdPATCH
+      parameters:
+      - explode: false
+        in: path
+        name: statusId
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStatus"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Statuses"
+          description: Status updated
+      summary: Update status
+      tags:
+      - Reference Data
+      x-eov-operation-handler: controllers/ReferenceDataController
+components:
+  schemas:
+    Roles:
+      example:
+        isCustomer: false
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        roleId: 0
+        isBusiness: false
+        roleName: roleName
+        isServicer: false
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        roleId:
+          description: Unique role identifier
+          format: number
+          type: integer
+        roleName:
+          description: "Name of the role (e.g., customer, servicer, customer_servicer,\
+            \ b2b_customer)"
+          type: string
+        isServicer:
+          default: false
+          description: Whether this role can perform service work
+          type: boolean
+        isCustomer:
+          default: false
+          description: Whether this role can be a customer
+          type: boolean
+        isBusiness:
+          default: false
+          description: Whether this role is a B2B business entity
+          type: boolean
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateRole:
+      example:
+        isCustomer: false
+        roleId: 0
+        isBusiness: false
+        roleName: servicer
+        isServicer: true
+      properties:
+        roleId:
+          format: number
+          type: integer
+        roleName:
+          example: servicer
+          type: string
+        isServicer:
+          example: true
+          type: boolean
+        isCustomer:
+          example: false
+          type: boolean
+        isBusiness:
+          example: false
+          type: boolean
+      required:
+      - roleName
+      type: object
+    PatchRole:
+      example:
+        isCustomer: false
+        roleId: 0
+        isBusiness: false
+        roleName: servicer
+        isServicer: true
+      properties:
+        roleId:
+          format: number
+          type: integer
+        roleName:
+          example: servicer
+          type: string
+        isServicer:
+          example: true
+          type: boolean
+        isCustomer:
+          example: false
+          type: boolean
+        isBusiness:
+          example: false
+          type: boolean
+      type: object
+    Users:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        address: address
+        role:
+          isCustomer: false
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          roleId: 0
+          isBusiness: false
+          roleName: roleName
+          isServicer: false
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        userName: userName
+        userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        email: email
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        userId:
+          description: Unique user identifier
+          format: uuid
+          type: string
+        userName:
+          description: Usersname (must be unique)
+          type: string
+        email:
+          description: Users email address (must be unique)
+          format: email
+          type: string
+        address:
+          description: Users's physical address
+          type: string
+        role:
+          $ref: "#/components/schemas/Roles"
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateUser:
+      example:
+        roleId: 0
+        userName: john_doe
+        email: john@example.com
+      properties:
+        userName:
+          example: john_doe
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        roleId:
+          format: number
+          type: integer
+      required:
+      - email
+      - roleId
+      - userName
+      type: object
+    PatchUser:
+      example:
+        roleId: 0
+        userName: john_doe
+        email: john@example.com
+      properties:
+        userName:
+          example: john_doe
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        roleId:
+          format: number
+          type: integer
+      type: object
+    Contacts:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        contactId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        contactNumber: contactNumber
+        user:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        contactId:
+          description: Unique contact identifier
+          format: uuid
+          type: string
+        contactNumber:
+          description: Phone number
+          type: string
+        user:
+          $ref: "#/components/schemas/Users"
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateContact:
+      example:
+        contactNumber: "9876543210"
+        userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        contactNumber:
+          example: "9876543210"
+          type: string
+        userId:
+          format: uuid
+          type: string
+      required:
+      - contactNumber
+      - userId
+      type: object
+    PatchContact:
+      example:
+        contactNumber: "9876543210"
+        userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        contactNumber:
+          example: "9876543210"
+          type: string
+        userId:
+          format: uuid
+          type: string
+      type: object
+    Brands:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        brandName: brandName
+        brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        brandId:
+          format: uuid
+          type: string
+        brandName:
+          description: "Name of the brand (e.g., Dell, HP, Lenovo)"
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateBrand:
+      example:
+        brandName: Dell
+      properties:
+        brandName:
+          example: Dell
+          type: string
+      required:
+      - brandName
+      type: object
+    PatchBrand:
+      properties:
+        brandName:
+          example: Dell
+          type: string
+      type: object
+    ProductTypes:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        typeName: typeName
+        productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        productTypeId:
+          format: uuid
+          type: string
+        typeName:
+          description: "Type name (e.g., Laptop, Desktop, Tablet)"
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateProductType:
+      example:
+        typeName: Laptop
+      properties:
+        typeName:
+          example: Laptop
+          type: string
+      required:
+      - typeName
+      type: object
+    PatchProductType:
+      properties:
+        typeName:
+          example: Laptop
+          type: string
+      type: object
+    Products:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        product_type:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          typeName: typeName
+          productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        description: 15-inch laptop with Intel Core i7
+        brand:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          brandName: brandName
+          brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        productName: Dell Inspiron 15
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        productId:
+          format: uuid
+          type: string
+        productName:
+          example: Dell Inspiron 15
+          type: string
+        description:
+          example: 15-inch laptop with Intel Core i7
+          type: string
+        brand:
+          $ref: "#/components/schemas/Brands"
+        product_type:
+          $ref: "#/components/schemas/ProductTypes"
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateProduct:
+      example:
+        brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        description: description
+        productName: productName
+        productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        productName:
+          type: string
+        description:
+          type: string
+        brandId:
+          format: uuid
+          type: string
+        productTypeId:
+          format: uuid
+          type: string
+      required:
+      - brandId
+      - productName
+      - productTypeId
+      type: object
+    PatchProduct:
+      example:
+        brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        description: description
+        productName: productName
+        productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        productName:
+          type: string
+        description:
+          type: string
+        brandId:
+          format: uuid
+          type: string
+        productTypeId:
+          format: uuid
+          type: string
+      type: object
+    UserProducts:
+      example:
+        userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        product:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          product_type:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            typeName: typeName
+            productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          description: 15-inch laptop with Intel Core i7
+          brand:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            brandName: brandName
+            brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productName: Dell Inspiron 15
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        serialNumber: serialNumber
+        loginPassword: loginPassword
+        additionalInfo: additionalInfo
+        user:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        userProductId:
+          format: uuid
+          type: string
+        user:
+          $ref: "#/components/schemas/Users"
+        product:
+          $ref: "#/components/schemas/Products"
+        serialNumber:
+          description: Unique serial number
+          type: string
+        loginPassword:
+          description: Encrypted password for the device
+          type: string
+        additionalInfo:
+          description: "Extra information (e.g., RAM, Storage specs)"
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateUserProduct:
+      example:
+        serialNumber: serialNumber
+        productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        loginPassword: loginPassword
+        additionalInfo: additionalInfo
+      properties:
+        productId:
+          format: uuid
+          type: string
+        serialNumber:
+          type: string
+        loginPassword:
+          type: string
+        additionalInfo:
+          type: string
+      required:
+      - productId
+      - serialNumber
+      type: object
+    PatchUserProduct:
+      example:
+        serialNumber: serialNumber
+        productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        loginPassword: loginPassword
+        additionalInfo: additionalInfo
+      properties:
+        productId:
+          format: uuid
+          type: string
+        serialNumber:
+          type: string
+        loginPassword:
+          type: string
+        additionalInfo:
+          type: string
+      type: object
+    ServiceOrders:
+      example:
+        finalPrice: 1.4658129805029452
+        tagNo: 0.8008281904610115
+        userProduct:
+          userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          product:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product_type:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              typeName: typeName
+              productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            description: 15-inch laptop with Intel Core i7
+            brand:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              brandName: brandName
+              brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productName: Dell Inspiron 15
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          serialNumber: serialNumber
+          loginPassword: loginPassword
+          additionalInfo: additionalInfo
+          user:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        entryBy:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        priorityLevel: 3
+        estimatedPrice: 6.027456183070403
+        actualCompletionDate: 2000-01-23T04:56:07.000+00:00
+        paymentMethod: CASH
+        paymentStatus: PENDING
+        issueDescription: HARDWARE
+        issueNotes: issueNotes
+        serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        estimatedCompletionDate: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        serviceOrderId:
+          format: uuid
+          type: string
+        tagNo:
+          description: "Auto-generated order number (YYDDDD format, e.g., 260001)"
+          type: number
+        userProduct:
+          $ref: "#/components/schemas/UserProducts"
+        estimatedPrice:
+          description: Estimated repair cost
+          format: double
+          type: number
+        finalPrice:
+          description: Final repair cost
+          format: double
+          type: number
+        paymentMethod:
+          description: Payment method used
+          enum:
+          - CASH
+          - CREDIT_CARD
+          - DEBIT_CARD
+          - ONLINE_PAYMENT
+          - OTHER
+          type: string
+        paymentStatus:
+          description: Payment status
+          enum:
+          - PENDING
+          - COMPLETED
+          - PARTIAL
+          - REFUNDED
+          type: string
+        priorityLevel:
+          default: 3
+          description: "Priority level (1=highest, 5=lowest)"
+          maximum: 5
+          minimum: 1
+          type: integer
+        estimatedCompletionDate:
+          format: date-time
+          type: string
+        actualCompletionDate:
+          format: date-time
+          type: string
+        issueDescription:
+          description: Type of issue
+          enum:
+          - HARDWARE
+          - SOFTWARE
+          - NETWORK
+          - OTHER
+          type: string
+        issueNotes:
+          description: Detailed notes about the issue
+          type: string
+        entryBy:
+          $ref: "#/components/schemas/Users"
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateServiceOrder:
+      example:
+        userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        priorityLevel: 3
+        estimatedPrice: 0.08008281904610115
+        entryBy: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        issueDescription: HARDWARE
+        issueNotes: issueNotes
+        estimatedCompletionDate: 2000-01-23T04:56:07.000+00:00
+      properties:
+        userProductId:
+          format: uuid
+          type: string
+        estimatedPrice:
+          format: double
+          minimum: 0
+          type: number
+        priorityLevel:
+          default: 3
+          maximum: 5
+          minimum: 1
+          type: integer
+        estimatedCompletionDate:
+          format: date-time
+          type: string
+        issueDescription:
+          enum:
+          - HARDWARE
+          - SOFTWARE
+          - NETWORK
+          - OTHER
+          type: string
+        issueNotes:
+          type: string
+        entryBy:
+          description: Must be a servicer or admin user
+          format: uuid
+          type: string
+      required:
+      - entryBy
+      - issueDescription
+      - userProductId
+      type: object
+    PatchServiceOrder:
+      properties:
+        userProductId:
+          format: uuid
+          type: string
+        estimatedPrice:
+          format: double
+          minimum: 0
+          type: number
+        finalPrice:
+          format: double
+          minimum: 0
+          type: number
+        paymentMethod:
+          enum:
+          - CASH
+          - CREDIT_CARD
+          - DEBIT_CARD
+          - ONLINE_PAYMENT
+          - OTHER
+          type: string
+        paymentStatus:
+          enum:
+          - PENDING
+          - COMPLETED
+          - PARTIAL
+          - REFUNDED
+          type: string
+        priorityLevel:
+          default: 3
+          maximum: 5
+          minimum: 1
+          type: integer
+        estimatedCompletionDate:
+          format: date-time
+          type: string
+        issueDescription:
+          enum:
+          - HARDWARE
+          - SOFTWARE
+          - NETWORK
+          - OTHER
+          type: string
+        issueNotes:
+          type: string
+        entryBy:
+          description: Must be a servicer or admin user
+          format: uuid
+          type: string
+      type: object
+    Statuses:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        statusId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        statusName: statusName
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        statusId:
+          format: uuid
+          type: string
+        statusName:
+          description: "Status name (e.g., PENDING, IN_PROGRESS, COMPLETED, ON_HOLD)"
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateStatus:
+      example:
+        statusName: statusName
+      properties:
+        statusName:
+          type: string
+      required:
+      - statusName
+      type: object
+    PatchStatus:
+      properties:
+        statusName:
+          type: string
+      type: object
+    ServiceStatuses:
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        serviceStatusId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        notifyCustomer: false
+        serviceOrder:
+          finalPrice: 1.4658129805029452
+          tagNo: 0.8008281904610115
+          userProduct:
+            userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              product_type:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                typeName: typeName
+                productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              description: 15-inch laptop with Intel Core i7
+              brand:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                brandName: brandName
+                brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productName: Dell Inspiron 15
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            serialNumber: serialNumber
+            loginPassword: loginPassword
+            additionalInfo: additionalInfo
+            user:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              address: address
+              role:
+                isCustomer: false
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                roleId: 0
+                isBusiness: false
+                roleName: roleName
+                isServicer: false
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              userName: userName
+              userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              email: email
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          entryBy:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          priorityLevel: 3
+          estimatedPrice: 6.027456183070403
+          actualCompletionDate: 2000-01-23T04:56:07.000+00:00
+          paymentMethod: CASH
+          paymentStatus: PENDING
+          issueDescription: HARDWARE
+          issueNotes: issueNotes
+          serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          estimatedCompletionDate: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        comment: comment
+        assignedTo:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        status:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          statusId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          statusName: statusName
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        serviceStatusId:
+          format: uuid
+          type: string
+        serviceOrder:
+          $ref: "#/components/schemas/ServiceOrders"
+        status:
+          $ref: "#/components/schemas/Statuses"
+        assignedTo:
+          $ref: "#/components/schemas/Users"
+        comment:
+          description: Status update comments
+          type: string
+        notifyCustomer:
+          default: false
+          description: Whether customer should be notified
+          type: boolean
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    CreateServiceStatuses:
+      example:
+        statusId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        notifyCustomer: false
+        comment: comment
+        assignedTo: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        serviceOrderId:
+          format: uuid
+          type: string
+        statusId:
+          format: uuid
+          type: string
+        assignedTo:
+          format: uuid
+          type: string
+        comment:
+          type: string
+        notifyCustomer:
+          default: false
+          type: boolean
+      required:
+      - assignedTo
+      - serviceOrderId
+      - statusId
+      type: object
+    PatchServiceStatuses:
+      example:
+        statusId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        notifyCustomer: false
+        comment: comment
+        assignedTo: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        serviceOrderId:
+          format: uuid
+          type: string
+        statusId:
+          format: uuid
+          type: string
+        assignedTo:
+          format: uuid
+          type: string
+        comment:
+          type: string
+        notifyCustomer:
+          default: false
+          type: boolean
+      type: object
+    Error:
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+      type: object
+    _users_get_200_response:
+      example:
+        total: 6
+        data:
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          address: address
+          role:
+            isCustomer: false
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            roleId: 0
+            isBusiness: false
+            roleName: roleName
+            isServicer: false
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          userName: userName
+          userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          email: email
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        limit: 5
+        page: 1
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/Users"
+          type: array
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      type: object
+    _contacts_get_200_response:
+      example:
+        total: 0
+        data:
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          contactId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          contactNumber: contactNumber
+          user:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          contactId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          contactNumber: contactNumber
+          user:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/Contacts"
+          type: array
+        total:
+          type: integer
+      type: object
+    _products_get_200_response:
+      example:
+        total: 0
+        data:
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          product_type:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            typeName: typeName
+            productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          description: 15-inch laptop with Intel Core i7
+          brand:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            brandName: brandName
+            brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productName: Dell Inspiron 15
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          product_type:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            typeName: typeName
+            productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          description: 15-inch laptop with Intel Core i7
+          brand:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            brandName: brandName
+            brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          productName: Dell Inspiron 15
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/Products"
+          type: array
+        total:
+          type: integer
+      type: object
+    _user_products_get_200_response:
+      example:
+        total: 0
+        data:
+        - userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          product:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product_type:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              typeName: typeName
+              productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            description: 15-inch laptop with Intel Core i7
+            brand:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              brandName: brandName
+              brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productName: Dell Inspiron 15
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          serialNumber: serialNumber
+          loginPassword: loginPassword
+          additionalInfo: additionalInfo
+          user:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          product:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product_type:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              typeName: typeName
+              productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            description: 15-inch laptop with Intel Core i7
+            brand:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              brandName: brandName
+              brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            productName: Dell Inspiron 15
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          serialNumber: serialNumber
+          loginPassword: loginPassword
+          additionalInfo: additionalInfo
+          user:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/UserProducts"
+          type: array
+        total:
+          type: integer
+      type: object
+    _service_orders_get_200_response:
+      example:
+        total: 5
+        data:
+        - finalPrice: 1.4658129805029452
+          tagNo: 0.8008281904610115
+          userProduct:
+            userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              product_type:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                typeName: typeName
+                productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              description: 15-inch laptop with Intel Core i7
+              brand:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                brandName: brandName
+                brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productName: Dell Inspiron 15
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            serialNumber: serialNumber
+            loginPassword: loginPassword
+            additionalInfo: additionalInfo
+            user:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              address: address
+              role:
+                isCustomer: false
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                roleId: 0
+                isBusiness: false
+                roleName: roleName
+                isServicer: false
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              userName: userName
+              userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              email: email
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          entryBy:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          priorityLevel: 3
+          estimatedPrice: 6.027456183070403
+          actualCompletionDate: 2000-01-23T04:56:07.000+00:00
+          paymentMethod: CASH
+          paymentStatus: PENDING
+          issueDescription: HARDWARE
+          issueNotes: issueNotes
+          serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          estimatedCompletionDate: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - finalPrice: 1.4658129805029452
+          tagNo: 0.8008281904610115
+          userProduct:
+            userProductId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            product:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              product_type:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                typeName: typeName
+                productTypeId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              description: 15-inch laptop with Intel Core i7
+              brand:
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                brandName: brandName
+                brandId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              productName: Dell Inspiron 15
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            serialNumber: serialNumber
+            loginPassword: loginPassword
+            additionalInfo: additionalInfo
+            user:
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              address: address
+              role:
+                isCustomer: false
+                createdAt: 2000-01-23T04:56:07.000+00:00
+                roleId: 0
+                isBusiness: false
+                roleName: roleName
+                isServicer: false
+                updatedAt: 2000-01-23T04:56:07.000+00:00
+              userName: userName
+              userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              email: email
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          entryBy:
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            address: address
+            role:
+              isCustomer: false
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              roleId: 0
+              isBusiness: false
+              roleName: roleName
+              isServicer: false
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+            userName: userName
+            userId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            email: email
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          priorityLevel: 3
+          estimatedPrice: 6.027456183070403
+          actualCompletionDate: 2000-01-23T04:56:07.000+00:00
+          paymentMethod: CASH
+          paymentStatus: PENDING
+          issueDescription: HARDWARE
+          issueNotes: issueNotes
+          serviceOrderId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          estimatedCompletionDate: 2000-01-23T04:56:07.000+00:00
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/ServiceOrders"
+          type: array
+        total:
+          type: integer
+      type: object
