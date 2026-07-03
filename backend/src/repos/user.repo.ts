@@ -39,7 +39,7 @@ export const userRepo = {
     },
     async createUser(params: User.CreateUser) : Promise<User.User> {
         const query = `
-            INSERT INTO user_data (userName, email, roleId)
+            INSERT INTO user_data (user_name, email, role_id)
             VALUES ($1::text, $2::text, $3::int)
             RETURNING *;
         `;

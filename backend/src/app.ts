@@ -1,6 +1,7 @@
 import 'express-async-errors';
 import express from 'express';
 import path from 'path';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import swaggerUi from 'swagger-ui-express';
@@ -11,6 +12,12 @@ import { errorMiddleware } from './middlewares/error.middleware';
 
 api.init();
 var app = express();
+
+// CORS
+app.use(cors({
+  origin: "http://localhost:3001",
+  credentials: true
+}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

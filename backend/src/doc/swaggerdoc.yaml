@@ -9,7 +9,7 @@ info:
     Designed using API-first principles.
 
 servers:
-  - url: http://localhost:3000
+  - url: https://localhost:3000
 
 tags:
   - name: Users
@@ -185,7 +185,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  data:
+                  contacts:
                     type: array
                     items:
                       $ref: '#/components/schemas/Contacts'
@@ -680,6 +680,111 @@ paths:
         '204':
           description: Service order deleted successfully
 
+  /service-order-composer/search:
+    get:
+      tags: [Service Orders]
+      operationId: getServiceOrderComposerSearch
+      summary: Search service order composition contexts
+      description: Retrieve relationship-aware customer, product, and device contexts for service order creation.
+      parameters:
+        - name: userName
+          in: query
+          schema:
+            type: string
+          description: Search by customer name
+        - name: contactNumber
+          in: query
+          schema:
+            type: string
+          description: Search by contact number prefix
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Search by email
+        - name: productName
+          in: query
+          schema:
+            type: string
+          description: Search by product name
+        - name: brandName
+          in: query
+          schema:
+            type: string
+          description: Search by brand name
+        - name: productTypeName
+          in: query
+          schema:
+            type: string
+          description: Search by product type name
+        - name: serialNumber
+          in: query
+          schema:
+            type: string
+          description: Search by serial number prefix
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          description: Maximum number of contexts to return
+      responses:
+        '200':
+          description: Search results for service order composition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrderComposerSearchResponse'
+
+  /service-order-composer/submit:
+    post:
+      tags: [Service Orders]
+      operationId: postServiceOrderComposerSubmit
+      summary: Submit composed service order workflow
+      description: Create or reuse existing related entities and persist a new service order in a single transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComposeServiceOrderRequest'
+      responses:
+        '201':
+          description: Composed service order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposeServiceOrderResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Referenced entity not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '409':
+          description: Conflict with existing unique data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
   # ==================== SERVICE STATUS ====================
   /service-status:
     get:
@@ -1077,6 +1182,259 @@ paths:
 components:
 
   schemas:
+
+    ServiceOrderComposerSearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceOrderComposerSearchResult'
+        total:
+          type: integer
+
+    ServiceOrderComposerSearchResult:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/ComposerUser'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComposerContact'
+        product:
+          $ref: '#/components/schemas/ComposerProduct'
+        userProduct:
+          $ref: '#/components/schemas/ComposerUserProduct'
+
+    ComposerUser:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        roleId:
+          type: integer
+          format: number
+
+    ComposerContact:
+      type: object
+      properties:
+        contactId:
+          type: string
+          format: uuid
+        contactNumber:
+          type: string
+
+    ComposerBrand:
+      type: object
+      properties:
+        brandId:
+          type: string
+          format: uuid
+        brandName:
+          type: string
+
+    ComposerProductType:
+      type: object
+      properties:
+        productTypeId:
+          type: string
+          format: uuid
+        productTypeName:
+          type: string
+
+    ComposerProduct:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        description:
+          type: string
+        brand:
+          $ref: '#/components/schemas/ComposerBrand'
+        productType:
+          $ref: '#/components/schemas/ComposerProductType'
+
+    ComposerUserProduct:
+      type: object
+      properties:
+        userProductId:
+          type: string
+          format: uuid
+        serialNumber:
+          type: string
+        loginPassword:
+          type: string
+          nullable: true
+        additionalInfo:
+          type: string
+          nullable: true
+
+    ExistingEntityReferences:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        contactId:
+          type: string
+          format: uuid
+          nullable: true
+        brandId:
+          type: string
+          format: uuid
+          nullable: true
+        productTypeId:
+          type: string
+          format: uuid
+          nullable: true
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        userProductId:
+          type: string
+          format: uuid
+          nullable: true
+
+    ComposeCustomerInput:
+      type: object
+      required:
+        - userName
+        - roleId
+      properties:
+        userName:
+          type: string
+        roleId:
+          type: integer
+          format: number
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+
+    ComposeContactInput:
+      type: object
+      required:
+        - contactNumber
+      properties:
+        contactNumber:
+          type: string
+
+    ComposeProductInput:
+      type: object
+      required:
+        - productName
+        - brandName
+        - productTypeName
+      properties:
+        productName:
+          type: string
+        description:
+          type: string
+        brandName:
+          type: string
+        productTypeName:
+          type: string
+
+    ComposeUserProductInput:
+      type: object
+      required:
+        - serialNumber
+      properties:
+        serialNumber:
+          type: string
+        loginPassword:
+          type: string
+          nullable: true
+        additionalInfo:
+          type: string
+          nullable: true
+
+    ComposeServiceOrderInput:
+      type: object
+      required:
+        - priorityLevel
+        - issueDescription
+        - entryByUserId
+      properties:
+        estimatedPrice:
+          type: number
+        estimatedCompletionDate:
+          type: string
+          format: date-time
+        priorityLevel:
+          type: integer
+          minimum: 1
+          maximum: 5
+        issueDescription:
+          type: string
+          enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
+        issueNotes:
+          type: string
+        entryByUserId:
+          type: string
+          format: uuid
+
+    ComposeServiceOrderRequest:
+      type: object
+      required:
+        - existing
+        - customer
+        - contact
+        - product
+        - userProduct
+        - serviceOrder
+      properties:
+        existing:
+          $ref: '#/components/schemas/ExistingEntityReferences'
+        customer:
+          $ref: '#/components/schemas/ComposeCustomerInput'
+        contact:
+          $ref: '#/components/schemas/ComposeContactInput'
+        product:
+          $ref: '#/components/schemas/ComposeProductInput'
+        userProduct:
+          $ref: '#/components/schemas/ComposeUserProductInput'
+        serviceOrder:
+          $ref: '#/components/schemas/ComposeServiceOrderInput'
+
+    CreatedEntitiesSummary:
+      type: object
+      properties:
+        userCreated:
+          type: boolean
+        contactCreated:
+          type: boolean
+        brandCreated:
+          type: boolean
+        productTypeCreated:
+          type: boolean
+        productCreated:
+          type: boolean
+        userProductCreated:
+          type: boolean
+
+    ComposeServiceOrderResponse:
+      type: object
+      properties:
+        serviceOrder:
+          $ref: '#/components/schemas/ServiceOrders'
+        createdEntities:
+          $ref: '#/components/schemas/CreatedEntitiesSummary'
 
     # ==================== ROLE ====================
     Roles:

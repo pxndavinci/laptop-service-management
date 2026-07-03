@@ -11,6 +11,7 @@ export const referenceService = {
 
   async createRole(data: RoleModel.CreateRole) {
     return await referenceRepo.createRole({
+      roleId: data.roleId,
       roleName: data.roleName,
       isCustomer: data.isCustomer ?? false,
       isBusiness: data.isBusiness ?? false,

@@ -7,13 +7,11 @@ import userProductRouter from './user-product.routes';
 import serviceOrderRouter from './service-order.routes';
 import serviceStatusRouter from './service-status.routes';
 import referenceRouter from './reference.routes';
+import serviceOrderComposerRouter from './service-order-composer.routes';
 
 const router: Router = express.Router();
 
 /* Index */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'KS Technologies' });
-});
 
 router.get('/health', function(req, res, next) {
   res.status(200).send('OK');
@@ -33,6 +31,9 @@ router.use('/user-products', userProductRouter);
 
 // Service Orders
 router.use('/service-orders', serviceOrderRouter);
+
+// Service Order Composer
+router.use('/service-order-composer', serviceOrderComposerRouter);
 
 // Service Status
 router.use('/service-status', serviceStatusRouter);

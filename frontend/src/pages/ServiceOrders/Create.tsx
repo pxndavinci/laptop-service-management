@@ -1,88 +1,88 @@
-import React, { useEffect } from 'react'
-import { Box, Typography, Container, Button } from '@mui/material'
-import BackIcon from '@mui/icons-material/ArrowBack'
+import React from 'react'
+import { Box, Container, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { ServiceOrderForm } from '../../components/ServiceOrderForm'
-import { useCreateServiceOrder } from '../../lib/hooks/useServiceOrders'
-import { useCreateCustomer } from '../../lib/hooks/useCustomers'
 import { ServiceOrderFormData } from '../../lib/schemas/serviceOrderSchema'
 import { useUIStore } from '../../store/uiStore'
 import { useDraftStore } from '../../store/draftStore'
+import { usePostServiceOrderComposerSubmit } from '../../api/service-orders/service-orders'
+import type { ComposeServiceOrderRequest, ComposeServiceOrderInputIssueDescription } from '../../api/model'
 
 const CreateServiceOrder: React.FC = () => {
   const navigate = useNavigate()
-  const createMutation = useCreateServiceOrder()
-  const createCustomerMutation = useCreateCustomer()
+  const createMutation = usePostServiceOrderComposerSubmit()
   const addNotification = useUIStore((state) => state.addNotification)
-  const clearOldDrafts = useDraftStore((state) => state.clearOldDrafts)
-
-  // Clear old drafts on mount
-  useEffect(() => {
-    clearOldDrafts()
-  }, [clearOldDrafts])
 
   const handleSubmit = async (data: ServiceOrderFormData) => {
     try {
-      let customerId = data.customerId
-
-      if (!customerId) {
-        const customer = await createCustomerMutation.mutateAsync({
-          name: data.customerName,
-          phone: data.customerPhone,
-          email: data.customerEmail,
-          address: data.customerAddress,
-          city: data.customerCity,
-          zipCode: data.customerZipCode,
-        })
-        customerId = customer.id
+      const issueMap: Record<string, ComposeServiceOrderInputIssueDescription> = {
+        Hardware: 'HARDWARE',
+        Software: 'SOFTWARE',
+        Network: 'NETWORK',
+        Other: 'OTHER',
       }
 
-      const result = await createMutation.mutateAsync({
-        customerId,
-        productId: data.productId,
-        description: data.description,
-        status: data.status,
-        priority: data.priority,
-        estimatedCompletionDate: data.estimatedCompletionDate,
-        totalCost: data.totalCost,
-        notes: data.notes,
-      })
-      
-      // Remove draft after successful creation
+      const request: ComposeServiceOrderRequest = {
+        existing: {},
+        customer: {
+          userName: data.userName,
+          roleId: Number(data.roleId || 1),
+          email: data.email || undefined,
+          address: data.address || undefined,
+        },
+        contact: {
+          contactNumber: data.contactNumber,
+        },
+        product: {
+          productName: data.productName,
+          description: data.description || undefined,
+          brandName: data.brandName,
+          productTypeName: data.productTypeName,
+        },
+        userProduct: {
+          serialNumber: data.serialNumber,
+          loginPassword: data.loginPassword || null,
+          additionalInfo: data.additionalInfo || null,
+        },
+        serviceOrder: {
+          estimatedPrice: Number(data.estimatedPrice) || 0,
+          estimatedCompletionDate: data.estimatedCompletionDate || undefined,
+          priorityLevel: Number(data.priorityLevel),
+          issueDescription: issueMap[data.issueDescription] ?? 'HARDWARE',
+          issueNotes: data.issueNotes || undefined,
+          entryByUserId: data.entryByUserId,
+        },
+      }
+
+      const result = await createMutation.mutateAsync({ data: request })
+
       const draftStore = useDraftStore.getState()
       const drafts = draftStore.getDraftsForType('service-order')
       drafts.forEach((draft) => draftStore.removeDraft(draft.id))
-      
+
       addNotification('Service order created successfully!', 'success')
-      navigate(`/service-orders/${result.id}`)
+      const serviceOrderId = result.status === 201 ? result.data?.serviceOrder?.serviceOrderId : undefined
+      if (serviceOrderId) {
+        navigate(`/service-orders/${serviceOrderId}`)
+      } else {
+        navigate('/service-orders')
+      }
     } catch (error) {
-      addNotification('Failed to create service order', 'error')
+      const message = error instanceof Error ? error.message : 'Failed to create service order'
+      addNotification(message, 'error')
     }
   }
 
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-          <Button
-            startIcon={<BackIcon />}
-            onClick={() => navigate('/')}
-            variant="text"
-          >
-            Dashboard
-          </Button>
+        <Box sx={{ mb: 4 }}>
           <Typography variant="h2" sx={{ fontWeight: 700 }}>
             New Service Order
           </Typography>
         </Box>
 
-        {/* Form */}
-        <ServiceOrderForm
-          isNew={true}
-          onSubmit={handleSubmit}
-          isLoading={createMutation.isPending || createCustomerMutation.isPending}
-        />
+        <ServiceOrderForm onSubmit={handleSubmit} isLoading={createMutation.isPending} />
       </Box>
     </Container>
   )

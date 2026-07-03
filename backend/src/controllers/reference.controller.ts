@@ -13,6 +13,7 @@ const ReferenceController = {
 
   createRole: async (req: Request, res: Response) => {
     const input: RoleModel.CreateRole = {
+      roleId: req.body.roleId as number,
       roleName: req.body.roleName as string,
       isCustomer: req.body.isCustomer ?? false,
       isBusiness: req.body.isBusiness ?? false,

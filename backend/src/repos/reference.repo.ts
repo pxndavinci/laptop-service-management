@@ -6,19 +6,21 @@ export const referenceRepo = {
     return (await db.query(query)).rows;
   },
 
-  async createRole(data: { roleName: string; isCustomer: boolean; isBusiness: boolean; isServicer: boolean }) {
+  async createRole(data: { roleId: number, roleName: string; isCustomer: boolean; isBusiness: boolean; isServicer: boolean }) {
     const query = `
       INSERT INTO role (
+        role_id,
         role_name,
         is_customer,
         is_business,
         is_servicer
       )
-      VALUES ($1::text, $2::boolean, $3::boolean, $4::boolean)
+      VALUES ($1:: smallint, $2::text, $3::boolean, $4::boolean, $5::boolean)
       RETURNING *;
     `;
 
     const values = [
+      data.roleId,
       data.roleName,
       data.isCustomer,
       data.isBusiness,

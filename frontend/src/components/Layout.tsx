@@ -18,29 +18,20 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import ServiceOrdersIcon from '@mui/icons-material/AssignmentTurnedIn'
-import CustomersIcon from '@mui/icons-material/People'
-import ProductsIcon from '@mui/icons-material/Category'
-import ReportsIcon from '@mui/icons-material/BarChart'
+import LogoIcon from '@mui/icons-material/AssignmentTurnedIn'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
 import ProfileIcon from '@mui/icons-material/AccountCircle'
 import { Link, useLocation } from 'react-router-dom'
+import navItems from '../lib/constants/navItems'
 
-const DRAWER_WIDTH = 272
+const DRAWER_WIDTH = 225
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { label: 'Dashboard', path: '/', icon: DashboardIcon },
-  { label: 'Service Orders', path: '/service-orders', icon: ServiceOrdersIcon },
-  { label: 'Customers', path: '/customers', icon: CustomersIcon },
-  { label: 'Products', path: '/products', icon: ProductsIcon },
-  { label: 'Reports', path: '/reports', icon: ReportsIcon },
-]
+
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -94,11 +85,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Logo */}
         <Box sx={{ px: 2.5, pt: 3, pb: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ bgcolor: 'rgba(255,255,255,0.13)', borderRadius: 2.5, p: 1, display: 'flex' }}>
-            <ServiceOrdersIcon sx={{ fontSize: 25 }} />
+            <LogoIcon sx={{ fontSize: 25 }} />
           </Box>
           <Box>
             <Typography variant="h6" sx={{ color: '#fff', lineHeight: 1.2 }}>
-              Laptop Service
+              KS Tech 
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.66)' }}>
               Repair desk

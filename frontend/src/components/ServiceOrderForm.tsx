@@ -1,19 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   Divider,
-  FormControl,
-  InputLabel,
-  List,
-  ListItemButton,
-  ListItemText,
   MenuItem,
-  Paper,
-  Select,
   Stack,
   TextField,
   Typography,
@@ -21,263 +16,331 @@ import {
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { serviceOrderFormSchema, ServiceOrderFormData } from '../lib/schemas/serviceOrderSchema'
-import { useDraftAutoSave, useLoadDraft } from '../lib/hooks/useDraftAutoSave'
-import { useCustomers } from '../lib/hooks/useCustomers'
-import { useProducts } from '../lib/hooks/useProducts'
-import { useUIStore } from '../store/uiStore'
-import { Customer } from '../types'
+import { useGetServiceOrderComposerSearch } from '../api/service-orders/service-orders'
+import { useGetUsers } from '../api/users/users'
+import { useDebounce } from './Common/debounce'
 
 interface ServiceOrderFormProps {
-  initialData?: Partial<ServiceOrderFormData>
-  isNew?: boolean
+  isLoading: boolean
   onSubmit: (data: ServiceOrderFormData) => Promise<void>
-  isLoading?: boolean
+}
+
+const getDateTimeLocalValue = (value = new Date()) => {
+  const date = new Date(value)
+  const offset = date.getTimezoneOffset()
+  const localDate = new Date(date.getTime() - offset * 60000)
+  return localDate.toISOString().slice(0, 16)
 }
 
 const blankForm: ServiceOrderFormData = {
-  customerId: '',
-  customerName: '',
-  customerPhone: '',
-  customerEmail: '',
-  customerAddress: '',
-  customerCity: '',
-  customerZipCode: '',
-  productId: '',
+  userName: '',
+  roleId: 1,
+  contactNumber: '',
+  email: '',
+  address: '',
+  productName: '',
   description: '',
-  status: 'draft',
-  priority: 'medium',
-  estimatedCompletionDate: '',
-  totalCost: 0,
-  notes: '',
+  brandName: '',
+  productTypeName: '',
+  serialNumber: '',
+  loginPassword: '',
+  additionalInfo: '',
+  estimatedPrice: 0,
+  estimatedCompletionDate: getDateTimeLocalValue(),
+  priorityLevel: '3',
+  issueDescription: 'Hardware',
+  issueNotes: '',
+  entryByUserId: '',
 }
 
 export const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
-  initialData,
-  isNew = true,
-  onSubmit,
   isLoading = false,
+  onSubmit,
 }) => {
-  const [showRecovery, setShowRecovery] = useState(false)
-  const [showMatches, setShowMatches] = useState(false)
-  const addNotification = useUIStore((state) => state.addNotification)
-  const draftId = useMemo(
-    () => `service-order-${isNew ? 'new' : initialData?.orderNumber || 'edit'}`,
-    [initialData?.orderNumber, isNew]
-  )
-  const { draftData, draftExists, removeDraft } = useLoadDraft(draftId, 'service-order')
-  const { data: customers, isLoading: customersLoading } = useCustomers({ limit: 100 })
-  const { data: products, isLoading: productsLoading } = useProducts({ limit: 100 })
-
   const {
     control,
     handleSubmit,
     watch,
     setValue,
-    setError,
-    reset,
     formState: { errors },
   } = useForm<ServiceOrderFormData>({
     resolver: zodResolver(serviceOrderFormSchema),
-    defaultValues: { ...blankForm, ...initialData },
+    defaultValues: blankForm,
   })
 
-  const formData = watch()
-  useDraftAutoSave(formData, {
-    draftId,
-    draftType: 'service-order',
-    debounceMs: 500,
-    enabled: !draftExists || !showRecovery,
+  const liveUserName = watch('userName')
+  const liveContactNumber = watch('contactNumber')
+  const liveEmail = watch('email')
+  const liveProductName = watch('productName')
+  const liveBrandName = watch('brandName')
+  const liveProductTypeName = watch('productTypeName')
+  const liveSerialNumber = watch('serialNumber')
+  const entryByUserId = watch('entryByUserId')
+
+  const debouncedUserName = useDebounce(liveUserName, 350)
+  const debouncedContactNumber = useDebounce(liveContactNumber, 350)
+  const debouncedEmail = useDebounce(liveEmail, 350)
+  const debouncedProductName = useDebounce(liveProductName, 350)
+  const debouncedBrandName = useDebounce(liveBrandName, 350)
+  const debouncedProductTypeName = useDebounce(liveProductTypeName, 350)
+  const debouncedSerialNumber = useDebounce(liveSerialNumber, 350)
+
+  const shouldSearch = Boolean(
+    debouncedUserName.trim() ||
+      debouncedContactNumber.trim() ||
+      debouncedEmail.trim() ||
+      debouncedProductName.trim() ||
+      debouncedBrandName.trim() ||
+      debouncedProductTypeName.trim() ||
+      debouncedSerialNumber.trim(),
+  )
+
+  const { data: searchResponse, isFetching: searchLoading } = useGetServiceOrderComposerSearch(
+    {
+      userName: debouncedUserName || undefined,
+      contactNumber: debouncedContactNumber || undefined,
+      email: debouncedEmail || undefined,
+      productName: debouncedProductName || undefined,
+      brandName: debouncedBrandName || undefined,
+      productTypeName: debouncedProductTypeName || undefined,
+      serialNumber: debouncedSerialNumber || undefined,
+      limit: 6,
+    },
+    {
+      query: {
+        enabled: shouldSearch,
+      },
+    },
+  )
+
+  const searchResults = useMemo(() => searchResponse?.data?.data ?? [], [searchResponse?.data?.data])
+
+  const customerSuggestions = useMemo(
+    () => Array.from(new Set(searchResults.map((result) => result.user?.userName).filter(Boolean))) as string[],
+    [searchResults],
+  )
+
+  const contactSuggestions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          searchResults
+            .flatMap((result) => result.contacts?.map((contact) => contact.contactNumber).filter(Boolean) ?? [])
+            .filter(Boolean),
+        ),
+      ) as string[],
+    [searchResults],
+  )
+
+  const productSuggestions = useMemo(
+    () => Array.from(new Set(searchResults.map((result) => result.product?.productName).filter(Boolean))) as string[],
+    [searchResults],
+  )
+
+  const { data: usersResponse } = useGetUsers(undefined, {
+    query: {
+      enabled: true,
+    },
   })
+  const users = useMemo(() => usersResponse?.data?.data ?? [], [usersResponse?.data?.data])
 
   useEffect(() => {
-    setShowRecovery(draftExists)
-  }, [draftExists])
+    if (!entryByUserId && users.length > 0) {
+      setValue('entryByUserId', users[0].userId ?? '', { shouldValidate: true })
+    }
+  }, [entryByUserId, users, setValue])
 
-  const customerQuery = `${formData.customerName} ${formData.customerPhone}`.trim().toLowerCase()
-  const matchingCustomers = (customers?.data || []).filter((customer) => {
-    if (!customerQuery) return false
-    const searchableText = `${customer.name} ${customer.phone}`.toLowerCase()
-    return customerQuery
-      .split(/\s+/)
-      .every((queryPart) => searchableText.includes(queryPart))
-  })
+  const showNewRecordWarning = useMemo(() => {
+    const hasCustomerInput = Boolean(liveUserName.trim() || liveContactNumber.trim() || liveEmail.trim())
+    const hasProductInput = Boolean(
+      liveProductName.trim() || liveBrandName.trim() || liveProductTypeName.trim() || liveSerialNumber.trim(),
+    )
 
-  const clearSelectedCustomer = () => {
-    setValue('customerId', '')
-    setShowMatches(true)
-  }
-
-  const selectCustomer = (customer: Customer) => {
-    setValue('customerId', customer.id)
-    setValue('customerName', customer.name)
-    setValue('customerPhone', customer.phone)
-    setValue('customerEmail', customer.email || '')
-    setValue('customerAddress', customer.address || '')
-    setValue('customerCity', customer.city || '')
-    setValue('customerZipCode', customer.zipCode || '')
-    setShowMatches(false)
-  }
-
-  const submitOrder = async (data: ServiceOrderFormData) => {
-    if (data.customerId) {
-      await onSubmit(data)
-      return
+    if (!hasCustomerInput && !hasProductInput) {
+      return false
     }
 
-    if (customersLoading) {
-      setError('customerPhone', {
-        type: 'manual',
-        message: 'Please wait while existing customers are checked.',
-      })
-      return
+    if (searchResults.length === 0) {
+      return true
     }
 
-    const normalizedPhone = data.customerPhone.trim().toLowerCase()
-    const existingMatches = (customers?.data || []).filter((customer) => {
-      return normalizedPhone && customer.phone.trim().toLowerCase() === normalizedPhone
+    const hasCustomerMatch = searchResults.some((result) => {
+      const normalizedUserName = liveUserName.trim().toLowerCase()
+      const normalizedContact = liveContactNumber.trim().toLowerCase()
+      const normalizedEmail = liveEmail.trim().toLowerCase()
+
+      const matchesUserName = normalizedUserName
+        ? result.user?.userName?.toLowerCase().includes(normalizedUserName)
+        : false
+      const matchesContact = normalizedContact
+        ? result.contacts?.some((contact) => contact.contactNumber?.toLowerCase().includes(normalizedContact))
+        : false
+      const matchesEmail = normalizedEmail ? result.user?.email?.toLowerCase().includes(normalizedEmail) : false
+
+      return matchesUserName || matchesContact || matchesEmail
     })
 
-    if (existingMatches.length === 1) {
-      await onSubmit({ ...data, customerId: existingMatches[0].id })
-      return
-    }
+    const hasProductMatch = searchResults.some((result) => {
+      const normalizedProductName = liveProductName.trim().toLowerCase()
+      const normalizedBrand = liveBrandName.trim().toLowerCase()
+      const normalizedType = liveProductTypeName.trim().toLowerCase()
 
-    if (existingMatches.length > 1) {
-      setError('customerPhone', {
-        type: 'manual',
-        message: 'More than one customer matches. Select the correct customer below.',
-      })
-      setShowMatches(true)
-      return
-    }
+      const matchesProductName = normalizedProductName
+        ? result.product?.productName?.toLowerCase().includes(normalizedProductName)
+        : false
+      const matchesBrand = normalizedBrand ? result.product?.brand?.brandName?.toLowerCase().includes(normalizedBrand) : false
+      const matchesType = normalizedType
+        ? result.product?.productType?.productTypeName?.toLowerCase().includes(normalizedType)
+        : false
 
+      return matchesProductName || matchesBrand || matchesType
+    })
+
+    return (hasCustomerInput && !hasCustomerMatch) || (hasProductInput && !hasProductMatch)
+  }, [
+    liveUserName,
+    liveContactNumber,
+    liveEmail,
+    liveProductName,
+    liveBrandName,
+    liveProductTypeName,
+    liveSerialNumber,
+    searchResults,
+  ])
+
+  const submitOrder = async (data: ServiceOrderFormData) => {
     await onSubmit(data)
-  }
-
-  const handleRecovery = () => {
-    reset(draftData as ServiceOrderFormData)
-    setShowRecovery(false)
-    addNotification('Draft recovered successfully', 'success')
-  }
-
-  const handleDiscardDraft = () => {
-    removeDraft()
-    setShowRecovery(false)
-    reset(blankForm)
-    addNotification('Draft discarded', 'info')
   }
 
   return (
     <Box>
-      {draftExists && showRecovery && (
-        <Alert severity="info" sx={{ mb: 3 }} onClose={() => setShowRecovery(false)}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-            <Typography>You have an unsaved draft. Would you like to recover it?</Typography>
-            <Stack direction="row" spacing={1}>
-              <Button size="small" onClick={handleRecovery} variant="contained">Recover</Button>
-              <Button size="small" onClick={handleDiscardDraft} variant="outlined">Discard</Button>
-            </Stack>
-          </Box>
-        </Alert>
-      )}
-
-      <Card>
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
         <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
           <form onSubmit={handleSubmit(submitOrder)}>
-            <Stack spacing={4}>
+            <Stack spacing={3.5}>
               <Box>
-                <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>Customer Details</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Enter a name or mobile number. Select an existing match below, or a new customer will be created with this order.
+                <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+                  Customer details
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Search existing customer context instantly. If nothing matches, a new customer record will be created with the order.
+                </Typography>
+
+                {showNewRecordWarning && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    No matching customer or product context was found. A new record will be created for this service order.
+                  </Alert>
+                )}
+
+                {searchResults.length > 0 && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Matching context found. Existing customer and product details can be reused.
+                  </Alert>
+                )}
+
                 <Stack spacing={2}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <Controller
-                      name="customerName"
+                      name="userName"
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Customer Name"
-                          error={!!errors.customerName}
-                          helperText={errors.customerName?.message}
-                          onFocus={() => setShowMatches(true)}
-                          onChange={(event) => {
-                            field.onChange(event)
-                            clearSelectedCustomer()
+                        <Autocomplete
+                          freeSolo
+                          options={customerSuggestions}
+                          loading={searchLoading}
+                          sx={{ flex: 1, minWidth: 0 }}
+                          value={field.value ?? ''}
+                          inputValue={field.value ?? ''}
+                          onInputChange={(_, value) => field.onChange(value)}
+                          onChange={(_, value) => {
+                            const nextValue = typeof value === 'string' ? value : value ?? ''
+                            field.onChange(nextValue)
+
+                            const match = searchResults.find((result) => result.user?.userName === nextValue)
+                            if (match) {
+                              setValue('contactNumber', match.contacts?.[0]?.contactNumber ?? '', { shouldValidate: true })
+                              setValue('email', match.user?.email ?? '', { shouldValidate: true })
+                              setValue('address', match.user?.address ?? '', { shouldValidate: true })
+                            }
                           }}
-                          fullWidth
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Customer name"
+                              error={!!errors.userName}
+                              helperText={errors.userName?.message}
+                              fullWidth
+                            />
+                          )}
                         />
                       )}
                     />
+
                     <Controller
-                      name="customerPhone"
+                      name="contactNumber"
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Mobile Number"
-                          error={!!errors.customerPhone}
-                          helperText={errors.customerPhone?.message}
-                          onFocus={() => setShowMatches(true)}
-                          onChange={(event) => {
-                            field.onChange(event)
-                            clearSelectedCustomer()
+                        <Autocomplete
+                          freeSolo
+                          options={contactSuggestions}
+                          loading={searchLoading}
+                          sx={{ flex: 1, minWidth: 0 }}
+                          value={field.value ?? ''}
+                          inputValue={field.value ?? ''}
+                          onInputChange={(_, value) => field.onChange(value)}
+                          onChange={(_, value) => {
+                            const nextValue = typeof value === 'string' ? value : value ?? ''
+                            field.onChange(nextValue)
+
+                            const match = searchResults.find((result) =>
+                              result.contacts?.some((contact) => contact.contactNumber === nextValue),
+                            )
+                            if (match) {
+                              setValue('userName', match.user?.userName ?? '', { shouldValidate: true })
+                              setValue('email', match.user?.email ?? '', { shouldValidate: true })
+                              setValue('address', match.user?.address ?? '', { shouldValidate: true })
+                            }
                           }}
-                          fullWidth
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Contact number"
+                              error={!!errors.contactNumber}
+                              helperText={errors.contactNumber?.message}
+                              fullWidth
+                            />
+                          )}
                         />
                       )}
                     />
                   </Stack>
 
-                  {showMatches && customerQuery && (
-                    <Paper variant="outlined">
-                      {customersLoading ? (
-                        <Typography sx={{ p: 2 }} color="text.secondary">Finding customers...</Typography>
-                      ) : matchingCustomers.length > 0 ? (
-                        <List disablePadding>
-                          {matchingCustomers.map((customer) => (
-                            <ListItemButton key={customer.id} onMouseDown={() => selectCustomer(customer)}>
-                              <ListItemText primary={customer.name} secondary={customer.phone} />
-                            </ListItemButton>
-                          ))}
-                        </List>
-                      ) : (
-                        <Typography sx={{ p: 2 }} color="text.secondary">
-                          No matching customer. A new customer will be created when you save.
-                        </Typography>
-                      )}
-                    </Paper>
-                  )}
-
-                  <Controller
-                    name="customerEmail"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Email (Optional)"
-                        error={!!errors.customerEmail}
-                        helperText={errors.customerEmail?.message}
-                        fullWidth
-                      />
-                    )}
-                  />
-                  <Controller
-                    name="customerAddress"
-                    control={control}
-                    render={({ field }) => <TextField {...field} label="Address (Optional)" fullWidth />}
-                  />
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <Controller
-                      name="customerCity"
+                      name="email"
                       control={control}
-                      render={({ field }) => <TextField {...field} label="City (Optional)" fullWidth />}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Email"
+                          error={!!errors.email}
+                          helperText={errors.email?.message}
+                          fullWidth
+                        />
+                      )}
                     />
                     <Controller
-                      name="customerZipCode"
+                      name="address"
                       control={control}
-                      render={({ field }) => <TextField {...field} label="ZIP Code (Optional)" fullWidth />}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Address"
+                          error={!!errors.address}
+                          helperText={errors.address?.message}
+                          fullWidth
+                        />
+                      )}
                     />
                   </Stack>
                 </Stack>
@@ -286,125 +349,272 @@ export const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
               <Divider />
 
               <Box>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Service Details</Typography>
+                <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+                  Device details
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Add the laptop or device information. Matching product context will be suggested automatically.
+                </Typography>
+
                 <Stack spacing={2}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="productName"
+                      control={control}
+                      render={({ field }) => (
+                        <Autocomplete
+                          freeSolo
+                          options={productSuggestions}
+                          loading={searchLoading}
+                          sx={{ flex: 1, minWidth: 0 }}
+                          value={field.value ?? ''}
+                          inputValue={field.value ?? ''}
+                          onInputChange={(_, value) => field.onChange(value)}
+                          onChange={(_, value) => {
+                            const nextValue = typeof value === 'string' ? value : value ?? ''
+                            field.onChange(nextValue)
+
+                            const match = searchResults.find((result) => result.product?.productName === nextValue)
+                            if (match) {
+                              setValue('description', match.product?.description ?? '', { shouldValidate: true })
+                              setValue('brandName', match.product?.brand?.brandName ?? '', { shouldValidate: true })
+                              setValue('productTypeName', match.product?.productType?.productTypeName ?? '', { shouldValidate: true })
+                            }
+                          }}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Product name"
+                              error={!!errors.productName}
+                              helperText={errors.productName?.message}
+                              fullWidth
+                            />
+                          )}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="brandName"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          sx={{ flex: 1, minWidth: 0 }}
+                          label="Brand"
+                          error={!!errors.brandName}
+                          helperText={errors.brandName?.message}
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Stack>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="productTypeName"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Product type"
+                          error={!!errors.productTypeName}
+                          helperText={errors.productTypeName?.message}
+                          fullWidth
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="description"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Problem description"
+                          multiline
+                          minRows={3}
+                          error={!!errors.description}
+                          helperText={errors.description?.message}
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Stack>
+                </Stack>
+              </Box>
+
+              <Divider />
+
+              <Box>
+                <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+                  Service details
+                </Typography>
+                <Stack spacing={2}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="serialNumber"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Serial number"
+                          error={!!errors.serialNumber}
+                          helperText={errors.serialNumber?.message}
+                          fullWidth
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="loginPassword"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Login password"
+                          error={!!errors.loginPassword}
+                          helperText={errors.loginPassword?.message}
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Stack>
+
                   <Controller
-                    name="productId"
-                    control={control}
-                    render={({ field }) => (
-                      <FormControl fullWidth error={!!errors.productId}>
-                        <InputLabel>Service Required</InputLabel>
-                        <Select {...field} label="Service Required">
-                          {productsLoading && <MenuItem disabled>Loading services...</MenuItem>}
-                          {(products?.data || []).map((product) => (
-                            <MenuItem key={product.id} value={product.id}>
-                              {product.name} - ${product.unitPrice.toLocaleString()}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.productId && (
-                          <Typography variant="caption" color="error" sx={{ ml: 1.75, mt: 0.5 }}>
-                            {errors.productId.message}
-                          </Typography>
-                        )}
-                      </FormControl>
-                    )}
-                  />
-                  <Controller
-                    name="description"
+                    name="additionalInfo"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
-                        label="Problem Description"
+                        label="Additional info"
                         multiline
-                        rows={4}
-                        error={!!errors.description}
-                        helperText={errors.description?.message}
+                        minRows={2}
+                        error={!!errors.additionalInfo}
+                        helperText={errors.additionalInfo?.message}
                         fullWidth
                       />
                     )}
                   />
+
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <Controller
-                      name="priority"
+                      name="estimatedPrice"
                       control={control}
                       render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Priority</InputLabel>
-                          <Select {...field} label="Priority">
-                            <MenuItem value="low">Low</MenuItem>
-                            <MenuItem value="medium">Medium</MenuItem>
-                            <MenuItem value="high">High</MenuItem>
-                            <MenuItem value="urgent">Urgent</MenuItem>
-                          </Select>
-                        </FormControl>
+                        <TextField
+                          {...field}
+                          type="number"
+                          label="Estimated price"
+                          value={field.value ?? 0}
+                          onChange={(event) => field.onChange(Number(event.target.value))}
+                          error={!!errors.estimatedPrice}
+                          helperText={errors.estimatedPrice?.message}
+                          fullWidth
+                        />
                       )}
                     />
-                    <Controller
-                      name="status"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Status</InputLabel>
-                          <Select {...field} label="Status">
-                            <MenuItem value="draft">Draft</MenuItem>
-                            <MenuItem value="pending">Pending</MenuItem>
-                            <MenuItem value="in-progress">In Progress</MenuItem>
-                            <MenuItem value="completed">Completed</MenuItem>
-                            <MenuItem value="cancelled">Cancelled</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
-                    />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <Controller
                       name="estimatedCompletionDate"
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
-                          type="date"
-                          label="Estimated Completion Date"
-                          slotProps={{ inputLabel: { shrink: true } }}
+                          type="datetime-local"
+                          label="Estimated completion"
+                          value={field.value ?? getDateTimeLocalValue()}
                           error={!!errors.estimatedCompletionDate}
                           helperText={errors.estimatedCompletionDate?.message}
                           fullWidth
                         />
                       )}
                     />
+                  </Stack>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <Controller
-                      name="totalCost"
+                      name="priorityLevel"
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
-                          type="number"
-                          label="Service Charge"
-                          error={!!errors.totalCost}
-                          helperText={errors.totalCost?.message}
+                          select
+                          label="Priority"
+                          error={!!errors.priorityLevel}
+                          helperText={errors.priorityLevel?.message}
                           fullWidth
-                          onChange={(event) => field.onChange(Number(event.target.value) || 0)}
-                        />
+                        >
+                          <MenuItem value="1">1 - Highest</MenuItem>
+                          <MenuItem value="2">2</MenuItem>
+                          <MenuItem value="3">3</MenuItem>
+                          <MenuItem value="4">4</MenuItem>
+                          <MenuItem value="5">5 - Lowest</MenuItem>
+                        </TextField>
+                      )}
+                    />
+                    <Controller
+                      name="issueDescription"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          label="Issue type"
+                          error={!!errors.issueDescription}
+                          helperText={errors.issueDescription?.message}
+                          fullWidth
+                        >
+                          <MenuItem value="Hardware">Hardware</MenuItem>
+                          <MenuItem value="Software">Software</MenuItem>
+                          <MenuItem value="Network">Network</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </TextField>
                       )}
                     />
                   </Stack>
+
                   <Controller
-                    name="notes"
+                    name="issueNotes"
                     control={control}
                     render={({ field }) => (
-                      <TextField {...field} label="Technician Notes (Optional)" multiline rows={3} fullWidth />
+                      <TextField
+                        {...field}
+                        label="Issue notes"
+                        multiline
+                        minRows={2}
+                        error={!!errors.issueNotes}
+                        helperText={errors.issueNotes?.message}
+                        fullWidth
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    name="entryByUserId"
+                    control={control}
+                    render={({ field }) => (
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+                        <TextField
+                          {...field}
+                          label="Entry user"
+                          error={!!errors.entryByUserId}
+                          helperText={errors.entryByUserId?.message}
+                          fullWidth
+                        >
+                          {users.map((user) => (
+                            <MenuItem key={user.userId} value={user.userId ?? ''}>
+                              {user.userName || user.email || user.userId}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        <Chip label="Auto-filled from active users" size="small" variant="outlined" />
+                      </Stack>
                     )}
                   />
                 </Stack>
               </Box>
 
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button type="submit" variant="contained" size="large" disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Create Service Order'}
-                </Button>
-              </Box>
+              <Button type="submit" variant="contained" size="large" disabled={isLoading}>
+                {isLoading ? 'Creating…' : 'Create service order'}
+              </Button>
             </Stack>
           </form>
         </CardContent>

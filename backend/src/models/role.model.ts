@@ -9,6 +9,7 @@ export interface Role {
 }
 
 export interface CreateRole{
+  roleId: number;
   roleName:string;
   isServicer?:boolean;
   isCustomer?:boolean;

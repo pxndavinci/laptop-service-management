@@ -3,7 +3,13 @@ import * as ContactModel from '../models/contact.model';
 
 export const contactRepo = {
     async getContacts(params: ContactModel.ContactQueryParams): Promise<[ContactModel.Contact[], number]> {
-        let query = `SELECT * FROM contact WHERE 1=1`;
+        let query = `SELECT 
+            contact_id as "contactId",
+            contact_number as "contactNumber",
+            user_id as "userId",
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+         FROM contact WHERE 1=1`;
         let values: any[] = [];
         let idx: number = 1;
 
