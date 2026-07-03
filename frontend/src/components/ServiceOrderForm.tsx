@@ -62,6 +62,7 @@ export const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<ServiceOrderFormData>({
     resolver: zodResolver(serviceOrderFormSchema),
@@ -112,7 +113,6 @@ export const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
       },
     },
   )
-
   const searchResults = useMemo(() => searchResponse?.data?.data ?? [], [searchResponse?.data?.data])
 
   const customerSuggestions = useMemo(
@@ -210,8 +210,11 @@ export const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
 
   const submitOrder = async (data: ServiceOrderFormData) => {
     await onSubmit(data)
+    reset({
+      ...blankForm,
+      estimatedCompletionDate: getDateTimeLocalValue(),
+    })
   }
-
   return (
     <Box>
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>

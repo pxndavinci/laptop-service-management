@@ -67,10 +67,16 @@ const CreateServiceOrder: React.FC = () => {
       } else {
         navigate('/service-orders')
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create service order'
-      addNotification(message, 'error')
-    }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to create service order'
+
+        addNotification(message, 'error')
+
+        throw error // important: prevents form reset on failed submission
+      }
   }
 
   return (

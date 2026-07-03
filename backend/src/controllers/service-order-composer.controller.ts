@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import serviceOrderComposerService from '../services/service-order-composer.service';
+import { serviceOrderComposerService } from '../services/service-order-composer.service';
 import {
   ServiceOrderComposerSearchParams,
   ComposeServiceOrderRequest,
