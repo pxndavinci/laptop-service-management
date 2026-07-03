@@ -317,7 +317,12 @@ export const serviceOrderComposerService = {
       }
     }
 
-    return Array.from(grouped.values());
+    const data = Array.from(grouped.values());
+
+    return {
+      data,
+      total: data.length,
+    };
   },
 
   async composeServiceOrder(
