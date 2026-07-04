@@ -23,8 +23,7 @@ export interface PatchServiceOrder {
      */
   priorityLevel?: number;
   estimatedCompletionDate?: string;
+  actualCompletionDate?: string;
   issueDescription?: PatchServiceOrderIssueDescription;
   issueNotes?: string;
-  /** Must be a servicer or admin user */
-  entryBy?: string;
 }

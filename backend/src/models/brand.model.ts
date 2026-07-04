@@ -1,14 +1,12 @@
-export interface Brand{
-  brandId:string;
-  brandName:string;
-  createdAt:string;
-  updatedAt:string;
+import { Selectable } from 'kysely';
+import { BrandTable } from '../db/schema';
+
+export type Brand = Selectable<BrandTable>;
+
+export interface CreateBrand {
+  brandName: string;
 }
 
-export interface CreateBrand{
-  brandName:string;
-}
-
-export interface PatchBrand{
-  brandName?:string;
+export interface PatchBrand {
+  brandName?: string;
 }

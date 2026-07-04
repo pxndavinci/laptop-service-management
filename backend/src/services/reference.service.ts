@@ -1,93 +1,93 @@
 import { referenceRepo } from '../repos/reference.repo';
-import * as RoleModel from '../models/role.model';
-import * as BrandModel from '../models/brand.model';
-import * as ProductTypeModel from '../models/product-type.model';
-import * as StatusModel from '../models/status.model';
+import * as Role from '../models/role.model';
+import * as Brand from '../models/brand.model';
+import * as ProductType from '../models/product-type.model';
+import * as Status from '../models/status.model';
+import { NotFoundError } from '../middlewares/error.middleware';
+import { requireAnyField } from '../lib/utils';
 
 export const referenceService = {
-  async getAllRole() {
-    return await referenceRepo.getAllRole();
+  // ---------- Roles ----------
+  async getAllRoles() {
+    return referenceRepo.getAllRoles();
   },
 
-  async createRole(data: RoleModel.CreateRole) {
-    return await referenceRepo.createRole({
-      roleId: data.roleId,
-      roleName: data.roleName,
-      isCustomer: data.isCustomer ?? false,
-      isBusiness: data.isBusiness ?? false,
-      isServicer: data.isServicer ?? false,
-    });
+  async createRole(data: Role.CreateRole) {
+    return referenceRepo.createRole(data);
   },
 
-  async updateRole(roleId: number, data: RoleModel.PatchRole) {
-    const result = await referenceRepo.updateRole(roleId, data);
-    if (result === null) {
-      return 'No updates performed or role not found';
-    }
-    return result;
+  async updateRole(roleId: number, data: Role.PatchRole) {
+    requireAnyField(data);
+    const role = await referenceRepo.updateRole(roleId, data);
+    if (!role) throw new NotFoundError('Role not found');
+    return role;
   },
 
   async deleteRole(roleId: number) {
-    return await referenceRepo.deleteRole(roleId);
+    const deleted = await referenceRepo.deleteRole(roleId);
+    if (!deleted) throw new NotFoundError('Role not found');
   },
 
-  async getAllBrand() {
-    return await referenceRepo.getAllBrand();
+  // ---------- Brands ----------
+  async getAllBrands() {
+    return referenceRepo.getAllBrands();
   },
 
-  async createBrand(data: BrandModel.CreateBrand) {
-    return await referenceRepo.createBrand(data);
+  async createBrand(data: Brand.CreateBrand) {
+    return referenceRepo.createBrand(data);
   },
 
-  async updateBrand(brandId: string, data: BrandModel.PatchBrand) {
-    const result = await referenceRepo.updateBrand(brandId, data);
-    if (result === null) {
-      return 'No updates performed or brand not found';
-    }
-    return result;
+  async updateBrand(brandId: string, data: Brand.PatchBrand) {
+    requireAnyField(data);
+    const brand = await referenceRepo.updateBrand(brandId, data);
+    if (!brand) throw new NotFoundError('Brand not found');
+    return brand;
   },
 
   async deleteBrand(brandId: string) {
-    return await referenceRepo.deleteBrand(brandId);
+    const deleted = await referenceRepo.deleteBrand(brandId);
+    if (!deleted) throw new NotFoundError('Brand not found');
   },
 
-  async getAllProductType() {
-    return await referenceRepo.getAllProductType();
+  // ---------- Product types ----------
+  async getAllProductTypes() {
+    return referenceRepo.getAllProductTypes();
   },
 
-  async createProductType(data: ProductTypeModel.CreateProductType) {
-    return await referenceRepo.createProductType(data);
+  async createProductType(data: ProductType.CreateProductType) {
+    return referenceRepo.createProductType(data);
   },
 
-  async updateProductType(productTypeId: string, data: ProductTypeModel.PatchProductType) {
-    const result = await referenceRepo.updateProductType(productTypeId, data);
-    if (result === null) {
-      return 'No updates performed or product type not found';
-    }
-    return result;
+  async updateProductType(productTypeId: string, data: ProductType.PatchProductType) {
+    requireAnyField(data);
+    const productType = await referenceRepo.updateProductType(productTypeId, data);
+    if (!productType) throw new NotFoundError('Product type not found');
+    return productType;
   },
 
   async deleteProductType(productTypeId: string) {
-    return await referenceRepo.deleteProductType(productTypeId);
+    const deleted = await referenceRepo.deleteProductType(productTypeId);
+    if (!deleted) throw new NotFoundError('Product type not found');
   },
 
-  async getAllStatus() {
-    return await referenceRepo.getAllStatus();
+  // ---------- Statuses ----------
+  async getAllStatuses() {
+    return referenceRepo.getAllStatuses();
   },
 
-  async createStatus(data: StatusModel.CreateStatus) {
-    return await referenceRepo.createStatus(data);
+  async createStatus(data: Status.CreateStatus) {
+    return referenceRepo.createStatus(data);
   },
 
-  async updateStatus(statusId: string, data: StatusModel.PatchStatus) {
-    const result = await referenceRepo.updateStatus(statusId, data);
-    if (result === null) {
-      return 'No updates performed or status not found';
-    }
-    return result;
+  async updateStatus(statusId: string, data: Status.PatchStatus) {
+    requireAnyField(data);
+    const status = await referenceRepo.updateStatus(statusId, data);
+    if (!status) throw new NotFoundError('Status not found');
+    return status;
   },
 
   async deleteStatus(statusId: string) {
-    return await referenceRepo.deleteStatus(statusId);
+    const deleted = await referenceRepo.deleteStatus(statusId);
+    if (!deleted) throw new NotFoundError('Status not found');
   },
 };

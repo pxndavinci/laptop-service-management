@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Box, CircularProgress } from '@mui/material'
@@ -8,14 +8,12 @@ import { theme } from './lib/theme'
 import { Layout } from './components/Layout'
 import NotificationsContainer from './components/NotificationsContainer'
 
-const Dashboard = lazy(() => import('./pages/Dashboard'))
+const ServiceOrdersList = lazy(() => import('./pages/ServiceOrders/List'))
 const ServiceOrderDetail = lazy(() => import('./pages/ServiceOrders/Detail'))
 const CreateServiceOrder = lazy(() => import('./pages/ServiceOrders/Create'))
 const CustomersList = lazy(() => import('./pages/Customers/List'))
 const ProductsList = lazy(() => import('./pages/Products/List'))
-const ReportsPage = lazy(() => import('./pages/Reports'))
 
-// Create TanStack Query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -44,14 +42,13 @@ function App() {
               }
             >
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/service-orders" element={<CreateServiceOrder />} />
+                <Route path="/" element={<Navigate to="/service-orders" replace />} />
+                <Route path="/service-orders" element={<ServiceOrdersList />} />
                 <Route path="/service-orders/new" element={<CreateServiceOrder />} />
                 <Route path="/service-orders/:id" element={<ServiceOrderDetail />} />
                 <Route path="/customers" element={<CustomersList />} />
                 <Route path="/products" element={<ProductsList />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/service-orders" replace />} />
               </Routes>
             </Suspense>
           </Layout>

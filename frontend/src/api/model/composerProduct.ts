@@ -11,7 +11,8 @@ import type { ComposerProductType } from './composerProductType';
 export interface ComposerProduct {
   productId?: string;
   productName?: string;
-  description?: string;
+  /** @nullable */
+  description?: string | null;
   brand?: ComposerBrand;
   productType?: ComposerProductType;
 }

@@ -47,7 +47,7 @@ export * from './getServiceOrdersIssueDescription';
 export * from './getServiceOrdersParams';
 export * from './getServiceOrdersPaymentMethod';
 export * from './getServiceOrdersPaymentStatus';
-export * from './getServiceOrdersStatus';
+export * from './getServiceStatus200';
 export * from './getServiceStatusParams';
 export * from './getUserProducts200';
 export * from './getUserProductsParams';

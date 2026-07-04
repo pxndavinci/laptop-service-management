@@ -8,7 +8,6 @@
 import type { GetServiceOrdersIssueDescription } from './getServiceOrdersIssueDescription';
 import type { GetServiceOrdersPaymentMethod } from './getServiceOrdersPaymentMethod';
 import type { GetServiceOrdersPaymentStatus } from './getServiceOrdersPaymentStatus';
-import type { GetServiceOrdersStatus } from './getServiceOrdersStatus';
 
 export type GetServiceOrdersParams = {
 /**
@@ -35,13 +34,7 @@ paymentStatus?: GetServiceOrdersPaymentStatus;
  * @maximum 5
  */
 priorityLevel?: number;
-estimatedCompletionDate?: string;
-actualCompletionDate?: string;
 issueDescription?: GetServiceOrdersIssueDescription;
-/**
- * Filter by status
- */
-status?: GetServiceOrdersStatus;
 /**
  * Filter by entered by service order person
  */

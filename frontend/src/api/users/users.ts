@@ -32,80 +32,50 @@ import type {
   Users
 } from '../model';
 
+import { customInstance } from '../../lib/api/mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export type getUsersResponse200 = {
-  data: GetUsers200
-  status: 200
-}
-
-export type getUsersResponseSuccess = (getUsersResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getUsersResponse = (getUsersResponseSuccess)
-
-export const getGetUsersUrl = (params?: GetUsersParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:3000/users?${stringifiedParams}` : `http://localhost:3000/users`
-}
 
 /**
  * Retrieve all users with optional filtering and pagination
  * @summary Get all users
  */
-export const getUsers = async (params?: GetUsersParams, options?: RequestInit): Promise<getUsersResponse> => {
-
-  const res = await fetch(getGetUsersUrl(params),
-  {
-    ...options,
-    method: 'GET'
+export const getUsers = (
+    params?: GetUsersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getUsersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getUsersResponse
-}
-
+      return customInstance<GetUsers200>(
+      {url: `/users`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetUsersQueryKey = (params?: GetUsersParams,) => {
     return [
-    `http://localhost:3000/users`, ...(params ? [params] : [])
+    `/users`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetUsersQueryOptions = <TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
+export const getGetUsersQueryOptions = <TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetUsersQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsers>>> = ({ signal }) => getUsers(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsers>>> = ({ signal }) => getUsers(params, requestOptions, signal);
 
 
 
@@ -125,7 +95,7 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
           TError,
           Awaited<ReturnType<typeof getUsers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
@@ -135,11 +105,11 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
           TError,
           Awaited<ReturnType<typeof getUsers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
- params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -147,7 +117,7 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
  */
 
 export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
- params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,61 +133,36 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
 
 
 
-export type postUsersResponse201 = {
-  data: Users
-  status: 201
-}
-
-export type postUsersResponseSuccess = (postUsersResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postUsersResponse = (postUsersResponseSuccess)
-
-export const getPostUsersUrl = () => {
-
-
-
-
-  return `http://localhost:3000/users`
-}
-
 /**
  * Add a new user to the system
  * @summary Create a new user
  */
-export const postUsers = async (createUser: CreateUser, options?: RequestInit): Promise<postUsersResponse> => {
-
-  const res = await fetch(getPostUsersUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createUser)
-  }
-)
+export const postUsers = (
+    createUser: CreateUser,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postUsersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postUsersResponse
-}
-
+      return customInstance<Users>(
+      {url: `/users`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createUser, signal
+    },
+      options);
+    }
 
 
 
 export const getPostUsersMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUsers>>, TError,{data: CreateUser}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUsers>>, TError,{data: CreateUser}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUsers>>, TError,{data: CreateUser}, TContext> => {
 
 const mutationKey = ['postUsers'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -225,7 +170,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postUsers>>, {data: CreateUser}> = (props) => {
           const {data} = props ?? {};
 
-          return  postUsers(data,fetchOptions)
+          return  postUsers(data,requestOptions)
         }
 
 
@@ -243,7 +188,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create a new user
  */
 export const usePostUsers = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUsers>>, TError,{data: CreateUser}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUsers>>, TError,{data: CreateUser}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUsers>>,
         TError,
@@ -252,69 +197,42 @@ export const usePostUsers = <TError = unknown,
       > => {
       return useMutation(getPostUsersMutationOptions(options), queryClient);
     }
-    export type getUsersUserIdResponse200 = {
-  data: Users
-  status: 200
-}
-
-export type getUsersUserIdResponseSuccess = (getUsersUserIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getUsersUserIdResponse = (getUsersUserIdResponseSuccess)
-
-export const getGetUsersUserIdUrl = (userId: string,) => {
-
-
-
-
-  return `http://localhost:3000/users/${userId}`
-}
-
-/**
+    /**
  * Get user by ID
  * @summary Get user by ID
  */
-export const getUsersUserId = async (userId: string, options?: RequestInit): Promise<getUsersUserIdResponse> => {
-
-  const res = await fetch(getGetUsersUserIdUrl(userId),
-  {
-    ...options,
-    method: 'GET'
+export const getUsersUserId = (
+    userId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getUsersUserIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getUsersUserIdResponse
-}
-
+      return customInstance<Users>(
+      {url: `/users/${userId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetUsersUserIdQueryKey = (userId: string,) => {
     return [
-    `http://localhost:3000/users/${userId}`
+    `/users/${userId}`
     ] as const;
     }
 
 
-export const getGetUsersUserIdQueryOptions = <TData = Awaited<ReturnType<typeof getUsersUserId>>, TError = unknown>(userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, fetch?: RequestInit}
+export const getGetUsersUserIdQueryOptions = <TData = Awaited<ReturnType<typeof getUsersUserId>>, TError = unknown>(userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetUsersUserIdQueryKey(userId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersUserId>>> = ({ signal }) => getUsersUserId(userId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersUserId>>> = ({ signal }) => getUsersUserId(userId, requestOptions, signal);
 
 
 
@@ -334,7 +252,7 @@ export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUser
           TError,
           Awaited<ReturnType<typeof getUsersUserId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUserId>>, TError = unknown>(
@@ -344,11 +262,11 @@ export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUser
           TError,
           Awaited<ReturnType<typeof getUsersUserId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUserId>>, TError = unknown>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, fetch?: RequestInit}
+ userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -356,7 +274,7 @@ export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUser
  */
 
 export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUserId>>, TError = unknown>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, fetch?: RequestInit}
+ userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersUserId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -372,62 +290,37 @@ export function useGetUsersUserId<TData = Awaited<ReturnType<typeof getUsersUser
 
 
 
-export type patchUsersUserIdResponse200 = {
-  data: Users
-  status: 200
-}
-
-export type patchUsersUserIdResponseSuccess = (patchUsersUserIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchUsersUserIdResponse = (patchUsersUserIdResponseSuccess)
-
-export const getPatchUsersUserIdUrl = (userId: string,) => {
-
-
-
-
-  return `http://localhost:3000/users/${userId}`
-}
-
 /**
  * Update user details
  * @summary Update user
  */
-export const patchUsersUserId = async (userId: string,
-    patchUser: PatchUser, options?: RequestInit): Promise<patchUsersUserIdResponse> => {
-
-  const res = await fetch(getPatchUsersUserIdUrl(userId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchUser)
-  }
-)
+export const patchUsersUserId = (
+    userId: string,
+    patchUser: PatchUser,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchUsersUserIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchUsersUserIdResponse
-}
-
+      return customInstance<Users>(
+      {url: `/users/${userId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchUser, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchUsersUserIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUsersUserId>>, TError,{userId: string;data: PatchUser}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUsersUserId>>, TError,{userId: string;data: PatchUser}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchUsersUserId>>, TError,{userId: string;data: PatchUser}, TContext> => {
 
 const mutationKey = ['patchUsersUserId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -435,7 +328,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchUsersUserId>>, {userId: string;data: PatchUser}> = (props) => {
           const {userId,data} = props ?? {};
 
-          return  patchUsersUserId(userId,data,fetchOptions)
+          return  patchUsersUserId(userId,data,requestOptions)
         }
 
 
@@ -453,7 +346,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update user
  */
 export const usePatchUsersUserId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUsersUserId>>, TError,{userId: string;data: PatchUser}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUsersUserId>>, TError,{userId: string;data: PatchUser}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchUsersUserId>>,
         TError,
@@ -462,61 +355,34 @@ export const usePatchUsersUserId = <TError = unknown,
       > => {
       return useMutation(getPatchUsersUserIdMutationOptions(options), queryClient);
     }
-    export type deleteUsersUserIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteUsersUserIdResponseSuccess = (deleteUsersUserIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteUsersUserIdResponse = (deleteUsersUserIdResponseSuccess)
-
-export const getDeleteUsersUserIdUrl = (userId: string,) => {
-
-
-
-
-  return `http://localhost:3000/users/${userId}`
-}
-
-/**
+    /**
  * Remove a user from the system
  * @summary Delete user
  */
-export const deleteUsersUserId = async (userId: string, options?: RequestInit): Promise<deleteUsersUserIdResponse> => {
-
-  const res = await fetch(getDeleteUsersUserIdUrl(userId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteUsersUserId = (
+    userId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteUsersUserIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteUsersUserIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/users/${userId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteUsersUserIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext> => {
 
 const mutationKey = ['deleteUsersUserId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -524,7 +390,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteUsersUserId>>, {userId: string}> = (props) => {
           const {userId} = props ?? {};
 
-          return  deleteUsersUserId(userId,fetchOptions)
+          return  deleteUsersUserId(userId,requestOptions)
         }
 
 
@@ -542,7 +408,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete user
  */
 export const useDeleteUsersUserId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteUsersUserId>>,
         TError,

@@ -1,45 +1,31 @@
-import { ServiceOrder } from "./service-order.model";
-import { Status } from "./status.model";
-import { User } from "./user.model";
+import { Selectable } from 'kysely';
+import { ServiceStatusTable } from '../db/schema';
 
-export interface ServiceStatus {
-  serviceStatusId: string; // UUID
+export type ServiceStatus = Selectable<ServiceStatusTable>;
 
-  serviceOrder: ServiceOrder;
+/** Status history entry plus display names, for timelines. */
+export interface ServiceStatusWithNames extends ServiceStatus {
+  statusName: string;
+  assignedToName: string;
+}
 
-  status: Status;
-
-  assignedTo: User;
-
-  comment?: string; // Status update comments
-
-  notifyCustomer: boolean; // default: false
-
-  createdAt: string; // ISO 8601 date-time
-
-  updatedAt: string; // ISO 8601 date-time
+export interface ServiceStatusQueryParams {
+  serviceOrderId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateServiceStatus {
-  serviceOrderId: string; // UUID
-
-  statusId: string; // UUID
-
-  assignedTo: string; // UUID
-
+  serviceOrderId: string;
+  statusId: string;
+  assignedTo: string;
   comment?: string;
-
   notifyCustomer?: boolean;
 }
 
 export interface PatchServiceStatus {
-  serviceOrderId?: string; // UUID
-
-  statusId?: string; // UUID
-
-  assignedTo?: string; // UUID
-
+  statusId?: string;
+  assignedTo?: string;
   comment?: string;
-
   notifyCustomer?: boolean;
 }

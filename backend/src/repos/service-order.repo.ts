@@ -1,123 +1,144 @@
 import db from '../db/index';
-import * as ServiceOrderModel from '../models/service-order.model';
+import * as ServiceOrder from '../models/service-order.model';
+
+/**
+ * Service orders joined with their customer/device context plus the latest
+ * status, so lists and details can be rendered from a single query.
+ */
+const orderSummary = () =>
+  db
+    .selectFrom('service_order as so')
+    .innerJoin('user_product as up', 'up.userProductId', 'so.userProductId')
+    .innerJoin('user_data as u', 'u.userId', 'up.userId')
+    .innerJoin('product as p', 'p.productId', 'up.productId')
+    .innerJoin('brand as b', 'b.brandId', 'p.brandId')
+    .select((eb) => [
+      'so.serviceOrderId',
+      'so.tagNo',
+      'so.userProductId',
+      'so.estimatedPrice',
+      'so.finalPrice',
+      'so.paymentMethod',
+      'so.paymentStatus',
+      'so.priorityLevel',
+      'so.estimatedCompletionDate',
+      'so.actualCompletionDate',
+      'so.issueDescription',
+      'so.issueNotes',
+      'so.entryBy',
+      'so.createdAt',
+      'so.updatedAt',
+      'u.userId',
+      'u.userName',
+      'p.productName',
+      'b.brandName',
+      'up.serialNumber',
+      eb
+        .selectFrom('contact as c')
+        .select('c.contactNumber')
+        .whereRef('c.userId', '=', 'u.userId')
+        .orderBy('c.createdAt', 'asc')
+        .limit(1)
+        .as('contactNumber'),
+      eb
+        .selectFrom('service_status as ss')
+        .innerJoin('status as st', 'st.statusId', 'ss.statusId')
+        .select('st.statusName')
+        .whereRef('ss.serviceOrderId', '=', 'so.serviceOrderId')
+        .orderBy('ss.createdAt', 'desc')
+        .limit(1)
+        .as('currentStatus'),
+    ]);
 
 export const serviceOrderRepo = {
-  async getServiceOrders(params: { tagNo?: number; page?: number; limit?: number; offset?: number }): Promise<[any[], number]> {
-    let query = `SELECT * FROM service_order WHERE 1=1`;
-    const values: any[] = [];
-    let idx = 1;
-    if (params.tagNo !== undefined) {
-      query += ` AND tag_no = $${idx}::numeric`;
-      values.push(params.tagNo);
-      idx++;
-    }
+  async getServiceOrders(
+    params: ServiceOrder.ServiceOrderQueryParams & { limit: number; offset: number }
+  ): Promise<[ServiceOrder.ServiceOrderSummary[], number]> {
+    const filtered = orderSummary()
+      .$if(params.tagNo !== undefined, (qb) => qb.where('so.tagNo', '=', params.tagNo!))
+      .$if(!!params.userProductId, (qb) =>
+        qb.where('so.userProductId', '=', params.userProductId!)
+      )
+      .$if(!!params.paymentMethod, (qb) =>
+        qb.where('so.paymentMethod', '=', params.paymentMethod!)
+      )
+      .$if(!!params.paymentStatus, (qb) =>
+        qb.where('so.paymentStatus', '=', params.paymentStatus!)
+      )
+      .$if(params.priorityLevel !== undefined, (qb) =>
+        qb.where('so.priorityLevel', '=', params.priorityLevel!)
+      )
+      .$if(!!params.issueDescription, (qb) =>
+        qb.where('so.issueDescription', '=', params.issueDescription!)
+      )
+      .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!));
 
-    query += ` LIMIT $${idx}::int`;
-    values.push(params.limit ?? 10);
-    idx++;
-    query += ` OFFSET $${idx}::int`;
-    values.push(params.offset ?? 0);
+    const orders = await filtered
+      .orderBy('so.createdAt', 'desc')
+      .limit(params.limit)
+      .offset(params.offset)
+      .execute();
 
-    const result = await db.query(query, values);
-    return [result.rows, result.rowCount ?? 0];
+    const { total } = await filtered
+      .clearSelect()
+      .select((eb) => eb.fn.countAll<number>().as('total'))
+      .executeTakeFirstOrThrow();
+
+    return [orders, total];
   },
 
-  async createServiceOrder(data: ServiceOrderModel.CreateServiceOrder): Promise<any> {
-    const query = `
-      INSERT INTO service_order (
-        user_product_id, estimated_price, payment_method, payment_status, priority_level, estimated_completion_date, issue_description, issue_notes, entry_by
-      ) VALUES ($1::uuid, $2::numeric, $3::text, $4::text, $5::int, $6::timestamptz, $7::text, $8::text, $9::uuid)
-      RETURNING *;
-    `;
-    const values = [
-      data.userProductId,
-      data.estimatedPrice ?? null,
-      data.paymentMethod ?? null,
-      data.paymentStatus ?? 'PENDING',
-      data.priorityLevel,
-      data.estimatedCompletionDate ?? null,
-      data.issueDescription,
-      data.issueNotes ?? null,
-      data.entryByUserId,
-    ];
-    const result = await db.query(query, values);
-    return result.rows[0];
+  async getServiceOrderByID(
+    serviceOrderId: string
+  ): Promise<ServiceOrder.ServiceOrderSummary | undefined> {
+    return orderSummary().where('so.serviceOrderId', '=', serviceOrderId).executeTakeFirst();
   },
 
-  async getServiceOrderByID(serviceOrderId: string) {
-    const query = `SELECT * FROM service_order WHERE service_order_id = $1::uuid;`;
-    const result = await db.query(query, [serviceOrderId]);
-    return result.rows[0];
+  async createServiceOrder(data: ServiceOrder.CreateServiceOrder): Promise<ServiceOrder.ServiceOrder> {
+    return db
+      .insertInto('service_order')
+      .values({
+        userProductId: data.userProductId,
+        estimatedPrice: data.estimatedPrice ?? null,
+        priorityLevel: data.priorityLevel,
+        estimatedCompletionDate: data.estimatedCompletionDate ?? null,
+        issueDescription: data.issueDescription,
+        issueNotes: data.issueNotes ?? null,
+        entryBy: data.entryBy,
+        paymentMethod: null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
   },
 
-  async updateServiceOrder(serviceOrderId: string, data: ServiceOrderModel.PatchServiceOrder) {
-    let query = `UPDATE service_order SET `;
-    const updates: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
-    if (data.userProductId !== undefined) {
-      updates.push(`user_product_id = $${idx}::uuid`);
-      values.push(data.userProductId);
-      idx++;
-    }
-    if (data.estimatedPrice !== undefined) {
-      updates.push(`estimated_price = $${idx}::numeric`);
-      values.push(data.estimatedPrice);
-      idx++;
-    }
-    if (data.finalPrice !== undefined) {
-      updates.push(`final_price = $${idx}::numeric`);
-      values.push(data.finalPrice);
-      idx++;
-    }
-    if (data.paymentMethod !== undefined) {
-      updates.push(`payment_method = $${idx}::text`);
-      values.push(data.paymentMethod);
-      idx++;
-    }
-    if (data.paymentStatus !== undefined) {
-      updates.push(`payment_status = $${idx}::text`);
-      values.push(data.paymentStatus);
-      idx++;
-    }
-    if (data.priorityLevel !== undefined) {
-      updates.push(`priority_level = $${idx}::int`);
-      values.push(data.priorityLevel);
-      idx++;
-    }
-    if (data.estimatedCompletionDate !== undefined) {
-      updates.push(`estimated_completion_date = $${idx}::timestamptz`);
-      values.push(data.estimatedCompletionDate);
-      idx++;
-    }
-    if (data.actualCompletionDate !== undefined) {
-      updates.push(`actual_completion_date = $${idx}::timestamptz`);
-      values.push(data.actualCompletionDate);
-      idx++;
-    }
-    if (data.issueDescription !== undefined) {
-      updates.push(`issue_description = $${idx}::text`);
-      values.push(data.issueDescription);
-      idx++;
-    }
-    if (data.issueNotes !== undefined) {
-      updates.push(`issue_notes = $${idx}::text`);
-      values.push(data.issueNotes);
-      idx++;
-    }
-
-    if (updates.length === 0) return null;
-
-    query += updates.join(', ') + ` WHERE service_order_id = $${idx}::uuid RETURNING *;`;
-    values.push(serviceOrderId);
-    const result = await db.query(query, values);
-    return result.rows[0] ?? null;
+  async updateServiceOrder(
+    serviceOrderId: string,
+    data: ServiceOrder.PatchServiceOrder
+  ): Promise<ServiceOrder.ServiceOrder | undefined> {
+    return db
+      .updateTable('service_order')
+      .set({
+        userProductId: data.userProductId,
+        estimatedPrice: data.estimatedPrice,
+        finalPrice: data.finalPrice,
+        paymentMethod: data.paymentMethod,
+        paymentStatus: data.paymentStatus,
+        priorityLevel: data.priorityLevel,
+        estimatedCompletionDate: data.estimatedCompletionDate,
+        actualCompletionDate: data.actualCompletionDate,
+        issueDescription: data.issueDescription,
+        issueNotes: data.issueNotes,
+      })
+      .where('serviceOrderId', '=', serviceOrderId)
+      .returningAll()
+      .executeTakeFirst();
   },
 
-  async deleteServiceOrder(serviceOrderId: string) {
-    const query = `DELETE FROM service_order WHERE service_order_id = $1::uuid;`;
-    return await db.query(query, [serviceOrderId]);
+  async deleteServiceOrder(serviceOrderId: string): Promise<boolean> {
+    const result = await db
+      .deleteFrom('service_order')
+      .where('serviceOrderId', '=', serviceOrderId)
+      .executeTakeFirst();
+    return result.numDeletedRows > 0n;
   },
 };
 

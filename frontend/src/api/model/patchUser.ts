@@ -7,7 +7,9 @@
  */
 
 export interface PatchUser {
+  /** @minLength 1 */
   userName?: string;
   email?: string;
+  address?: string;
   roleId?: number;
 }

@@ -8,6 +8,7 @@
 import type { ComposeServiceOrderInputIssueDescription } from './composeServiceOrderInputIssueDescription';
 
 export interface ComposeServiceOrderInput {
+  /** @minimum 0 */
   estimatedPrice?: number;
   estimatedCompletionDate?: string;
   /**

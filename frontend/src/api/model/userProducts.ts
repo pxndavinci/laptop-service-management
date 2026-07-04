@@ -5,19 +5,25 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
-import type { Products } from './products';
-import type { Users } from './users';
 
 export interface UserProducts {
   userProductId?: string;
-  user?: Users;
-  product?: Products;
+  /** Owner of the device */
+  userId?: string;
+  /** Product model of the device */
+  productId?: string;
   /** Unique serial number */
   serialNumber?: string;
-  /** Encrypted password for the device */
-  loginPassword?: string;
-  /** Extra information (e.g., RAM, Storage specs) */
-  additionalInfo?: string;
+  /**
+     * Device login password, if the customer provided one
+     * @nullable
+     */
+  loginPassword?: string | null;
+  /**
+     * Extra information (e.g., RAM, Storage specs)
+     * @nullable
+     */
+  additionalInfo?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

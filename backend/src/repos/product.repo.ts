@@ -1,107 +1,89 @@
 import db from '../db/index';
-import * as ProductModel from '../models/product.model';
+import * as Product from '../models/product.model';
+
+const productWithNames = () =>
+  db
+    .selectFrom('product')
+    .innerJoin('brand', 'brand.brandId', 'product.brandId')
+    .innerJoin('product_type', 'product_type.productTypeId', 'product.productTypeId')
+    .select([
+      'product.productId',
+      'product.productName',
+      'product.description',
+      'product.brandId',
+      'product.productTypeId',
+      'product.createdAt',
+      'product.updatedAt',
+      'brand.brandName',
+      'product_type.productTypeName',
+    ]);
 
 export const productRepo = {
-    async getProducts(params: ProductModel.ProductQueryParams): Promise<[ProductModel.Product[], number]> {
-        let query = `SELECT * FROM product WHERE 1=1`;
-        let values: any[] = [];
-        let idx: number = 1;
+  async getProducts(
+    params: Product.ProductQueryParams & { limit: number; offset: number }
+  ): Promise<[Product.ProductWithNames[], number]> {
+    const filtered = productWithNames()
+      .$if(!!params.productName, (qb) =>
+        qb.where('product.productName', 'ilike', `%${params.productName}%`)
+      )
+      .$if(!!params.brandId, (qb) => qb.where('product.brandId', '=', params.brandId!))
+      .$if(!!params.productTypeId, (qb) =>
+        qb.where('product.productTypeId', '=', params.productTypeId!)
+      );
 
-        if (params.productName) {
-            query += ` AND product_name ILIKE $${idx}::text`;
-            values.push(`%${params.productName}%`);
-            idx++;
-        }
+    const products = await filtered
+      .orderBy('product.createdAt', 'desc')
+      .limit(params.limit)
+      .offset(params.offset)
+      .execute();
 
-        if (params.brandId) {
-            query += ` AND brand_id = $${idx}::uuid`;
-            values.push(params.brandId);
-            idx++;
-        }
+    const { total } = await filtered
+      .clearSelect()
+      .select((eb) => eb.fn.countAll<number>().as('total'))
+      .executeTakeFirstOrThrow();
 
-        if (params.productTypeId !== undefined) {
-            query += ` AND product_type_id = $${idx}::uuid`;
-            values.push(params.productTypeId);
-            idx++;
-        }
+    return [products, total];
+  },
 
-        query += ` LIMIT $${idx}::int`;
-        values.push(params.limit);
-        idx++;
-        query += ` OFFSET $${idx}::int`;
-        values.push(params.offset);
-        idx++;
+  async getProductByID(productId: string): Promise<Product.ProductWithNames | undefined> {
+    return productWithNames().where('product.productId', '=', productId).executeTakeFirst();
+  },
 
-        const result = await db.query(query, values);
-        return [result.rows as ProductModel.Product[], result.rowCount ?? 0];
-    },
+  async createProduct(data: Product.CreateProduct): Promise<Product.Product> {
+    return db
+      .insertInto('product')
+      .values({
+        productName: data.productName,
+        description: data.description ?? null,
+        brandId: data.brandId,
+        productTypeId: data.productTypeId,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  },
 
-    async createProduct(params: ProductModel.CreateProduct): Promise<ProductModel.Product> {
-        const query = `
-            INSERT INTO product (product_name, description, brand_id, product_type_id)
-            VALUES ($1::text, $2::text, $3::uuid, $4::uuid)
-            RETURNING *;
-        `;
-        const values = [
-            params.productName,
-            params.description ?? null,
-            params.brandId,
-            params.productTypeId,
-        ];
-        const result = await db.query(query, values);
-        return result.rows[0] as ProductModel.Product;
-    },
+  async updateProduct(
+    productId: string,
+    data: Product.PatchProduct
+  ): Promise<Product.Product | undefined> {
+    return db
+      .updateTable('product')
+      .set({
+        productName: data.productName,
+        description: data.description,
+        brandId: data.brandId,
+        productTypeId: data.productTypeId,
+      })
+      .where('productId', '=', productId)
+      .returningAll()
+      .executeTakeFirst();
+  },
 
-    async getProductByID(product_id: string): Promise<ProductModel.Product> {
-        const query = `
-        SELECT * FROM product WHERE product_id = $1::uuid;
-        `;
-        const result = await db.query(query, [product_id]);
-        return result.rows[0] as ProductModel.Product;
-    },
-
-    async updateProduct(product_id: string, params: ProductModel.PatchProduct): Promise<ProductModel.Product | null> {
-        let query = `UPDATE product SET `;
-        let values: any[] = [];
-        let idx: number = 1;
-        const updates: string[] = [];
-
-        if (params.productName !== undefined) {
-            updates.push(`product_name = $${idx}::text`);
-            values.push(params.productName);
-            idx++;
-        }
-
-        if (params.description !== undefined) {
-            updates.push(`description = $${idx}::text`);
-            values.push(params.description);
-            idx++;
-        }
-
-        if (params.brandId !== undefined) {
-            updates.push(`brand_id = $${idx}::uuid`);
-            values.push(params.brandId);
-            idx++;
-        }
-
-        if (params.productTypeId !== undefined) {
-            updates.push(`product_type_id = $${idx}::uuid`);
-            values.push(params.productTypeId);
-            idx++;
-        }
-
-        if (updates.length === 0) {
-            return null;
-        }
-
-        query += updates.join(', ') + ` WHERE product_id = $${idx}::uuid RETURNING *;`;
-        values.push(product_id);
-        const result = await db.query(query, values);
-        return result.rows[0] as ProductModel.Product ?? null;
-    },
-
-    async deleteProduct(product_id: string) {
-        const query = `DELETE FROM product WHERE product_id = $1::uuid;`;
-        return await db.query(query, [product_id]);
-    },
+  async deleteProduct(productId: string): Promise<boolean> {
+    const result = await db
+      .deleteFrom('product')
+      .where('productId', '=', productId)
+      .executeTakeFirst();
+    return result.numDeletedRows > 0n;
+  },
 };

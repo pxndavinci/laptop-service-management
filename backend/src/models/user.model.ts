@@ -1,32 +1,26 @@
-import { Role } from "./role.model";
+import { Selectable } from 'kysely';
+import { UserDataTable } from '../db/schema';
 
-export interface User {
-  userId:string;
-  userName:string;
-  email:string;
-  address?:string;
-  role:Role;
-  createdAt:string;
-  updatedAt:string;
-}
+export type User = Selectable<UserDataTable>;
 
 export interface UserQueryParams {
-    userName?: string;
-    email?:string;
-    roleId?: number;
-    page?: number;
-    limit?: number;
-    offset?: number;
+  userName?: string;
+  email?: string;
+  roleId?: number;
+  page?: number;
+  limit?: number;
 }
 
-export interface CreateUser{
-  userName:string;
-  email:string;
-  roleId:number;
+export interface CreateUser {
+  userName: string;
+  roleId: number;
+  email?: string;
+  address?: string;
 }
 
-export interface PatchUser{
-  userName?:string;
-  email?:string;
-  roleId?:number;
+export interface PatchUser {
+  userName?: string;
+  email?: string;
+  address?: string;
+  roleId?: number;
 }

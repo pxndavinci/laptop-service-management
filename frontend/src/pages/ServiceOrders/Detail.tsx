@@ -1,280 +1,187 @@
-import React from 'react'
 import {
   Box,
-  Typography,
-  Container,
+  Button,
   Card,
   CardContent,
-  Grid,
   Chip,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Skeleton,
+  CircularProgress,
+  Container,
+  Divider,
+  Grid,
   Stack,
+  Typography,
 } from '@mui/material'
-import BackIcon from '@mui/icons-material/ArrowBack'
-import EditIcon from '@mui/icons-material/Edit'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useServiceOrder } from '../../lib/hooks/useServiceOrders'
-import { useCustomer } from '../../lib/hooks/useCustomers'
-import { useProduct } from '../../lib/hooks/useProducts'
-import { ServiceOrderStatus, ServiceOrderPriority } from '../../types'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { Link, useParams } from 'react-router-dom'
+import { useGetServiceOrdersServiceOrderId } from '../../api/service-orders/service-orders'
+import { useGetServiceStatus } from '../../api/service-status/service-status'
 
-const getStatusColor = (
-  status: ServiceOrderStatus
-): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-  switch (status) {
-    case 'completed':
-      return 'success'
-    case 'in-progress':
-      return 'info'
-    case 'pending':
-      return 'warning'
-    case 'cancelled':
-      return 'error'
-    default:
-      return 'default'
-  }
-}
+const formatDateTime = (value: string | null | undefined) =>
+  value ? new Date(value).toLocaleString() : '—'
 
-const getPriorityColor = (
-  priority: ServiceOrderPriority
-): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-  switch (priority) {
-    case 'urgent':
-      return 'error'
-    case 'high':
-      return 'warning'
-    case 'medium':
-      return 'info'
-    case 'low':
-      return 'success'
-    default:
-      return 'default'
-  }
-}
+const formatPrice = (value: number | null | undefined) =>
+  value === null || value === undefined ? '—' : `₹${value.toLocaleString()}`
 
-const ServiceOrderDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const { data: order, isLoading } = useServiceOrder(id || '')
-  const { data: customer, isLoading: customerLoading } = useCustomer(order?.customerId || '')
-  const { data: product, isLoading: productLoading } = useProduct(order?.productId || '')
+const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <Box>
+    <Typography variant="caption" color="text.secondary">
+      {label}
+    </Typography>
+    <Typography variant="body1">{value ?? '—'}</Typography>
+  </Box>
+)
 
-  if (!id) {
+const ServiceOrderDetail = () => {
+  const { id = '' } = useParams<{ id: string }>()
+
+  const { data: order, isLoading, isError } = useGetServiceOrdersServiceOrderId(id, {
+    query: { enabled: !!id },
+  })
+  const { data: statusHistory } = useGetServiceStatus(
+    { serviceOrderId: id, limit: 50 },
+    { query: { enabled: !!id } },
+  )
+
+  if (isLoading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ minHeight: 320, display: 'grid', placeItems: 'center' }}>
+        <CircularProgress size={32} />
+      </Box>
+    )
+  }
+
+  if (isError || !order) {
+    return (
+      <Container maxWidth="md">
         <Box sx={{ py: 4 }}>
-          <Typography color="error">Service order not found</Typography>
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            Service order not found
+          </Typography>
+          <Button component={Link} to="/service-orders" startIcon={<ArrowBackIcon />}>
+            Back to service orders
+          </Button>
         </Box>
       </Container>
     )
   }
 
+  const statuses = statusHistory?.data ?? []
+
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Button
-            startIcon={<BackIcon />}
-            onClick={() => navigate('/')}
-            variant="text"
-          >
-            Dashboard
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 3 }}>
+          <Button component={Link} to="/service-orders" startIcon={<ArrowBackIcon />}>
+            Back
           </Button>
           <Typography variant="h2" sx={{ fontWeight: 700 }}>
-            {isLoading ? <Skeleton width={300} /> : order?.orderNumber}
+            Order #{order.tagNo}
           </Typography>
-        </Box>
+          <Chip label={order.currentStatus ?? 'Received'} color="info" />
+        </Stack>
 
-        {/* Details */}
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 3 }}>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                      Order Information
-                    </Typography>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Customer & device
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Customer" value={order.userName} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Contact" value={order.contactNumber} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field
+                  label="Device"
+                  value={[order.brandName, order.productName].filter(Boolean).join(' ')}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Serial number" value={order.serialNumber} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Order details
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Issue type" value={order.issueDescription} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Priority" value={`P${order.priorityLevel}`} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Estimated price" value={formatPrice(order.estimatedPrice)} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Final price" value={formatPrice(order.finalPrice)} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Payment status" value={order.paymentStatus} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Payment method" value={order.paymentMethod ?? '—'} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field
+                  label="Estimated completion"
+                  value={formatDateTime(order.estimatedCompletionDate)}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field
+                  label="Actual completion"
+                  value={formatDateTime(order.actualCompletionDate)}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Field label="Issue notes" value={order.issueNotes || '—'} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Created" value={formatDateTime(order.createdAt)} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Field label="Last updated" value={formatDateTime(order.updatedAt)} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Status history
+            </Typography>
+            {statuses.length === 0 ? (
+              <Typography color="text.secondary">No status updates yet.</Typography>
+            ) : (
+              <Stack divider={<Divider />} spacing={2}>
+                {statuses.map((status) => (
+                  <Box key={status.serviceStatusId}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                      <Chip label={status.statusName} size="small" color="info" />
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDateTime(status.createdAt)} · {status.assignedToName}
+                      </Typography>
+                    </Stack>
+                    {status.comment && (
+                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                        {status.comment}
+                      </Typography>
+                    )}
                   </Box>
-                  <Button
-                    variant="outlined"
-                    startIcon={<EditIcon />}
-                    component={Link}
-                    to={`/service-orders/${id}`}
-                  >
-                    Edit
-                  </Button>
-                </Box>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Customer
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {isLoading || customerLoading ? <Skeleton /> : customer?.name}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Mobile Number
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {isLoading || customerLoading ? <Skeleton /> : customer?.phone}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, mt: 2 }}>
-                      Service
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {isLoading || productLoading ? <Skeleton /> : product?.name}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Description
-                    </Typography>
-                    <Typography variant="body1">
-                      {isLoading ? <Skeleton /> : order?.description}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Status
-                    </Typography>
-                    {isLoading ? (
-                      <Skeleton width={100} />
-                    ) : (
-                      <Chip
-                        label={order?.status}
-                        color={getStatusColor(order?.status as ServiceOrderStatus)}
-                        variant="outlined"
-                      />
-                    )}
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Priority
-                    </Typography>
-                    {isLoading ? (
-                      <Skeleton width={100} />
-                    ) : (
-                      <Chip
-                        label={order?.priority}
-                        color={getPriorityColor(order?.priority as ServiceOrderPriority)}
-                        variant="filled"
-                      />
-                    )}
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Total Cost
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {isLoading ? <Skeleton /> : `$${order?.totalCost.toLocaleString()}`}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                      Est. Completion
-                    </Typography>
-                    <Typography variant="body1">
-                      {isLoading ? <Skeleton /> : new Date(order?.estimatedCompletionDate || '').toLocaleDateString()}
-                    </Typography>
-                  </Grid>
-                  {order?.actualCompletionDate && (
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                        Actual Completion
-                      </Typography>
-                      <Typography variant="body1">
-                        {new Date(order.actualCompletionDate).toLocaleDateString()}
-                      </Typography>
-                    </Grid>
-                  )}
-                </Grid>
-              </CardContent>
-            </Card>
-
-            {/* Timeline */}
-            <Card>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Status Timeline
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Changed By</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Timestamp</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {isLoading ? (
-                        Array.from({ length: 3 }).map((_, i) => (
-                          <TableRow key={i}>
-                            <TableCell>
-                              <Skeleton />
-                            </TableCell>
-                            <TableCell>
-                              <Skeleton />
-                            </TableCell>
-                            <TableCell>
-                              <Skeleton />
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : order?.statusTimeline && order.statusTimeline.length > 0 ? (
-                        order.statusTimeline.map((timeline, i) => (
-                          <TableRow key={i}>
-                            <TableCell>
-                              <Chip
-                                label={timeline.status}
-                                color={getStatusColor(timeline.status as ServiceOrderStatus)}
-                                size="small"
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell>{timeline.changedBy}</TableCell>
-                            <TableCell>{new Date(timeline.timestamp).toLocaleString()}</TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={3} align="center" sx={{ py: 2, color: '#999' }}>
-                            No timeline data
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Sidebar */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Notes
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#757575', whiteSpace: 'pre-wrap' }}>
-                  {isLoading ? <Skeleton /> : order?.notes || 'No notes'}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
       </Box>
     </Container>
   )

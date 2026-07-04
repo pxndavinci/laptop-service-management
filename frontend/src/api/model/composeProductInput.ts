@@ -7,8 +7,11 @@
  */
 
 export interface ComposeProductInput {
+  /** @minLength 1 */
   productName: string;
   description?: string;
+  /** @minLength 1 */
   brandName: string;
+  /** @minLength 1 */
   productTypeName: string;
 }

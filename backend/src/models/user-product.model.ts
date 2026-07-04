@@ -1,37 +1,28 @@
-import { User } from "./user.model";
-import { Product } from "./product.model";
-export interface UserProduct{
-	userProductId:string;
-	user:User;
-	product:Product;
-	serialNumber:string;
-	loginPassword?:string;
-	additionalInfo?:string;
-	createdAt:string;
-	updatedAt:string;
-}
+import { Selectable } from 'kysely';
+import { UserProductTable } from '../db/schema';
 
-export interface CreateUserProduct{
-	userId:string;
-	productId:string;
-	serialNumber:string;
-	loginPassword?:string;
-	additionalInfo?:string;
-}
-
-export interface PatchUserProduct{
-	userId?:string;
-	productId?:string;
-	serialNumber?:string;
-	loginPassword?:string;
-	additionalInfo?:string;
-}
+export type UserProduct = Selectable<UserProductTable>;
 
 export interface UserProductQueryParams {
-	userId?: string;
-	productId?: string;
-	serialNumber?: string;
-	page?: number;
-	limit?: number;
-	offset?: number;
+  userId?: string;
+  productId?: string;
+  serialNumber?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateUserProduct {
+  userId: string;
+  productId: string;
+  serialNumber: string;
+  loginPassword?: string;
+  additionalInfo?: string;
+}
+
+export interface PatchUserProduct {
+  userId?: string;
+  productId?: string;
+  serialNumber?: string;
+  loginPassword?: string;
+  additionalInfo?: string;
 }

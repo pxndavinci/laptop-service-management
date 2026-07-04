@@ -7,6 +7,7 @@
  */
 
 export interface ComposeCustomerInput {
+  /** @minLength 1 */
   userName: string;
   roleId: number;
   email?: string;

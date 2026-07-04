@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS role (
 CREATE TABLE IF NOT EXISTS user_data (
     user_id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL,
-    role_id NUMERIC(2) NOT NULL,
+    role_id SMALLINT NOT NULL,
     email TEXT UNIQUE,
     address TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -127,37 +127,24 @@ CREATE TYPE payment_status_type AS ENUM (
     'REFUNDED'
 );
 
--- Sequence for auto-generating service order numbers (YYDDDDD format)
-CREATE SEQUENCE IF NOT EXISTS service_order_seq START 1;
-
+-- Assigns tag numbers in YYNNNN format (e.g. 260001), restarting the counter
+-- each calendar year. Supports up to 9999 orders per year.
 CREATE OR REPLACE FUNCTION generate_service_order_number()
 RETURNS TRIGGER AS $$
 DECLARE
-    current_year INT;
-    seq_val INT;
+    year_base INT;
+    last_tag NUMERIC(6);
 BEGIN
-    current_year := TO_CHAR(CURRENT_DATE, 'YY')::INT;
-    seq_val := NEXTVAL('service_order_seq');
-    
-    -- Lock service_order to prevent concurrent sequence reset
-    LOCK TABLE service_order IN ACCESS EXCLUSIVE MODE;
+    year_base := TO_CHAR(CURRENT_DATE, 'YY')::INT * 10000;
 
-    IF NOT EXISTS (SELECT 1 FROM service_order) THEN
-        PERFORM SETVAL('service_order_seq', 1, false);
-        seq_val := 1;
+    -- Serialize tag assignment across concurrent inserts (released at commit)
+    PERFORM pg_advisory_xact_lock(hashtext('service_order_tag_no'));
 
-    ELSIF EXTRACT(YEAR FROM NOW())::INT >
-        COALESCE(
-            (SELECT EXTRACT(YEAR FROM MAX(created_at))::INT
-            FROM service_order),
-            0
-        ) THEN
+    SELECT MAX(tag_no) INTO last_tag
+    FROM service_order
+    WHERE tag_no >= year_base;
 
-        PERFORM SETVAL('service_order_seq', 1, false);
-        seq_val := 1;
-    END IF;
-    
-    NEW.tag_no := current_year*10000 + seq_val;
+    NEW.tag_no := COALESCE(last_tag, year_base) + 1;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

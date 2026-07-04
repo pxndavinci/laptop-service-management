@@ -7,7 +7,6 @@
  */
 
 export interface PatchServiceStatuses {
-  serviceOrderId?: string;
   statusId?: string;
   assignedTo?: string;
   comment?: string;

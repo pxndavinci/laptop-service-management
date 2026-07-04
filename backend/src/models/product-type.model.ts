@@ -1,14 +1,12 @@
-export interface ProductType{
-  productTypeId:string;
-  typeName:string;
-  createdAt:string;
-  updatedAt:string;
+import { Selectable } from 'kysely';
+import { ProductTypeTable } from '../db/schema';
+
+export type ProductType = Selectable<ProductTypeTable>;
+
+export interface CreateProductType {
+  typeName: string;
 }
 
-export interface CreateProductType{
-  typeName:string;
-}
-
-export interface PatchProductType{
-  typeName?:string;
+export interface PatchProductType {
+  typeName?: string;
 }

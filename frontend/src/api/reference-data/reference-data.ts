@@ -39,72 +39,48 @@ import type {
   Statuses
 } from '../model';
 
+import { customInstance } from '../../lib/api/mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export type getReferencesRolesResponse200 = {
-  data: Roles[]
-  status: 200
-}
-
-export type getReferencesRolesResponseSuccess = (getReferencesRolesResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getReferencesRolesResponse = (getReferencesRolesResponseSuccess)
-
-export const getGetReferencesRolesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/roles`
-}
 
 /**
  * @summary Get all roles
  */
-export const getReferencesRoles = async ( options?: RequestInit): Promise<getReferencesRolesResponse> => {
+export const getReferencesRoles = (
 
-  const res = await fetch(getGetReferencesRolesUrl(),
-  {
-    ...options,
-    method: 'GET'
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getReferencesRolesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getReferencesRolesResponse
-}
-
+      return customInstance<Roles[]>(
+      {url: `/references/roles`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetReferencesRolesQueryKey = () => {
     return [
-    `http://localhost:3000/references/roles`
+    `/references/roles`
     ] as const;
     }
 
 
-export const getGetReferencesRolesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesRoles>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, fetch?: RequestInit}
+export const getGetReferencesRolesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesRoles>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReferencesRolesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesRoles>>> = ({ signal }) => getReferencesRoles({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesRoles>>> = ({ signal }) => getReferencesRoles(requestOptions, signal);
 
 
 
@@ -124,7 +100,7 @@ export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getRefer
           TError,
           Awaited<ReturnType<typeof getReferencesRoles>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getReferencesRoles>>, TError = unknown>(
@@ -134,11 +110,11 @@ export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getRefer
           TError,
           Awaited<ReturnType<typeof getReferencesRoles>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getReferencesRoles>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -146,7 +122,7 @@ export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getRefer
  */
 
 export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getReferencesRoles>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesRoles>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -162,60 +138,35 @@ export function useGetReferencesRoles<TData = Awaited<ReturnType<typeof getRefer
 
 
 
-export type postReferencesRolesResponse201 = {
-  data: Roles
-  status: 201
-}
-
-export type postReferencesRolesResponseSuccess = (postReferencesRolesResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postReferencesRolesResponse = (postReferencesRolesResponseSuccess)
-
-export const getPostReferencesRolesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/roles`
-}
-
 /**
  * @summary Create role
  */
-export const postReferencesRoles = async (createRole: CreateRole, options?: RequestInit): Promise<postReferencesRolesResponse> => {
-
-  const res = await fetch(getPostReferencesRolesUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createRole)
-  }
-)
+export const postReferencesRoles = (
+    createRole: CreateRole,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postReferencesRolesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postReferencesRolesResponse
-}
-
+      return customInstance<Roles>(
+      {url: `/references/roles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRole, signal
+    },
+      options);
+    }
 
 
 
 export const getPostReferencesRolesMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesRoles>>, TError,{data: CreateRole}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesRoles>>, TError,{data: CreateRole}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesRoles>>, TError,{data: CreateRole}, TContext> => {
 
 const mutationKey = ['postReferencesRoles'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -223,7 +174,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReferencesRoles>>, {data: CreateRole}> = (props) => {
           const {data} = props ?? {};
 
-          return  postReferencesRoles(data,fetchOptions)
+          return  postReferencesRoles(data,requestOptions)
         }
 
 
@@ -241,7 +192,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create role
  */
 export const usePostReferencesRoles = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesRoles>>, TError,{data: CreateRole}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesRoles>>, TError,{data: CreateRole}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesRoles>>,
         TError,
@@ -250,61 +201,36 @@ export const usePostReferencesRoles = <TError = unknown,
       > => {
       return useMutation(getPostReferencesRolesMutationOptions(options), queryClient);
     }
-    export type patchReferencesRolesRoleIdResponse200 = {
-  data: Roles
-  status: 200
-}
-
-export type patchReferencesRolesRoleIdResponseSuccess = (patchReferencesRolesRoleIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchReferencesRolesRoleIdResponse = (patchReferencesRolesRoleIdResponseSuccess)
-
-export const getPatchReferencesRolesRoleIdUrl = (roleId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/roles/${roleId}`
-}
-
-/**
+    /**
  * @summary Update role
  */
-export const patchReferencesRolesRoleId = async (roleId: string,
-    patchRole: PatchRole, options?: RequestInit): Promise<patchReferencesRolesRoleIdResponse> => {
-
-  const res = await fetch(getPatchReferencesRolesRoleIdUrl(roleId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchRole)
-  }
-)
+export const patchReferencesRolesRoleId = (
+    roleId: string,
+    patchRole: PatchRole,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchReferencesRolesRoleIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchReferencesRolesRoleIdResponse
-}
-
+      return customInstance<Roles>(
+      {url: `/references/roles/${roleId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchRole, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchReferencesRolesRoleIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext> => {
 
 const mutationKey = ['patchReferencesRolesRoleId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -312,7 +238,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, {roleId: string;data: PatchRole}> = (props) => {
           const {roleId,data} = props ?? {};
 
-          return  patchReferencesRolesRoleId(roleId,data,fetchOptions)
+          return  patchReferencesRolesRoleId(roleId,data,requestOptions)
         }
 
 
@@ -330,7 +256,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update role
  */
 export const usePatchReferencesRolesRoleId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchReferencesRolesRoleId>>,
         TError,
@@ -339,60 +265,33 @@ export const usePatchReferencesRolesRoleId = <TError = unknown,
       > => {
       return useMutation(getPatchReferencesRolesRoleIdMutationOptions(options), queryClient);
     }
-    export type deleteReferencesRolesRoleIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteReferencesRolesRoleIdResponseSuccess = (deleteReferencesRolesRoleIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteReferencesRolesRoleIdResponse = (deleteReferencesRolesRoleIdResponseSuccess)
-
-export const getDeleteReferencesRolesRoleIdUrl = (roleId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/roles/${roleId}`
-}
-
-/**
+    /**
  * @summary Delete role
  */
-export const deleteReferencesRolesRoleId = async (roleId: string, options?: RequestInit): Promise<deleteReferencesRolesRoleIdResponse> => {
-
-  const res = await fetch(getDeleteReferencesRolesRoleIdUrl(roleId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteReferencesRolesRoleId = (
+    roleId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteReferencesRolesRoleIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteReferencesRolesRoleIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/references/roles/${roleId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteReferencesRolesRoleIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext> => {
 
 const mutationKey = ['deleteReferencesRolesRoleId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -400,7 +299,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, {roleId: string}> = (props) => {
           const {roleId} = props ?? {};
 
-          return  deleteReferencesRolesRoleId(roleId,fetchOptions)
+          return  deleteReferencesRolesRoleId(roleId,requestOptions)
         }
 
 
@@ -418,7 +317,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete role
  */
 export const useDeleteReferencesRolesRoleId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>,
         TError,
@@ -427,68 +326,41 @@ export const useDeleteReferencesRolesRoleId = <TError = unknown,
       > => {
       return useMutation(getDeleteReferencesRolesRoleIdMutationOptions(options), queryClient);
     }
-    export type getReferencesBrandsResponse200 = {
-  data: Brands[]
-  status: 200
-}
-
-export type getReferencesBrandsResponseSuccess = (getReferencesBrandsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getReferencesBrandsResponse = (getReferencesBrandsResponseSuccess)
-
-export const getGetReferencesBrandsUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/brands`
-}
-
-/**
+    /**
  * @summary Get all brands
  */
-export const getReferencesBrands = async ( options?: RequestInit): Promise<getReferencesBrandsResponse> => {
+export const getReferencesBrands = (
 
-  const res = await fetch(getGetReferencesBrandsUrl(),
-  {
-    ...options,
-    method: 'GET'
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getReferencesBrandsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getReferencesBrandsResponse
-}
-
+      return customInstance<Brands[]>(
+      {url: `/references/brands`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetReferencesBrandsQueryKey = () => {
     return [
-    `http://localhost:3000/references/brands`
+    `/references/brands`
     ] as const;
     }
 
 
-export const getGetReferencesBrandsQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesBrands>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, fetch?: RequestInit}
+export const getGetReferencesBrandsQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesBrands>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReferencesBrandsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesBrands>>> = ({ signal }) => getReferencesBrands({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesBrands>>> = ({ signal }) => getReferencesBrands(requestOptions, signal);
 
 
 
@@ -508,7 +380,7 @@ export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getRefe
           TError,
           Awaited<ReturnType<typeof getReferencesBrands>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getReferencesBrands>>, TError = unknown>(
@@ -518,11 +390,11 @@ export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getRefe
           TError,
           Awaited<ReturnType<typeof getReferencesBrands>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getReferencesBrands>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -530,7 +402,7 @@ export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getRefe
  */
 
 export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getReferencesBrands>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesBrands>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -546,60 +418,35 @@ export function useGetReferencesBrands<TData = Awaited<ReturnType<typeof getRefe
 
 
 
-export type postReferencesBrandsResponse201 = {
-  data: Brands
-  status: 201
-}
-
-export type postReferencesBrandsResponseSuccess = (postReferencesBrandsResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postReferencesBrandsResponse = (postReferencesBrandsResponseSuccess)
-
-export const getPostReferencesBrandsUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/brands`
-}
-
 /**
  * @summary Create brand
  */
-export const postReferencesBrands = async (createBrand: CreateBrand, options?: RequestInit): Promise<postReferencesBrandsResponse> => {
-
-  const res = await fetch(getPostReferencesBrandsUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createBrand)
-  }
-)
+export const postReferencesBrands = (
+    createBrand: CreateBrand,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postReferencesBrandsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postReferencesBrandsResponse
-}
-
+      return customInstance<Brands>(
+      {url: `/references/brands`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createBrand, signal
+    },
+      options);
+    }
 
 
 
 export const getPostReferencesBrandsMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext> => {
 
 const mutationKey = ['postReferencesBrands'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -607,7 +454,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReferencesBrands>>, {data: CreateBrand}> = (props) => {
           const {data} = props ?? {};
 
-          return  postReferencesBrands(data,fetchOptions)
+          return  postReferencesBrands(data,requestOptions)
         }
 
 
@@ -625,7 +472,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create brand
  */
 export const usePostReferencesBrands = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesBrands>>,
         TError,
@@ -634,61 +481,36 @@ export const usePostReferencesBrands = <TError = unknown,
       > => {
       return useMutation(getPostReferencesBrandsMutationOptions(options), queryClient);
     }
-    export type patchReferencesBrandsBrandIdResponse200 = {
-  data: Brands
-  status: 200
-}
-
-export type patchReferencesBrandsBrandIdResponseSuccess = (patchReferencesBrandsBrandIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchReferencesBrandsBrandIdResponse = (patchReferencesBrandsBrandIdResponseSuccess)
-
-export const getPatchReferencesBrandsBrandIdUrl = (brandId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/brands/${brandId}`
-}
-
-/**
+    /**
  * @summary Update brand
  */
-export const patchReferencesBrandsBrandId = async (brandId: string,
-    patchBrand: PatchBrand, options?: RequestInit): Promise<patchReferencesBrandsBrandIdResponse> => {
-
-  const res = await fetch(getPatchReferencesBrandsBrandIdUrl(brandId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchBrand)
-  }
-)
+export const patchReferencesBrandsBrandId = (
+    brandId: string,
+    patchBrand: PatchBrand,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchReferencesBrandsBrandIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchReferencesBrandsBrandIdResponse
-}
-
+      return customInstance<Brands>(
+      {url: `/references/brands/${brandId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchBrand, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchReferencesBrandsBrandIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, TError,{brandId: string;data: PatchBrand}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, TError,{brandId: string;data: PatchBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, TError,{brandId: string;data: PatchBrand}, TContext> => {
 
 const mutationKey = ['patchReferencesBrandsBrandId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -696,7 +518,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, {brandId: string;data: PatchBrand}> = (props) => {
           const {brandId,data} = props ?? {};
 
-          return  patchReferencesBrandsBrandId(brandId,data,fetchOptions)
+          return  patchReferencesBrandsBrandId(brandId,data,requestOptions)
         }
 
 
@@ -714,7 +536,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update brand
  */
 export const usePatchReferencesBrandsBrandId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, TError,{brandId: string;data: PatchBrand}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>, TError,{brandId: string;data: PatchBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchReferencesBrandsBrandId>>,
         TError,
@@ -723,60 +545,33 @@ export const usePatchReferencesBrandsBrandId = <TError = unknown,
       > => {
       return useMutation(getPatchReferencesBrandsBrandIdMutationOptions(options), queryClient);
     }
-    export type deleteReferencesBrandsBrandIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteReferencesBrandsBrandIdResponseSuccess = (deleteReferencesBrandsBrandIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteReferencesBrandsBrandIdResponse = (deleteReferencesBrandsBrandIdResponseSuccess)
-
-export const getDeleteReferencesBrandsBrandIdUrl = (brandId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/brands/${brandId}`
-}
-
-/**
+    /**
  * @summary Delete brand
  */
-export const deleteReferencesBrandsBrandId = async (brandId: string, options?: RequestInit): Promise<deleteReferencesBrandsBrandIdResponse> => {
-
-  const res = await fetch(getDeleteReferencesBrandsBrandIdUrl(brandId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteReferencesBrandsBrandId = (
+    brandId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteReferencesBrandsBrandIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteReferencesBrandsBrandIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/references/brands/${brandId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteReferencesBrandsBrandIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, TError,{brandId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, TError,{brandId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, TError,{brandId: string}, TContext> => {
 
 const mutationKey = ['deleteReferencesBrandsBrandId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -784,7 +579,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, {brandId: string}> = (props) => {
           const {brandId} = props ?? {};
 
-          return  deleteReferencesBrandsBrandId(brandId,fetchOptions)
+          return  deleteReferencesBrandsBrandId(brandId,requestOptions)
         }
 
 
@@ -802,7 +597,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete brand
  */
 export const useDeleteReferencesBrandsBrandId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, TError,{brandId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>, TError,{brandId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReferencesBrandsBrandId>>,
         TError,
@@ -811,68 +606,41 @@ export const useDeleteReferencesBrandsBrandId = <TError = unknown,
       > => {
       return useMutation(getDeleteReferencesBrandsBrandIdMutationOptions(options), queryClient);
     }
-    export type getReferencesProductTypesResponse200 = {
-  data: ProductTypes[]
-  status: 200
-}
-
-export type getReferencesProductTypesResponseSuccess = (getReferencesProductTypesResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getReferencesProductTypesResponse = (getReferencesProductTypesResponseSuccess)
-
-export const getGetReferencesProductTypesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/product-types`
-}
-
-/**
+    /**
  * @summary Get all product types
  */
-export const getReferencesProductTypes = async ( options?: RequestInit): Promise<getReferencesProductTypesResponse> => {
+export const getReferencesProductTypes = (
 
-  const res = await fetch(getGetReferencesProductTypesUrl(),
-  {
-    ...options,
-    method: 'GET'
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getReferencesProductTypesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getReferencesProductTypesResponse
-}
-
+      return customInstance<ProductTypes[]>(
+      {url: `/references/product-types`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetReferencesProductTypesQueryKey = () => {
     return [
-    `http://localhost:3000/references/product-types`
+    `/references/product-types`
     ] as const;
     }
 
 
-export const getGetReferencesProductTypesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesProductTypes>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, fetch?: RequestInit}
+export const getGetReferencesProductTypesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesProductTypes>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReferencesProductTypesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesProductTypes>>> = ({ signal }) => getReferencesProductTypes({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesProductTypes>>> = ({ signal }) => getReferencesProductTypes(requestOptions, signal);
 
 
 
@@ -892,7 +660,7 @@ export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof g
           TError,
           Awaited<ReturnType<typeof getReferencesProductTypes>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof getReferencesProductTypes>>, TError = unknown>(
@@ -902,11 +670,11 @@ export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof g
           TError,
           Awaited<ReturnType<typeof getReferencesProductTypes>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof getReferencesProductTypes>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -914,7 +682,7 @@ export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof g
  */
 
 export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof getReferencesProductTypes>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesProductTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -930,60 +698,35 @@ export function useGetReferencesProductTypes<TData = Awaited<ReturnType<typeof g
 
 
 
-export type postReferencesProductTypesResponse201 = {
-  data: ProductTypes
-  status: 201
-}
-
-export type postReferencesProductTypesResponseSuccess = (postReferencesProductTypesResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postReferencesProductTypesResponse = (postReferencesProductTypesResponseSuccess)
-
-export const getPostReferencesProductTypesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/product-types`
-}
-
 /**
  * @summary Create product type
  */
-export const postReferencesProductTypes = async (createProductType: CreateProductType, options?: RequestInit): Promise<postReferencesProductTypesResponse> => {
-
-  const res = await fetch(getPostReferencesProductTypesUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createProductType)
-  }
-)
+export const postReferencesProductTypes = (
+    createProductType: CreateProductType,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postReferencesProductTypesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postReferencesProductTypesResponse
-}
-
+      return customInstance<ProductTypes>(
+      {url: `/references/product-types`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createProductType, signal
+    },
+      options);
+    }
 
 
 
 export const getPostReferencesProductTypesMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext> => {
 
 const mutationKey = ['postReferencesProductTypes'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -991,7 +734,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReferencesProductTypes>>, {data: CreateProductType}> = (props) => {
           const {data} = props ?? {};
 
-          return  postReferencesProductTypes(data,fetchOptions)
+          return  postReferencesProductTypes(data,requestOptions)
         }
 
 
@@ -1009,7 +752,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create product type
  */
 export const usePostReferencesProductTypes = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesProductTypes>>,
         TError,
@@ -1018,61 +761,36 @@ export const usePostReferencesProductTypes = <TError = unknown,
       > => {
       return useMutation(getPostReferencesProductTypesMutationOptions(options), queryClient);
     }
-    export type patchReferencesProductTypesProductTypeIdResponse200 = {
-  data: ProductTypes
-  status: 200
-}
-
-export type patchReferencesProductTypesProductTypeIdResponseSuccess = (patchReferencesProductTypesProductTypeIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchReferencesProductTypesProductTypeIdResponse = (patchReferencesProductTypesProductTypeIdResponseSuccess)
-
-export const getPatchReferencesProductTypesProductTypeIdUrl = (productTypeId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/product-types/${productTypeId}`
-}
-
-/**
+    /**
  * @summary Update product type
  */
-export const patchReferencesProductTypesProductTypeId = async (productTypeId: string,
-    patchProductType: PatchProductType, options?: RequestInit): Promise<patchReferencesProductTypesProductTypeIdResponse> => {
-
-  const res = await fetch(getPatchReferencesProductTypesProductTypeIdUrl(productTypeId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchProductType)
-  }
-)
+export const patchReferencesProductTypesProductTypeId = (
+    productTypeId: string,
+    patchProductType: PatchProductType,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchReferencesProductTypesProductTypeIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchReferencesProductTypesProductTypeIdResponse
-}
-
+      return customInstance<ProductTypes>(
+      {url: `/references/product-types/${productTypeId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchProductType, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchReferencesProductTypesProductTypeIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, TError,{productTypeId: string;data: PatchProductType}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, TError,{productTypeId: string;data: PatchProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, TError,{productTypeId: string;data: PatchProductType}, TContext> => {
 
 const mutationKey = ['patchReferencesProductTypesProductTypeId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1080,7 +798,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, {productTypeId: string;data: PatchProductType}> = (props) => {
           const {productTypeId,data} = props ?? {};
 
-          return  patchReferencesProductTypesProductTypeId(productTypeId,data,fetchOptions)
+          return  patchReferencesProductTypesProductTypeId(productTypeId,data,requestOptions)
         }
 
 
@@ -1098,7 +816,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update product type
  */
 export const usePatchReferencesProductTypesProductTypeId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, TError,{productTypeId: string;data: PatchProductType}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>, TError,{productTypeId: string;data: PatchProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchReferencesProductTypesProductTypeId>>,
         TError,
@@ -1107,60 +825,33 @@ export const usePatchReferencesProductTypesProductTypeId = <TError = unknown,
       > => {
       return useMutation(getPatchReferencesProductTypesProductTypeIdMutationOptions(options), queryClient);
     }
-    export type deleteReferencesProductTypesProductTypeIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteReferencesProductTypesProductTypeIdResponseSuccess = (deleteReferencesProductTypesProductTypeIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteReferencesProductTypesProductTypeIdResponse = (deleteReferencesProductTypesProductTypeIdResponseSuccess)
-
-export const getDeleteReferencesProductTypesProductTypeIdUrl = (productTypeId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/product-types/${productTypeId}`
-}
-
-/**
+    /**
  * @summary Delete product type
  */
-export const deleteReferencesProductTypesProductTypeId = async (productTypeId: string, options?: RequestInit): Promise<deleteReferencesProductTypesProductTypeIdResponse> => {
-
-  const res = await fetch(getDeleteReferencesProductTypesProductTypeIdUrl(productTypeId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteReferencesProductTypesProductTypeId = (
+    productTypeId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteReferencesProductTypesProductTypeIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteReferencesProductTypesProductTypeIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/references/product-types/${productTypeId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteReferencesProductTypesProductTypeIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, TError,{productTypeId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, TError,{productTypeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, TError,{productTypeId: string}, TContext> => {
 
 const mutationKey = ['deleteReferencesProductTypesProductTypeId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1168,7 +859,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, {productTypeId: string}> = (props) => {
           const {productTypeId} = props ?? {};
 
-          return  deleteReferencesProductTypesProductTypeId(productTypeId,fetchOptions)
+          return  deleteReferencesProductTypesProductTypeId(productTypeId,requestOptions)
         }
 
 
@@ -1186,7 +877,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete product type
  */
 export const useDeleteReferencesProductTypesProductTypeId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, TError,{productTypeId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>, TError,{productTypeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReferencesProductTypesProductTypeId>>,
         TError,
@@ -1195,68 +886,41 @@ export const useDeleteReferencesProductTypesProductTypeId = <TError = unknown,
       > => {
       return useMutation(getDeleteReferencesProductTypesProductTypeIdMutationOptions(options), queryClient);
     }
-    export type getReferencesStatusesResponse200 = {
-  data: Statuses[]
-  status: 200
-}
-
-export type getReferencesStatusesResponseSuccess = (getReferencesStatusesResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getReferencesStatusesResponse = (getReferencesStatusesResponseSuccess)
-
-export const getGetReferencesStatusesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/statuses`
-}
-
-/**
+    /**
  * @summary Get all statuses
  */
-export const getReferencesStatuses = async ( options?: RequestInit): Promise<getReferencesStatusesResponse> => {
+export const getReferencesStatuses = (
 
-  const res = await fetch(getGetReferencesStatusesUrl(),
-  {
-    ...options,
-    method: 'GET'
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getReferencesStatusesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getReferencesStatusesResponse
-}
-
+      return customInstance<Statuses[]>(
+      {url: `/references/statuses`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetReferencesStatusesQueryKey = () => {
     return [
-    `http://localhost:3000/references/statuses`
+    `/references/statuses`
     ] as const;
     }
 
 
-export const getGetReferencesStatusesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesStatuses>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, fetch?: RequestInit}
+export const getGetReferencesStatusesQueryOptions = <TData = Awaited<ReturnType<typeof getReferencesStatuses>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReferencesStatusesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesStatuses>>> = ({ signal }) => getReferencesStatuses({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferencesStatuses>>> = ({ signal }) => getReferencesStatuses(requestOptions, signal);
 
 
 
@@ -1276,7 +940,7 @@ export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getRe
           TError,
           Awaited<ReturnType<typeof getReferencesStatuses>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getReferencesStatuses>>, TError = unknown>(
@@ -1286,11 +950,11 @@ export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getRe
           TError,
           Awaited<ReturnType<typeof getReferencesStatuses>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getReferencesStatuses>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1298,7 +962,7 @@ export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getRe
  */
 
 export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getReferencesStatuses>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReferencesStatuses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1314,60 +978,35 @@ export function useGetReferencesStatuses<TData = Awaited<ReturnType<typeof getRe
 
 
 
-export type postReferencesStatusesResponse201 = {
-  data: Statuses
-  status: 201
-}
-
-export type postReferencesStatusesResponseSuccess = (postReferencesStatusesResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postReferencesStatusesResponse = (postReferencesStatusesResponseSuccess)
-
-export const getPostReferencesStatusesUrl = () => {
-
-
-
-
-  return `http://localhost:3000/references/statuses`
-}
-
 /**
  * @summary Create status
  */
-export const postReferencesStatuses = async (createStatus: CreateStatus, options?: RequestInit): Promise<postReferencesStatusesResponse> => {
-
-  const res = await fetch(getPostReferencesStatusesUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createStatus)
-  }
-)
+export const postReferencesStatuses = (
+    createStatus: CreateStatus,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postReferencesStatusesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postReferencesStatusesResponse
-}
-
+      return customInstance<Statuses>(
+      {url: `/references/statuses`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createStatus, signal
+    },
+      options);
+    }
 
 
 
 export const getPostReferencesStatusesMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesStatuses>>, TError,{data: CreateStatus}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesStatuses>>, TError,{data: CreateStatus}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesStatuses>>, TError,{data: CreateStatus}, TContext> => {
 
 const mutationKey = ['postReferencesStatuses'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1375,7 +1014,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReferencesStatuses>>, {data: CreateStatus}> = (props) => {
           const {data} = props ?? {};
 
-          return  postReferencesStatuses(data,fetchOptions)
+          return  postReferencesStatuses(data,requestOptions)
         }
 
 
@@ -1393,7 +1032,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create status
  */
 export const usePostReferencesStatuses = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesStatuses>>, TError,{data: CreateStatus}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesStatuses>>, TError,{data: CreateStatus}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesStatuses>>,
         TError,
@@ -1402,61 +1041,36 @@ export const usePostReferencesStatuses = <TError = unknown,
       > => {
       return useMutation(getPostReferencesStatusesMutationOptions(options), queryClient);
     }
-    export type patchReferencesStatusesStatusIdResponse200 = {
-  data: Statuses
-  status: 200
-}
-
-export type patchReferencesStatusesStatusIdResponseSuccess = (patchReferencesStatusesStatusIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchReferencesStatusesStatusIdResponse = (patchReferencesStatusesStatusIdResponseSuccess)
-
-export const getPatchReferencesStatusesStatusIdUrl = (statusId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/statuses/${statusId}`
-}
-
-/**
+    /**
  * @summary Update status
  */
-export const patchReferencesStatusesStatusId = async (statusId: string,
-    patchStatus: PatchStatus, options?: RequestInit): Promise<patchReferencesStatusesStatusIdResponse> => {
-
-  const res = await fetch(getPatchReferencesStatusesStatusIdUrl(statusId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchStatus)
-  }
-)
+export const patchReferencesStatusesStatusId = (
+    statusId: string,
+    patchStatus: PatchStatus,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchReferencesStatusesStatusIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchReferencesStatusesStatusIdResponse
-}
-
+      return customInstance<Statuses>(
+      {url: `/references/statuses/${statusId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchStatus, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchReferencesStatusesStatusIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, TError,{statusId: string;data: PatchStatus}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, TError,{statusId: string;data: PatchStatus}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, TError,{statusId: string;data: PatchStatus}, TContext> => {
 
 const mutationKey = ['patchReferencesStatusesStatusId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1464,7 +1078,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, {statusId: string;data: PatchStatus}> = (props) => {
           const {statusId,data} = props ?? {};
 
-          return  patchReferencesStatusesStatusId(statusId,data,fetchOptions)
+          return  patchReferencesStatusesStatusId(statusId,data,requestOptions)
         }
 
 
@@ -1482,7 +1096,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update status
  */
 export const usePatchReferencesStatusesStatusId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, TError,{statusId: string;data: PatchStatus}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>, TError,{statusId: string;data: PatchStatus}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchReferencesStatusesStatusId>>,
         TError,
@@ -1491,60 +1105,33 @@ export const usePatchReferencesStatusesStatusId = <TError = unknown,
       > => {
       return useMutation(getPatchReferencesStatusesStatusIdMutationOptions(options), queryClient);
     }
-    export type deleteReferencesStatusesStatusIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteReferencesStatusesStatusIdResponseSuccess = (deleteReferencesStatusesStatusIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteReferencesStatusesStatusIdResponse = (deleteReferencesStatusesStatusIdResponseSuccess)
-
-export const getDeleteReferencesStatusesStatusIdUrl = (statusId: string,) => {
-
-
-
-
-  return `http://localhost:3000/references/statuses/${statusId}`
-}
-
-/**
+    /**
  * @summary Delete status
  */
-export const deleteReferencesStatusesStatusId = async (statusId: string, options?: RequestInit): Promise<deleteReferencesStatusesStatusIdResponse> => {
-
-  const res = await fetch(getDeleteReferencesStatusesStatusIdUrl(statusId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteReferencesStatusesStatusId = (
+    statusId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteReferencesStatusesStatusIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteReferencesStatusesStatusIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/references/statuses/${statusId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteReferencesStatusesStatusIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, TError,{statusId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, TError,{statusId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, TError,{statusId: string}, TContext> => {
 
 const mutationKey = ['deleteReferencesStatusesStatusId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1552,7 +1139,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, {statusId: string}> = (props) => {
           const {statusId} = props ?? {};
 
-          return  deleteReferencesStatusesStatusId(statusId,fetchOptions)
+          return  deleteReferencesStatusesStatusId(statusId,requestOptions)
         }
 
 
@@ -1570,7 +1157,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete status
  */
 export const useDeleteReferencesStatusesStatusId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, TError,{statusId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>, TError,{statusId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReferencesStatusesStatusId>>,
         TError,

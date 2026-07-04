@@ -1,48 +1,43 @@
 import 'express-async-errors';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import logger from 'morgan';
+import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './config/swaggerConfig'; 
-import indexRouter from './routes/index';
-import api from './config/openAPIBackend';
+import * as OpenApiValidator from 'express-openapi-validator';
+import yaml from 'yaml';
+import router from './routes/index';
 import { errorMiddleware } from './middlewares/error.middleware';
 
-api.init();
-var app = express();
+const openApiPath = path.join(__dirname, 'doc/swaggerdoc.yaml');
+const openApiDocument = yaml.parse(fs.readFileSync(openApiPath, 'utf8'));
 
-// CORS
-app.use(cors({
-  origin: "http://localhost:3001",
-  credentials: true
-}))
+const app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-app.use(logger('dev'));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true,
+  })
+);
+app.use(morgan('dev'));
 app.use(express.json());
 
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Validate requests against the OpenAPI contract before they reach controllers
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: openApiPath,
+    validateRequests: true,
+    validateResponses: false,
+    ignorePaths: /^\/(health|api-docs)/,
+  })
+);
 
-app.use('/', indexRouter);
+app.use('/', router);
 
 app.use(errorMiddleware);
 
-// Server initialization
-const port: number = parseInt(process.env.PORT || '3000', 10);
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
-});
-
-module.exports = app;
+export default app;

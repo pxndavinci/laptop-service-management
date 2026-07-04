@@ -7,7 +7,7 @@
  */
 
 export interface CreateUserProduct {
-  userId?: string;
+  userId: string;
   productId: string;
   serialNumber: string;
   loginPassword?: string;

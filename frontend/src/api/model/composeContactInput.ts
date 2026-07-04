@@ -7,5 +7,6 @@
  */
 
 export interface ComposeContactInput {
+  /** @minLength 1 */
   contactNumber: string;
 }

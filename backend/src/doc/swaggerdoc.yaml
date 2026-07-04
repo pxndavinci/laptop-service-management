@@ -41,7 +41,6 @@ paths:
           in: query
           schema:
             type: integer
-            format: number
           description: Filter by role ID
         - name: page
           in: query
@@ -185,11 +184,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  contacts:
+                  data:
                     type: array
                     items:
                       $ref: '#/components/schemas/Contacts'
                   total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
                     type: integer
     post:
       tags: [Contacts]
@@ -547,29 +550,12 @@ paths:
             type: integer
             minimum: 1
             maximum: 5
-            default: 3
           description: Priority level (1=highest, 5=lowest)
-        - name: estimatedCompletionDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: actualCompletionDate
-          in: query
-          schema:
-            type: string
-            format: date-time
         - name: issueDescription
           in: query
           schema:
             type: string
             enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [PENDING, IN_PROGRESS, COMPLETED, ON_HOLD]
-          description: Filter by status
         - name: entryBy
           in: query
           schema:
@@ -599,6 +585,10 @@ paths:
                     items:
                       $ref: '#/components/schemas/ServiceOrders'
                   total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
                     type: integer
 
     post:
@@ -797,20 +787,6 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: statusId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: assignedTo
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: notifyCustomer
-          in: query
-          schema:
-            type: boolean
         - name: page
           in: query
           schema:
@@ -827,9 +803,18 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceStatuses'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceStatuses'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
 
     post:
       tags: [Service Status]
@@ -1218,11 +1203,12 @@ components:
         email:
           type: string
           format: email
+          nullable: true
         address:
           type: string
+          nullable: true
         roleId:
           type: integer
-          format: number
 
     ComposerContact:
       type: object
@@ -1261,6 +1247,7 @@ components:
           type: string
         description:
           type: string
+          nullable: true
         brand:
           $ref: '#/components/schemas/ComposerBrand'
         productType:
@@ -1317,9 +1304,9 @@ components:
       properties:
         userName:
           type: string
+          minLength: 1
         roleId:
           type: integer
-          format: number
         email:
           type: string
           format: email
@@ -1333,6 +1320,7 @@ components:
       properties:
         contactNumber:
           type: string
+          minLength: 1
 
     ComposeProductInput:
       type: object
@@ -1343,12 +1331,15 @@ components:
       properties:
         productName:
           type: string
+          minLength: 1
         description:
           type: string
         brandName:
           type: string
+          minLength: 1
         productTypeName:
           type: string
+          minLength: 1
 
     ComposeUserProductInput:
       type: object
@@ -1357,6 +1348,7 @@ components:
       properties:
         serialNumber:
           type: string
+          minLength: 1
         loginPassword:
           type: string
           nullable: true
@@ -1373,6 +1365,7 @@ components:
       properties:
         estimatedPrice:
           type: number
+          minimum: 0
         estimatedCompletionDate:
           type: string
           format: date-time
@@ -1442,7 +1435,6 @@ components:
       properties:
         roleId:
           type: integer
-          format: number
           description: Unique role identifier
         roleName:
           type: string
@@ -1468,11 +1460,11 @@ components:
     CreateRole:
       type: object
       required:
+        - roleId
         - roleName
       properties:
         roleId:
           type: integer
-          format: number
         roleName:
           type: string
           example: "servicer"
@@ -1488,9 +1480,6 @@ components:
     PatchRole:
       type: object
       properties:
-        roleId:
-          type: integer
-          format: number
         roleName:
           type: string
           example: "servicer"
@@ -1514,16 +1503,19 @@ components:
           description: Unique user identifier
         userName:
           type: string
-          description: Usersname (must be unique)
+          description: Customer or staff name
         email:
           type: string
           format: email
-          description: Users email address (must be unique)
+          nullable: true
+          description: Email address (unique when present)
         address:
           type: string
-          description: Users's physical address
-        role:
-          $ref: '#/components/schemas/Roles' 
+          nullable: true
+          description: Physical address
+        roleId:
+          type: integer
+          description: Role of the user
         createdAt:
           type: string
           format: date-time
@@ -1535,33 +1527,36 @@ components:
       type: object
       required:
         - userName
-        - email
         - roleId
       properties:
         userName:
           type: string
+          minLength: 1
           example: john_doe
         email:
           type: string
           format: email
           example: john@example.com
+        address:
+          type: string
         roleId:
           type: integer
-          format: number
-    
+
     PatchUser:
       type: object
       properties:
         userName:
           type: string
+          minLength: 1
           example: john_doe
         email:
           type: string
           format: email
           example: john@example.com
+        address:
+          type: string
         roleId:
           type: integer
-          format: number
 
     # ==================== CONTACT ====================
     Contacts:
@@ -1574,8 +1569,10 @@ components:
         contactNumber:
           type: string
           description: Phone number
-        user:
-          $ref: '#/components/schemas/Users'
+        userId:
+          type: string
+          format: uuid
+          description: Owner of this contact number
         createdAt:
           type: string
           format: date-time
@@ -1644,7 +1641,7 @@ components:
         productTypeId:
           type: string
           format: uuid
-        typeName:
+        productTypeName:
           type: string
           description: Type name (e.g., Laptop, Desktop, Tablet)
         createdAt:
@@ -1681,11 +1678,20 @@ components:
           example: "Dell Inspiron 15"
         description:
           type: string
+          nullable: true
           example: "15-inch laptop with Intel Core i7"
-        brand:
-          $ref: '#/components/schemas/Brands'
-        product_type:
-          $ref: '#/components/schemas/ProductTypes'
+        brandId:
+          type: string
+          format: uuid
+        brandName:
+          type: string
+          example: "Dell"
+        productTypeId:
+          type: string
+          format: uuid
+        productTypeName:
+          type: string
+          example: "Laptop"
         createdAt:
           type: string
           format: date-time
@@ -1730,18 +1736,24 @@ components:
         userProductId:
           type: string
           format: uuid
-        user:
-          $ref: '#/components/schemas/Users'
-        product:
-          $ref: '#/components/schemas/Products'
+        userId:
+          type: string
+          format: uuid
+          description: Owner of the device
+        productId:
+          type: string
+          format: uuid
+          description: Product model of the device
         serialNumber:
           type: string
           description: Unique serial number
         loginPassword:
           type: string
-          description: Encrypted password for the device
+          nullable: true
+          description: Device login password, if the customer provided one
         additionalInfo:
           type: string
+          nullable: true
           description: Extra information (e.g., RAM, Storage specs)
         createdAt:
           type: string
@@ -1753,6 +1765,7 @@ components:
     CreateUserProduct:
       type: object
       required:
+        - userId
         - productId
         - serialNumber
       properties:
@@ -1792,19 +1805,24 @@ components:
         tagNo:
           type: number
           description: Auto-generated order number (YYDDDD format, e.g., 260001)
-        userProduct:
-          $ref: '#/components/schemas/UserProducts'
+        userProductId:
+          type: string
+          format: uuid
+          description: Device this order services
         estimatedPrice:
           type: number
           format: double
+          nullable: true
           description: Estimated repair cost
         finalPrice:
           type: number
           format: double
+          nullable: true
           description: Final repair cost
         paymentMethod:
           type: string
           enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
+          nullable: true
           description: Payment method used
         paymentStatus:
           type: string
@@ -1819,24 +1837,54 @@ components:
         estimatedCompletionDate:
           type: string
           format: date-time
+          nullable: true
         actualCompletionDate:
           type: string
           format: date-time
+          nullable: true
         issueDescription:
           type: string
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
           description: Type of issue
         issueNotes:
           type: string
+          nullable: true
           description: Detailed notes about the issue
         entryBy:
-          $ref: '#/components/schemas/Users'
+          type: string
+          format: uuid
+          description: Staff user who logged the order
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+        # Denormalized customer/device context for lists and details
+        userId:
+          type: string
+          format: uuid
+          description: Customer who owns the device
+        userName:
+          type: string
+          description: Customer name
+        contactNumber:
+          type: string
+          nullable: true
+          description: Customer's primary contact number
+        productName:
+          type: string
+          description: Device product name
+        brandName:
+          type: string
+          description: Device brand
+        serialNumber:
+          type: string
+          description: Device serial number
+        currentStatus:
+          type: string
+          nullable: true
+          description: Latest status entry, if any
 
     CreateServiceOrder:
       type: object
@@ -1894,8 +1942,10 @@ components:
           type: integer
           minimum: 1
           maximum: 5
-          default: 3
         estimatedCompletionDate:
+          type: string
+          format: date-time
+        actualCompletionDate:
           type: string
           format: date-time
         issueDescription:
@@ -1903,10 +1953,6 @@ components:
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
-        entryBy:
-          type: string
-          format: uuid
-          description: Must be a servicer or admin user
 
     # ==================== STATUS ====================
     Statuses:
@@ -1946,14 +1992,24 @@ components:
         serviceStatusId:
           type: string
           format: uuid
-        serviceOrder:
-          $ref: '#/components/schemas/ServiceOrders'
-        status:
-          $ref: '#/components/schemas/Statuses'
+        serviceOrderId:
+          type: string
+          format: uuid
+        statusId:
+          type: string
+          format: uuid
+        statusName:
+          type: string
+          description: Display name of the status
         assignedTo:
-          $ref: '#/components/schemas/Users'
+          type: string
+          format: uuid
+        assignedToName:
+          type: string
+          description: Name of the assigned staff member
         comment:
           type: string
+          nullable: true
           description: Status update comments
         notifyCustomer:
           type: boolean
@@ -1990,9 +2046,6 @@ components:
     PatchServiceStatuses:
       type: object
       properties:
-        serviceOrderId:
-          type: string
-          format: uuid
         statusId:
           type: string
           format: uuid
@@ -2003,7 +2056,6 @@ components:
           type: string
         notifyCustomer:
           type: boolean
-          default: false
 
     # ==================== ERROR ====================
     Error:

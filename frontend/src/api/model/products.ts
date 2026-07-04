@@ -5,15 +5,16 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
-import type { Brands } from './brands';
-import type { ProductTypes } from './productTypes';
 
 export interface Products {
   productId?: string;
   productName?: string;
-  description?: string;
-  brand?: Brands;
-  product_type?: ProductTypes;
+  /** @nullable */
+  description?: string | null;
+  brandId?: string;
+  brandName?: string;
+  productTypeId?: string;
+  productTypeName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

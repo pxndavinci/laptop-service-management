@@ -5,14 +5,14 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
-import type { Users } from './users';
 
 export interface Contacts {
   /** Unique contact identifier */
   contactId?: string;
   /** Phone number */
   contactNumber?: string;
-  user?: Users;
+  /** Owner of this contact number */
+  userId?: string;
   createdAt?: string;
   updatedAt?: string;
 }

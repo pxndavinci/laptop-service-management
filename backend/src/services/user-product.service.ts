@@ -1,37 +1,34 @@
 import { userProductRepo } from '../repos/user-product.repo';
-import * as UserProductModel from '../models/user-product.model';
+import * as UserProduct from '../models/user-product.model';
+import { NotFoundError } from '../middlewares/error.middleware';
+import { paginate, requireAnyField } from '../lib/utils';
 
 export const userProductService = {
-  async getUserProducts(params: UserProductModel.UserProductQueryParams) {
-    params.page = params.page && params.page > 0 ? params.page : 1;
-    params.limit = params.limit && params.limit > 0 ? params.limit : 10;
-    params.offset = (params.page - 1) * params.limit;
-    const [products, total] = await userProductRepo.getUserProducts(params);
-    return {
-      products,
-      total,
-      page: params.page,
-      limit: params.limit,
-    };
+  async getUserProducts(params: UserProduct.UserProductQueryParams) {
+    const { page, limit, offset } = paginate(params.page, params.limit);
+    const [data, total] = await userProductRepo.getUserProducts({ ...params, limit, offset });
+    return { data, total, page, limit };
   },
 
-  async createUserProduct(data: UserProductModel.CreateUserProduct) {
-    return await userProductRepo.createUserProduct(data);
+  async getUserProductByID(userProductId: string) {
+    const userProduct = await userProductRepo.getUserProductByID(userProductId);
+    if (!userProduct) throw new NotFoundError('User product not found');
+    return userProduct;
   },
 
-  async getUserProductByID(user_product_id: string) {
-    return await userProductRepo.getUserProductByID(user_product_id);
+  async createUserProduct(data: UserProduct.CreateUserProduct) {
+    return userProductRepo.createUserProduct(data);
   },
 
-  async updateUserProduct(user_product_id: string, data: UserProductModel.PatchUserProduct) {
-    const result = await userProductRepo.updateUserProduct(user_product_id, data);
-    if (result === null) {
-      return 'No updates performed or user product not found';
-    }
-    return result;
+  async updateUserProduct(userProductId: string, data: UserProduct.PatchUserProduct) {
+    requireAnyField(data);
+    const userProduct = await userProductRepo.updateUserProduct(userProductId, data);
+    if (!userProduct) throw new NotFoundError('User product not found');
+    return userProduct;
   },
 
-  async deleteUserProduct(user_product_id: string) {
-    return await userProductRepo.deleteUserProduct(user_product_id);
+  async deleteUserProduct(userProductId: string) {
+    const deleted = await userProductRepo.deleteUserProduct(userProductId);
+    if (!deleted) throw new NotFoundError('User product not found');
   },
 };

@@ -10,4 +10,6 @@ import type { ServiceOrders } from './serviceOrders';
 export type GetServiceOrders200 = {
   data?: ServiceOrders[];
   total?: number;
+  page?: number;
+  limit?: number;
 };

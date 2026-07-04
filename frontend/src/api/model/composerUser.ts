@@ -9,7 +9,9 @@
 export interface ComposerUser {
   userId?: string;
   userName?: string;
-  email?: string;
-  address?: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  address?: string | null;
   roleId?: number;
 }

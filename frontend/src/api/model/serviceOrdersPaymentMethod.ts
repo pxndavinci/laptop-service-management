@@ -8,8 +8,9 @@
 
 /**
  * Payment method used
+ * @nullable
  */
-export type ServiceOrdersPaymentMethod = typeof ServiceOrdersPaymentMethod[keyof typeof ServiceOrdersPaymentMethod];
+export type ServiceOrdersPaymentMethod = typeof ServiceOrdersPaymentMethod[keyof typeof ServiceOrdersPaymentMethod] | null;
 
 
 export const ServiceOrdersPaymentMethod = {

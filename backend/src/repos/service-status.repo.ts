@@ -1,87 +1,93 @@
 import db from '../db/index';
-import * as ServiceStatusModel from '../models/service-status.model';
+import * as ServiceStatus from '../models/service-status.model';
+
+const statusWithNames = () =>
+  db
+    .selectFrom('service_status')
+    .innerJoin('status', 'status.statusId', 'service_status.statusId')
+    .innerJoin('user_data', 'user_data.userId', 'service_status.assignedTo')
+    .select([
+      'service_status.serviceStatusId',
+      'service_status.serviceOrderId',
+      'service_status.statusId',
+      'service_status.assignedTo',
+      'service_status.comment',
+      'service_status.notifyCustomer',
+      'service_status.createdAt',
+      'service_status.updatedAt',
+      'status.statusName',
+      'user_data.userName as assignedToName',
+    ]);
 
 export const serviceStatusRepo = {
-  async getServiceStatuses(params: { serviceOrderId?: string; page?: number; limit?: number; offset?: number }) {
-    let query = `SELECT * FROM service_status WHERE 1=1`;
-    const values: any[] = [];
-    let idx = 1;
-    if (params.serviceOrderId) {
-      query += ` AND service_order_id = $${idx}::uuid`;
-      values.push(params.serviceOrderId);
-      idx++;
-    }
+  async getServiceStatuses(
+    params: ServiceStatus.ServiceStatusQueryParams & { limit: number; offset: number }
+  ): Promise<[ServiceStatus.ServiceStatusWithNames[], number]> {
+    const filtered = statusWithNames().$if(!!params.serviceOrderId, (qb) =>
+      qb.where('service_status.serviceOrderId', '=', params.serviceOrderId!)
+    );
 
-    query += ` LIMIT $${idx}::int`;
-    values.push(params.limit ?? 10);
-    idx++;
-    query += ` OFFSET $${idx}::int`;
-    values.push(params.offset ?? 0);
+    const statuses = await filtered
+      .orderBy('service_status.createdAt', 'desc')
+      .limit(params.limit)
+      .offset(params.offset)
+      .execute();
 
-    const result = await db.query(query, values);
-    return [result.rows, result.rowCount ?? 0];
+    const { total } = await filtered
+      .clearSelect()
+      .select((eb) => eb.fn.countAll<number>().as('total'))
+      .executeTakeFirstOrThrow();
+
+    return [statuses, total];
   },
 
-  async createServiceStatus(data: ServiceStatusModel.CreateServiceStatus) {
-    const query = `
-      INSERT INTO service_status (service_order_id, status_id, assigned_to, comment, notify_customer)
-      VALUES ($1::uuid, $2::uuid, $3::uuid, $4::text, $5::boolean)
-      RETURNING *;
-    `;
-    const values = [data.serviceOrderId, data.statusId, data.assignedTo, data.comment ?? null, data.notifyCustomer ?? false];
-    const result = await db.query(query, values);
-    return result.rows[0];
+  async getServiceStatusByID(
+    serviceStatusId: string
+  ): Promise<ServiceStatus.ServiceStatusWithNames | undefined> {
+    return statusWithNames()
+      .where('service_status.serviceStatusId', '=', serviceStatusId)
+      .executeTakeFirst();
   },
 
-  async getServiceStatusByID(id: string) {
-    const query = `SELECT * FROM service_status WHERE service_status_id = $1::uuid;`;
-    const result = await db.query(query, [id]);
-    return result.rows[0];
+  async createServiceStatus(
+    data: ServiceStatus.CreateServiceStatus
+  ): Promise<ServiceStatus.ServiceStatus> {
+    return db
+      .insertInto('service_status')
+      .values({
+        serviceOrderId: data.serviceOrderId,
+        statusId: data.statusId,
+        assignedTo: data.assignedTo,
+        comment: data.comment ?? null,
+        notifyCustomer: data.notifyCustomer ?? false,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
   },
 
-  async updateServiceStatus(id: string, data: ServiceStatusModel.PatchServiceStatus) {
-    let query = `UPDATE service_status SET `;
-    const updates: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
-    if (data.serviceOrderId !== undefined) {
-      updates.push(`service_order_id = $${idx}::uuid`);
-      values.push(data.serviceOrderId);
-      idx++;
-    }
-    if (data.statusId !== undefined) {
-      updates.push(`status_id = $${idx}::uuid`);
-      values.push(data.statusId);
-      idx++;
-    }
-    if (data.assignedTo !== undefined) {
-      updates.push(`assigned_to = $${idx}::uuid`);
-      values.push(data.assignedTo);
-      idx++;
-    }
-    if (data.comment !== undefined) {
-      updates.push(`comment = $${idx}::text`);
-      values.push(data.comment);
-      idx++;
-    }
-    if (data.notifyCustomer !== undefined) {
-      updates.push(`notify_customer = $${idx}::boolean`);
-      values.push(data.notifyCustomer);
-      idx++;
-    }
-
-    if (updates.length === 0) return null;
-
-    query += updates.join(', ') + ` WHERE service_status_id = $${idx}::uuid RETURNING *;`;
-    values.push(id);
-    const result = await db.query(query, values);
-    return result.rows[0] ?? null;
+  async updateServiceStatus(
+    serviceStatusId: string,
+    data: ServiceStatus.PatchServiceStatus
+  ): Promise<ServiceStatus.ServiceStatus | undefined> {
+    return db
+      .updateTable('service_status')
+      .set({
+        statusId: data.statusId,
+        assignedTo: data.assignedTo,
+        comment: data.comment,
+        notifyCustomer: data.notifyCustomer,
+      })
+      .where('serviceStatusId', '=', serviceStatusId)
+      .returningAll()
+      .executeTakeFirst();
   },
 
-  async deleteServiceStatus(id: string) {
-    const query = `DELETE FROM service_status WHERE service_status_id = $1::uuid;`;
-    return await db.query(query, [id]);
+  async deleteServiceStatus(serviceStatusId: string): Promise<boolean> {
+    const result = await db
+      .deleteFrom('service_status')
+      .where('serviceStatusId', '=', serviceStatusId)
+      .executeTakeFirst();
+    return result.numDeletedRows > 0n;
   },
 };
 

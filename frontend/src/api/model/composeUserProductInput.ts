@@ -7,6 +7,7 @@
  */
 
 export interface ComposeUserProductInput {
+  /** @minLength 1 */
   serialNumber: string;
   /** @nullable */
   loginPassword?: string | null;

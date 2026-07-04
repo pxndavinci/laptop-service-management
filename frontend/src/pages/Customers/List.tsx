@@ -1,155 +1,111 @@
-import React from 'react'
+import { useState } from 'react'
 import {
   Box,
-  Typography,
-  Container,
-  Button,
   Card,
   CardContent,
-  TextField,
+  Container,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  IconButton,
-  Stack,
   TablePagination,
+  TableRow,
+  TextField,
+  Typography,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import ViewIcon from '@mui/icons-material/Visibility'
-import { useCustomers, useDeleteCustomer } from '../../lib/hooks/useCustomers'
-import { useFilterStore } from '../../store/filterStore'
+import { useGetUsers } from '../../api/users/users'
+import { useDebounce } from '../../lib/hooks/useDebounce'
 
-const CustomersList: React.FC = () => {
-  const filterStore = useFilterStore()
-  const deleteCustomerMutation = useDeleteCustomer()
+const CustomersList = () => {
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 350)
 
-  const { data, isLoading } = useCustomers({
-    page: filterStore.customerPage,
-    limit: filterStore.customerLimit,
-    search: filterStore.customerSearch,
+  const { data, isLoading } = useGetUsers({
+    userName: debouncedSearch.trim() || undefined,
+    page,
+    limit,
   })
 
-  const handleSearchChange = (value: string) => {
-    filterStore.setCustomerSearch(value)
-  }
-
-  const handlePageChange = (_: unknown, newPage: number) => {
-    filterStore.setCustomerPage(newPage + 1)
-  }
-
-  const handleDeleteCustomer = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      await deleteCustomerMutation.mutateAsync(id)
-    }
-  }
+  const users = data?.data ?? []
+  const total = data?.total ?? 0
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h2" sx={{ fontWeight: 700 }}>
-            Customers
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-          >
-            New Customer
-          </Button>
-        </Box>
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h2" sx={{ mb: 2.5 }}>
+          Customers
+        </Typography>
 
-        {/* Search */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <TextField
-              placeholder="Search by name, email, or phone..."
-              value={filterStore.customerSearch}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by name…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
               fullWidth
               size="small"
             />
           </CardContent>
         </Card>
 
-        {/* Table */}
         <Card>
           <CardContent>
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableRow>
                     <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>City</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>
-                      Actions
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Address</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Registered</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {isLoading
-                    ? Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i}>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                        </TableRow>
-                      ))
-                    : data?.data && data.data.length > 0
-                    ? data.data.map((customer) => (
-                        <TableRow key={customer.id} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
-                          <TableCell sx={{ fontWeight: 500 }}>{customer.name}</TableCell>
-                          <TableCell>{customer.email}</TableCell>
-                          <TableCell>{customer.phone}</TableCell>
-                          <TableCell>{customer.city}</TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-                              <IconButton size="small" title="View">
-                                <ViewIcon sx={{ fontSize: 18 }} />
-                              </IconButton>
-                              <IconButton size="small" title="Edit">
-                                <EditIcon sx={{ fontSize: 18 }} />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteCustomer(customer.id)}
-                                title="Delete"
-                              >
-                                <DeleteIcon sx={{ fontSize: 18, color: '#F44336' }} />
-                              </IconButton>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : (
-                        <TableRow>
-                          <TableCell colSpan={5} align="center" sx={{ py: 4, color: '#999' }}>
-                            No customers found
-                          </TableCell>
-                        </TableRow>
-                      )}
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                        Loading…
+                      </TableCell>
+                    </TableRow>
+                  ) : users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                        No customers found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    users.map((user) => (
+                      <TableRow key={user.userId} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>{user.userName}</TableCell>
+                        <TableCell>{user.email ?? '—'}</TableCell>
+                        <TableCell>{user.address ?? '—'}</TableCell>
+                        <TableCell>
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
-            {data && (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={data.total}
-                rowsPerPage={filterStore.customerLimit}
-                page={filterStore.customerPage - 1}
-                onPageChange={handlePageChange}
-              />
-            )}
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={total}
+              rowsPerPage={limit}
+              page={page - 1}
+              onPageChange={(_, newPage) => setPage(newPage + 1)}
+              onRowsPerPageChange={(event) => {
+                setLimit(parseInt(event.target.value, 10))
+                setPage(1)
+              }}
+            />
           </CardContent>
         </Card>
       </Box>

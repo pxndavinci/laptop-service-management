@@ -26,85 +26,56 @@ import type {
 
 import type {
   CreateServiceStatuses,
+  GetServiceStatus200,
   GetServiceStatusParams,
   PatchServiceStatuses,
   ServiceStatuses
 } from '../model';
 
+import { customInstance } from '../../lib/api/mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export type getServiceStatusResponse200 = {
-  data: ServiceStatuses[]
-  status: 200
-}
-
-export type getServiceStatusResponseSuccess = (getServiceStatusResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getServiceStatusResponse = (getServiceStatusResponseSuccess)
-
-export const getGetServiceStatusUrl = (params?: GetServiceStatusParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:3000/service-status?${stringifiedParams}` : `http://localhost:3000/service-status`
-}
 
 /**
  * Retrieve all status updates for a service order (timeline)
  * @summary Get service status history
  */
-export const getServiceStatus = async (params?: GetServiceStatusParams, options?: RequestInit): Promise<getServiceStatusResponse> => {
-
-  const res = await fetch(getGetServiceStatusUrl(params),
-  {
-    ...options,
-    method: 'GET'
+export const getServiceStatus = (
+    params?: GetServiceStatusParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getServiceStatusResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getServiceStatusResponse
-}
-
+      return customInstance<GetServiceStatus200>(
+      {url: `/service-status`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetServiceStatusQueryKey = (params?: GetServiceStatusParams,) => {
     return [
-    `http://localhost:3000/service-status`, ...(params ? [params] : [])
+    `/service-status`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetServiceStatusQueryOptions = <TData = Awaited<ReturnType<typeof getServiceStatus>>, TError = unknown>(params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, fetch?: RequestInit}
+export const getGetServiceStatusQueryOptions = <TData = Awaited<ReturnType<typeof getServiceStatus>>, TError = unknown>(params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetServiceStatusQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceStatus>>> = ({ signal }) => getServiceStatus(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceStatus>>> = ({ signal }) => getServiceStatus(params, requestOptions, signal);
 
 
 
@@ -124,7 +95,7 @@ export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getService
           TError,
           Awaited<ReturnType<typeof getServiceStatus>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getServiceStatus>>, TError = unknown>(
@@ -134,11 +105,11 @@ export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getService
           TError,
           Awaited<ReturnType<typeof getServiceStatus>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getServiceStatus>>, TError = unknown>(
- params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -146,7 +117,7 @@ export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getService
  */
 
 export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getServiceStatus>>, TError = unknown>(
- params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -162,61 +133,36 @@ export function useGetServiceStatus<TData = Awaited<ReturnType<typeof getService
 
 
 
-export type postServiceStatusResponse201 = {
-  data: ServiceStatuses
-  status: 201
-}
-
-export type postServiceStatusResponseSuccess = (postServiceStatusResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postServiceStatusResponse = (postServiceStatusResponseSuccess)
-
-export const getPostServiceStatusUrl = () => {
-
-
-
-
-  return `http://localhost:3000/service-status`
-}
-
 /**
  * Create a status update in the service timeline
  * @summary Add status update to service order
  */
-export const postServiceStatus = async (createServiceStatuses: CreateServiceStatuses, options?: RequestInit): Promise<postServiceStatusResponse> => {
-
-  const res = await fetch(getPostServiceStatusUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createServiceStatuses)
-  }
-)
+export const postServiceStatus = (
+    createServiceStatuses: CreateServiceStatuses,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postServiceStatusResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postServiceStatusResponse
-}
-
+      return customInstance<ServiceStatuses>(
+      {url: `/service-status`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createServiceStatuses, signal
+    },
+      options);
+    }
 
 
 
 export const getPostServiceStatusMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceStatus>>, TError,{data: CreateServiceStatuses}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceStatus>>, TError,{data: CreateServiceStatuses}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postServiceStatus>>, TError,{data: CreateServiceStatuses}, TContext> => {
 
 const mutationKey = ['postServiceStatus'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -224,7 +170,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postServiceStatus>>, {data: CreateServiceStatuses}> = (props) => {
           const {data} = props ?? {};
 
-          return  postServiceStatus(data,fetchOptions)
+          return  postServiceStatus(data,requestOptions)
         }
 
 
@@ -242,7 +188,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Add status update to service order
  */
 export const usePostServiceStatus = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceStatus>>, TError,{data: CreateServiceStatuses}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceStatus>>, TError,{data: CreateServiceStatuses}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postServiceStatus>>,
         TError,
@@ -251,68 +197,41 @@ export const usePostServiceStatus = <TError = unknown,
       > => {
       return useMutation(getPostServiceStatusMutationOptions(options), queryClient);
     }
-    export type getServiceStatusServiceStatusIdResponse200 = {
-  data: ServiceStatuses
-  status: 200
-}
-
-export type getServiceStatusServiceStatusIdResponseSuccess = (getServiceStatusServiceStatusIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getServiceStatusServiceStatusIdResponse = (getServiceStatusServiceStatusIdResponseSuccess)
-
-export const getGetServiceStatusServiceStatusIdUrl = (serviceStatusId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-status/${serviceStatusId}`
-}
-
-/**
+    /**
  * @summary Get specific status update
  */
-export const getServiceStatusServiceStatusId = async (serviceStatusId: string, options?: RequestInit): Promise<getServiceStatusServiceStatusIdResponse> => {
-
-  const res = await fetch(getGetServiceStatusServiceStatusIdUrl(serviceStatusId),
-  {
-    ...options,
-    method: 'GET'
+export const getServiceStatusServiceStatusId = (
+    serviceStatusId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getServiceStatusServiceStatusIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getServiceStatusServiceStatusIdResponse
-}
-
+      return customInstance<ServiceStatuses>(
+      {url: `/service-status/${serviceStatusId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetServiceStatusServiceStatusIdQueryKey = (serviceStatusId: string,) => {
     return [
-    `http://localhost:3000/service-status/${serviceStatusId}`
+    `/service-status/${serviceStatusId}`
     ] as const;
     }
 
 
-export const getGetServiceStatusServiceStatusIdQueryOptions = <TData = Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError = unknown>(serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, fetch?: RequestInit}
+export const getGetServiceStatusServiceStatusIdQueryOptions = <TData = Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError = unknown>(serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetServiceStatusServiceStatusIdQueryKey(serviceStatusId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>> = ({ signal }) => getServiceStatusServiceStatusId(serviceStatusId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>> = ({ signal }) => getServiceStatusServiceStatusId(serviceStatusId, requestOptions, signal);
 
 
 
@@ -332,7 +251,7 @@ export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<ty
           TError,
           Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError = unknown>(
@@ -342,11 +261,11 @@ export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<ty
           TError,
           Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError = unknown>(
- serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, fetch?: RequestInit}
+ serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -354,7 +273,7 @@ export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<ty
  */
 
 export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError = unknown>(
- serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, fetch?: RequestInit}
+ serviceStatusId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceStatusServiceStatusId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -370,61 +289,36 @@ export function useGetServiceStatusServiceStatusId<TData = Awaited<ReturnType<ty
 
 
 
-export type patchServiceStatusServiceStatusIdResponse200 = {
-  data: ServiceStatuses
-  status: 200
-}
-
-export type patchServiceStatusServiceStatusIdResponseSuccess = (patchServiceStatusServiceStatusIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchServiceStatusServiceStatusIdResponse = (patchServiceStatusServiceStatusIdResponseSuccess)
-
-export const getPatchServiceStatusServiceStatusIdUrl = (serviceStatusId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-status/${serviceStatusId}`
-}
-
 /**
  * @summary Update status comment
  */
-export const patchServiceStatusServiceStatusId = async (serviceStatusId: string,
-    patchServiceStatuses: PatchServiceStatuses, options?: RequestInit): Promise<patchServiceStatusServiceStatusIdResponse> => {
-
-  const res = await fetch(getPatchServiceStatusServiceStatusIdUrl(serviceStatusId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchServiceStatuses)
-  }
-)
+export const patchServiceStatusServiceStatusId = (
+    serviceStatusId: string,
+    patchServiceStatuses: PatchServiceStatuses,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchServiceStatusServiceStatusIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchServiceStatusServiceStatusIdResponse
-}
-
+      return customInstance<ServiceStatuses>(
+      {url: `/service-status/${serviceStatusId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchServiceStatuses, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchServiceStatusServiceStatusIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, TError,{serviceStatusId: string;data: PatchServiceStatuses}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, TError,{serviceStatusId: string;data: PatchServiceStatuses}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, TError,{serviceStatusId: string;data: PatchServiceStatuses}, TContext> => {
 
 const mutationKey = ['patchServiceStatusServiceStatusId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -432,7 +326,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, {serviceStatusId: string;data: PatchServiceStatuses}> = (props) => {
           const {serviceStatusId,data} = props ?? {};
 
-          return  patchServiceStatusServiceStatusId(serviceStatusId,data,fetchOptions)
+          return  patchServiceStatusServiceStatusId(serviceStatusId,data,requestOptions)
         }
 
 
@@ -450,7 +344,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update status comment
  */
 export const usePatchServiceStatusServiceStatusId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, TError,{serviceStatusId: string;data: PatchServiceStatuses}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>, TError,{serviceStatusId: string;data: PatchServiceStatuses}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchServiceStatusServiceStatusId>>,
         TError,
@@ -459,60 +353,33 @@ export const usePatchServiceStatusServiceStatusId = <TError = unknown,
       > => {
       return useMutation(getPatchServiceStatusServiceStatusIdMutationOptions(options), queryClient);
     }
-    export type deleteServiceStatusServiceStatusIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteServiceStatusServiceStatusIdResponseSuccess = (deleteServiceStatusServiceStatusIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteServiceStatusServiceStatusIdResponse = (deleteServiceStatusServiceStatusIdResponseSuccess)
-
-export const getDeleteServiceStatusServiceStatusIdUrl = (serviceStatusId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-status/${serviceStatusId}`
-}
-
-/**
+    /**
  * @summary Delete status update
  */
-export const deleteServiceStatusServiceStatusId = async (serviceStatusId: string, options?: RequestInit): Promise<deleteServiceStatusServiceStatusIdResponse> => {
-
-  const res = await fetch(getDeleteServiceStatusServiceStatusIdUrl(serviceStatusId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteServiceStatusServiceStatusId = (
+    serviceStatusId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteServiceStatusServiceStatusIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteServiceStatusServiceStatusIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/service-status/${serviceStatusId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteServiceStatusServiceStatusIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, TError,{serviceStatusId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, TError,{serviceStatusId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, TError,{serviceStatusId: string}, TContext> => {
 
 const mutationKey = ['deleteServiceStatusServiceStatusId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -520,7 +387,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, {serviceStatusId: string}> = (props) => {
           const {serviceStatusId} = props ?? {};
 
-          return  deleteServiceStatusServiceStatusId(serviceStatusId,fetchOptions)
+          return  deleteServiceStatusServiceStatusId(serviceStatusId,requestOptions)
         }
 
 
@@ -538,7 +405,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete status update
  */
 export const useDeleteServiceStatusServiceStatusId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, TError,{serviceStatusId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>, TError,{serviceStatusId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteServiceStatusServiceStatusId>>,
         TError,

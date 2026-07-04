@@ -32,80 +32,50 @@ import type {
   PatchContact
 } from '../model';
 
+import { customInstance } from '../../lib/api/mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export type getContactsResponse200 = {
-  data: GetContacts200
-  status: 200
-}
-
-export type getContactsResponseSuccess = (getContactsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getContactsResponse = (getContactsResponseSuccess)
-
-export const getGetContactsUrl = (params?: GetContactsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:3000/contacts?${stringifiedParams}` : `http://localhost:3000/contacts`
-}
 
 /**
  * Retrieve all contacts with optional filtering
  * @summary Get all contacts
  */
-export const getContacts = async (params?: GetContactsParams, options?: RequestInit): Promise<getContactsResponse> => {
-
-  const res = await fetch(getGetContactsUrl(params),
-  {
-    ...options,
-    method: 'GET'
+export const getContacts = (
+    params?: GetContactsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getContactsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getContactsResponse
-}
-
+      return customInstance<GetContacts200>(
+      {url: `/contacts`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetContactsQueryKey = (params?: GetContactsParams,) => {
     return [
-    `http://localhost:3000/contacts`, ...(params ? [params] : [])
+    `/contacts`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetContactsQueryOptions = <TData = Awaited<ReturnType<typeof getContacts>>, TError = unknown>(params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, fetch?: RequestInit}
+export const getGetContactsQueryOptions = <TData = Awaited<ReturnType<typeof getContacts>>, TError = unknown>(params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetContactsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getContacts>>> = ({ signal }) => getContacts(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getContacts>>> = ({ signal }) => getContacts(params, requestOptions, signal);
 
 
 
@@ -125,7 +95,7 @@ export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, 
           TError,
           Awaited<ReturnType<typeof getContacts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, TError = unknown>(
@@ -135,11 +105,11 @@ export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, 
           TError,
           Awaited<ReturnType<typeof getContacts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, TError = unknown>(
- params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -147,7 +117,7 @@ export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, 
  */
 
 export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, TError = unknown>(
- params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetContactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContacts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,60 +133,35 @@ export function useGetContacts<TData = Awaited<ReturnType<typeof getContacts>>, 
 
 
 
-export type postContactsResponse201 = {
-  data: Contacts
-  status: 201
-}
-
-export type postContactsResponseSuccess = (postContactsResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postContactsResponse = (postContactsResponseSuccess)
-
-export const getPostContactsUrl = () => {
-
-
-
-
-  return `http://localhost:3000/contacts`
-}
-
 /**
  * @summary Create contact
  */
-export const postContacts = async (createContact: CreateContact, options?: RequestInit): Promise<postContactsResponse> => {
-
-  const res = await fetch(getPostContactsUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createContact)
-  }
-)
+export const postContacts = (
+    createContact: CreateContact,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postContactsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postContactsResponse
-}
-
+      return customInstance<Contacts>(
+      {url: `/contacts`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createContact, signal
+    },
+      options);
+    }
 
 
 
 export const getPostContactsMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postContacts>>, TError,{data: CreateContact}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postContacts>>, TError,{data: CreateContact}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postContacts>>, TError,{data: CreateContact}, TContext> => {
 
 const mutationKey = ['postContacts'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -224,7 +169,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postContacts>>, {data: CreateContact}> = (props) => {
           const {data} = props ?? {};
 
-          return  postContacts(data,fetchOptions)
+          return  postContacts(data,requestOptions)
         }
 
 
@@ -242,7 +187,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create contact
  */
 export const usePostContacts = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postContacts>>, TError,{data: CreateContact}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postContacts>>, TError,{data: CreateContact}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postContacts>>,
         TError,
@@ -251,69 +196,42 @@ export const usePostContacts = <TError = unknown,
       > => {
       return useMutation(getPostContactsMutationOptions(options), queryClient);
     }
-    export type getContactsContactIdResponse200 = {
-  data: Contacts
-  status: 200
-}
-
-export type getContactsContactIdResponseSuccess = (getContactsContactIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getContactsContactIdResponse = (getContactsContactIdResponseSuccess)
-
-export const getGetContactsContactIdUrl = (contactId: string,) => {
-
-
-
-
-  return `http://localhost:3000/contacts/${contactId}`
-}
-
-/**
+    /**
  * Get contact by ID
  * @summary Get contact by ID
  */
-export const getContactsContactId = async (contactId: string, options?: RequestInit): Promise<getContactsContactIdResponse> => {
-
-  const res = await fetch(getGetContactsContactIdUrl(contactId),
-  {
-    ...options,
-    method: 'GET'
+export const getContactsContactId = (
+    contactId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getContactsContactIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getContactsContactIdResponse
-}
-
+      return customInstance<Contacts>(
+      {url: `/contacts/${contactId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetContactsContactIdQueryKey = (contactId: string,) => {
     return [
-    `http://localhost:3000/contacts/${contactId}`
+    `/contacts/${contactId}`
     ] as const;
     }
 
 
-export const getGetContactsContactIdQueryOptions = <TData = Awaited<ReturnType<typeof getContactsContactId>>, TError = unknown>(contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, fetch?: RequestInit}
+export const getGetContactsContactIdQueryOptions = <TData = Awaited<ReturnType<typeof getContactsContactId>>, TError = unknown>(contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetContactsContactIdQueryKey(contactId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getContactsContactId>>> = ({ signal }) => getContactsContactId(contactId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getContactsContactId>>> = ({ signal }) => getContactsContactId(contactId, requestOptions, signal);
 
 
 
@@ -333,7 +251,7 @@ export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getCon
           TError,
           Awaited<ReturnType<typeof getContactsContactId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getContactsContactId>>, TError = unknown>(
@@ -343,11 +261,11 @@ export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getCon
           TError,
           Awaited<ReturnType<typeof getContactsContactId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getContactsContactId>>, TError = unknown>(
- contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, fetch?: RequestInit}
+ contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -355,7 +273,7 @@ export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getCon
  */
 
 export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getContactsContactId>>, TError = unknown>(
- contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, fetch?: RequestInit}
+ contactId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getContactsContactId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -371,61 +289,36 @@ export function useGetContactsContactId<TData = Awaited<ReturnType<typeof getCon
 
 
 
-export type patchContactsContactIdResponse200 = {
-  data: Contacts
-  status: 200
-}
-
-export type patchContactsContactIdResponseSuccess = (patchContactsContactIdResponse200) & {
-  headers: Headers;
-};
-;
-
-export type patchContactsContactIdResponse = (patchContactsContactIdResponseSuccess)
-
-export const getPatchContactsContactIdUrl = (contactId: string,) => {
-
-
-
-
-  return `http://localhost:3000/contacts/${contactId}`
-}
-
 /**
  * @summary Update contact
  */
-export const patchContactsContactId = async (contactId: string,
-    patchContact: PatchContact, options?: RequestInit): Promise<patchContactsContactIdResponse> => {
-
-  const res = await fetch(getPatchContactsContactIdUrl(contactId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchContact)
-  }
-)
+export const patchContactsContactId = (
+    contactId: string,
+    patchContact: PatchContact,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchContactsContactIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchContactsContactIdResponse
-}
-
+      return customInstance<Contacts>(
+      {url: `/contacts/${contactId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchContact, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchContactsContactIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchContactsContactId>>, TError,{contactId: string;data: PatchContact}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchContactsContactId>>, TError,{contactId: string;data: PatchContact}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchContactsContactId>>, TError,{contactId: string;data: PatchContact}, TContext> => {
 
 const mutationKey = ['patchContactsContactId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -433,7 +326,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchContactsContactId>>, {contactId: string;data: PatchContact}> = (props) => {
           const {contactId,data} = props ?? {};
 
-          return  patchContactsContactId(contactId,data,fetchOptions)
+          return  patchContactsContactId(contactId,data,requestOptions)
         }
 
 
@@ -451,7 +344,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update contact
  */
 export const usePatchContactsContactId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchContactsContactId>>, TError,{contactId: string;data: PatchContact}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchContactsContactId>>, TError,{contactId: string;data: PatchContact}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchContactsContactId>>,
         TError,
@@ -460,60 +353,33 @@ export const usePatchContactsContactId = <TError = unknown,
       > => {
       return useMutation(getPatchContactsContactIdMutationOptions(options), queryClient);
     }
-    export type deleteContactsContactIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteContactsContactIdResponseSuccess = (deleteContactsContactIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteContactsContactIdResponse = (deleteContactsContactIdResponseSuccess)
-
-export const getDeleteContactsContactIdUrl = (contactId: string,) => {
-
-
-
-
-  return `http://localhost:3000/contacts/${contactId}`
-}
-
-/**
+    /**
  * @summary Delete contact
  */
-export const deleteContactsContactId = async (contactId: string, options?: RequestInit): Promise<deleteContactsContactIdResponse> => {
-
-  const res = await fetch(getDeleteContactsContactIdUrl(contactId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteContactsContactId = (
+    contactId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteContactsContactIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteContactsContactIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/contacts/${contactId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteContactsContactIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContactsContactId>>, TError,{contactId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContactsContactId>>, TError,{contactId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteContactsContactId>>, TError,{contactId: string}, TContext> => {
 
 const mutationKey = ['deleteContactsContactId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -521,7 +387,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteContactsContactId>>, {contactId: string}> = (props) => {
           const {contactId} = props ?? {};
 
-          return  deleteContactsContactId(contactId,fetchOptions)
+          return  deleteContactsContactId(contactId,requestOptions)
         }
 
 
@@ -539,7 +405,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete contact
  */
 export const useDeleteContactsContactId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContactsContactId>>, TError,{contactId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContactsContactId>>, TError,{contactId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteContactsContactId>>,
         TError,

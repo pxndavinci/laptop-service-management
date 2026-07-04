@@ -5,18 +5,24 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
-import type { Roles } from './roles';
 
 export interface Users {
   /** Unique user identifier */
   userId?: string;
-  /** Usersname (must be unique) */
+  /** Customer or staff name */
   userName?: string;
-  /** Users email address (must be unique) */
-  email?: string;
-  /** Users's physical address */
-  address?: string;
-  role?: Roles;
+  /**
+     * Email address (unique when present)
+     * @nullable
+     */
+  email?: string | null;
+  /**
+     * Physical address
+     * @nullable
+     */
+  address?: string | null;
+  /** Role of the user */
+  roleId?: number;
   createdAt?: string;
   updatedAt?: string;
 }

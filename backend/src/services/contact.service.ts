@@ -1,34 +1,34 @@
 import { contactRepo } from '../repos/contact.repo';
-import * as ContactModel from '../models/contact.model';
+import * as Contact from '../models/contact.model';
+import { NotFoundError } from '../middlewares/error.middleware';
+import { paginate, requireAnyField } from '../lib/utils';
 
 export const contactService = {
-    async getContacts(params: ContactModel.ContactQueryParams) {
-        params.page = params.page && params.page > 0 ? params.page : 1,
-        params.limit = params.limit && params.limit > 0 ? params.limit : 10,
-        params.offset = (params.page - 1) * params.limit;
-        const [contacts, total]= await contactRepo.getContacts(params);
-        return {
-            contacts: contacts,
-            total: total,
-            page: params.page,
-            limit: params.limit
-        };
-    },
-    async createContact(data: ContactModel.CreateContact) {
-        return await contactRepo.createContact(data);
-    },
-    async getContactByID(contactId: string){
-        return await contactRepo.getContactByID(contactId);
-    },
-    async updateContact(contactId: string, data: ContactModel.PatchContact) {
-        console.log("Update contact service called");
-        const result = await contactRepo.updateContact(contactId, data)
-        if (result === null) {
-            return "No updates performed or contact not found";
-        }
-        return result;
-    },
-    async deleteContact(contactId: string) {
-        return await contactRepo.deleteContact(contactId);
-    }
-}
+  async getContacts(params: Contact.ContactQueryParams) {
+    const { page, limit, offset } = paginate(params.page, params.limit);
+    const [data, total] = await contactRepo.getContacts({ ...params, limit, offset });
+    return { data, total, page, limit };
+  },
+
+  async getContactByID(contactId: string) {
+    const contact = await contactRepo.getContactByID(contactId);
+    if (!contact) throw new NotFoundError('Contact not found');
+    return contact;
+  },
+
+  async createContact(data: Contact.CreateContact) {
+    return contactRepo.createContact(data);
+  },
+
+  async updateContact(contactId: string, data: Contact.PatchContact) {
+    requireAnyField(data);
+    const contact = await contactRepo.updateContact(contactId, data);
+    if (!contact) throw new NotFoundError('Contact not found');
+    return contact;
+  },
+
+  async deleteContact(contactId: string) {
+    const deleted = await contactRepo.deleteContact(contactId);
+    if (!deleted) throw new NotFoundError('Contact not found');
+  },
+};

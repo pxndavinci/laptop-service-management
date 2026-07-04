@@ -1,63 +1,64 @@
 import { Request, Response } from 'express';
 import serviceOrderService from '../services/service-order.service';
-import * as ServiceOrderModel from '../models/service-order.model';
+import * as ServiceOrder from '../models/service-order.model';
+import { IssueType, PaymentMethod, PaymentStatus } from '../db/schema';
 
 const ServiceOrderController = {
   getServiceOrders: async (req: Request, res: Response) => {
-    const input = {
-      tagNo: req.query.tagNo ? parseInt(req.query.tagNo as string) : undefined,
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-      offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+    const input: ServiceOrder.ServiceOrderQueryParams = {
+      tagNo: req.query.tagNo ? Number(req.query.tagNo) : undefined,
+      userProductId: req.query.userProductId as string | undefined,
+      paymentMethod: req.query.paymentMethod as PaymentMethod | undefined,
+      paymentStatus: req.query.paymentStatus as PaymentStatus | undefined,
+      priorityLevel: req.query.priorityLevel ? Number(req.query.priorityLevel) : undefined,
+      issueDescription: req.query.issueDescription as IssueType | undefined,
+      entryBy: req.query.entryBy as string | undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
     };
     const result = await serviceOrderService.getServiceOrders(input);
     res.status(200).json(result);
   },
 
   createServiceOrder: async (req: Request, res: Response) => {
-    const input: ServiceOrderModel.CreateServiceOrder = {
-      userProductId: req.body.userProductId as string,
-      estimatedPrice: req.body.estimatedPrice as number | undefined,
-      paymentMethod: req.body.paymentMethod as ServiceOrderModel.PaymentMethod | undefined,
-      paymentStatus: req.body.paymentStatus as ServiceOrderModel.PaymentStatus | undefined,
-      priorityLevel: req.body.priorityLevel as number,
-      estimatedCompletionDate: req.body.estimatedCompletionDate as string | undefined,
-      issueDescription: req.body.issueDescription as ServiceOrderModel.IssueDescription,
-      issueNotes: req.body.issueNotes as string | undefined,
-      entryByUserId: req.body.entryByUserId as string,
+    const input: ServiceOrder.CreateServiceOrder = {
+      userProductId: req.body.userProductId,
+      estimatedPrice: req.body.estimatedPrice,
+      priorityLevel: req.body.priorityLevel,
+      estimatedCompletionDate: req.body.estimatedCompletionDate,
+      issueDescription: req.body.issueDescription,
+      issueNotes: req.body.issueNotes,
+      entryBy: req.body.entryBy,
     };
     const result = await serviceOrderService.createServiceOrder(input);
     res.status(201).json(result);
   },
 
   getServiceOrderById: async (req: Request, res: Response) => {
-    const id: string = req.params.serviceOrderId[0];
-    const result = await serviceOrderService.getServiceOrderByID(id);
+    const result = await serviceOrderService.getServiceOrderByID(req.params.serviceOrderId);
     res.status(200).json(result);
   },
 
   updateServiceOrder: async (req: Request, res: Response) => {
-    const input: ServiceOrderModel.PatchServiceOrder = {
-      userProductId: req.body.userProductId as string | undefined,
-      estimatedPrice: req.body.estimatedPrice as number | undefined,
-      finalPrice: req.body.finalPrice as number | undefined,
-      paymentMethod: req.body.paymentMethod as ServiceOrderModel.PaymentMethod | undefined,
-      paymentStatus: req.body.paymentStatus as ServiceOrderModel.PaymentStatus | undefined,
-      priorityLevel: req.body.priorityLevel as number | undefined,
-      estimatedCompletionDate: req.body.estimatedCompletionDate as string | undefined,
-      actualCompletionDate: req.body.actualCompletionDate as string | undefined,
-      issueDescription: req.body.issueDescription as ServiceOrderModel.IssueDescription | undefined,
-      issueNotes: req.body.issueNotes as string | undefined,
+    const input: ServiceOrder.PatchServiceOrder = {
+      userProductId: req.body.userProductId,
+      estimatedPrice: req.body.estimatedPrice,
+      finalPrice: req.body.finalPrice,
+      paymentMethod: req.body.paymentMethod,
+      paymentStatus: req.body.paymentStatus,
+      priorityLevel: req.body.priorityLevel,
+      estimatedCompletionDate: req.body.estimatedCompletionDate,
+      actualCompletionDate: req.body.actualCompletionDate,
+      issueDescription: req.body.issueDescription,
+      issueNotes: req.body.issueNotes,
     };
-    const id: string = req.params.serviceOrderId[0];
-    const result = await serviceOrderService.updateServiceOrder(id, input);
+    const result = await serviceOrderService.updateServiceOrder(req.params.serviceOrderId, input);
     res.status(200).json(result);
   },
 
   deleteServiceOrder: async (req: Request, res: Response) => {
-    const id: string = req.params.serviceOrderId[0];
-    const result = await serviceOrderService.deleteServiceOrder(id);
-    res.status(200).json(result);
+    await serviceOrderService.deleteServiceOrder(req.params.serviceOrderId);
+    res.status(204).send();
   },
 };
 

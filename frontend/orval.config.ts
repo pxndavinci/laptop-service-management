@@ -10,7 +10,13 @@ export default defineConfig({
       target: './src/api',
       schemas: './src/api/model',
       client: 'react-query',
-      baseUrl: 'http://localhost:3000'
+      httpClient: 'axios',
+      override: {
+        mutator: {
+          path: './src/lib/api/mutator.ts',
+          name: 'customInstance',
+        },
+      },
     },
   },
 });

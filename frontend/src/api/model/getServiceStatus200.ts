@@ -5,13 +5,11 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
+import type { ServiceStatuses } from './serviceStatuses';
 
-export type GetServiceOrdersStatus = typeof GetServiceOrdersStatus[keyof typeof GetServiceOrdersStatus];
-
-
-export const GetServiceOrdersStatus = {
-  PENDING: 'PENDING',
-  IN_PROGRESS: 'IN_PROGRESS',
-  COMPLETED: 'COMPLETED',
-  ON_HOLD: 'ON_HOLD',
-} as const;
+export type GetServiceStatus200 = {
+  data?: ServiceStatuses[];
+  total?: number;
+  page?: number;
+  limit?: number;
+};

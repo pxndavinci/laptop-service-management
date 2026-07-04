@@ -1,31 +1,35 @@
 import serviceStatusRepo from '../repos/service-status.repo';
-import * as ServiceStatusModel from '../models/service-status.model';
+import * as ServiceStatus from '../models/service-status.model';
+import { NotFoundError } from '../middlewares/error.middleware';
+import { paginate, requireAnyField } from '../lib/utils';
 
 export const serviceStatusService = {
-  async getServiceStatuses(params: { serviceOrderId?: string; page?: number; limit?: number; offset?: number }) {
-    params.page = params.page && params.page > 0 ? params.page : 1;
-    params.limit = params.limit && params.limit > 0 ? params.limit : 10;
-    params.offset = (params.page - 1) * params.limit;
-    const [rows, total] = await serviceStatusRepo.getServiceStatuses(params);
-    return { rows, total, page: params.page, limit: params.limit };
+  async getServiceStatuses(params: ServiceStatus.ServiceStatusQueryParams) {
+    const { page, limit, offset } = paginate(params.page, params.limit);
+    const [data, total] = await serviceStatusRepo.getServiceStatuses({ ...params, limit, offset });
+    return { data, total, page, limit };
   },
 
-  async createServiceStatus(data: ServiceStatusModel.CreateServiceStatus) {
-    return await serviceStatusRepo.createServiceStatus(data);
+  async getServiceStatusByID(serviceStatusId: string) {
+    const status = await serviceStatusRepo.getServiceStatusByID(serviceStatusId);
+    if (!status) throw new NotFoundError('Service status not found');
+    return status;
   },
 
-  async getServiceStatusByID(id: string) {
-    return await serviceStatusRepo.getServiceStatusByID(id);
+  async createServiceStatus(data: ServiceStatus.CreateServiceStatus) {
+    return serviceStatusRepo.createServiceStatus(data);
   },
 
-  async updateServiceStatus(id: string, data: ServiceStatusModel.PatchServiceStatus) {
-    const result = await serviceStatusRepo.updateServiceStatus(id, data);
-    if (result === null) return 'No updates performed or status not found';
-    return result;
+  async updateServiceStatus(serviceStatusId: string, data: ServiceStatus.PatchServiceStatus) {
+    requireAnyField(data);
+    const status = await serviceStatusRepo.updateServiceStatus(serviceStatusId, data);
+    if (!status) throw new NotFoundError('Service status not found');
+    return status;
   },
 
-  async deleteServiceStatus(id: string) {
-    return await serviceStatusRepo.deleteServiceStatus(id);
+  async deleteServiceStatus(serviceStatusId: string) {
+    const deleted = await serviceStatusRepo.deleteServiceStatus(serviceStatusId);
+    if (!deleted) throw new NotFoundError('Service status not found');
   },
 };
 

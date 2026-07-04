@@ -8,9 +8,6 @@
 
 export type GetServiceStatusParams = {
 serviceOrderId?: string;
-statusId?: string;
-assignedTo?: string;
-notifyCustomer?: boolean;
 page?: number;
 limit?: number;
 };

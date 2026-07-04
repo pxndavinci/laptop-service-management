@@ -50,11 +50,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     setProfileMenuAnchor(null)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token')
-    window.location.href = '/login'
-  }
-
   const toggleSidebar = () => {
     if (isDesktop) {
       setSidebarOpen((open) => !open)
@@ -199,14 +194,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <MenuItem disabled>
                   <ProfileIcon sx={{ mr: 1 }} />
-                  <Typography>User Profile</Typography>
-                </MenuItem>
-                <MenuItem disabled>
-                  <Typography>Settings</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogout}>
-                  <Typography>Logout</Typography>
+                  <Typography>Shop Operator</Typography>
                 </MenuItem>
               </Menu>
             </Box>

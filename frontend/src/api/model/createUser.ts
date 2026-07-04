@@ -7,7 +7,9 @@
  */
 
 export interface CreateUser {
+  /** @minLength 1 */
   userName: string;
-  email: string;
+  email?: string;
+  address?: string;
   roleId: number;
 }

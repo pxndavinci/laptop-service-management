@@ -5,17 +5,21 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
-import type { ServiceOrders } from './serviceOrders';
-import type { Statuses } from './statuses';
-import type { Users } from './users';
 
 export interface ServiceStatuses {
   serviceStatusId?: string;
-  serviceOrder?: ServiceOrders;
-  status?: Statuses;
-  assignedTo?: Users;
-  /** Status update comments */
-  comment?: string;
+  serviceOrderId?: string;
+  statusId?: string;
+  /** Display name of the status */
+  statusName?: string;
+  assignedTo?: string;
+  /** Name of the assigned staff member */
+  assignedToName?: string;
+  /**
+     * Status update comments
+     * @nullable
+     */
+  comment?: string | null;
   /** Whether customer should be notified */
   notifyCustomer?: boolean;
   createdAt?: string;

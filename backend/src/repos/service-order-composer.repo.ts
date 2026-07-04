@@ -1,692 +1,362 @@
-import { Kysely, Transaction } from 'kysely';
-import { kysely } from '../db/kysely';
+import db, { DbExecutor } from '../db/index';
 import {
-  ServiceOrderComposerSearchParams,
-  ComposerUser,
-  ComposerContact,
-  ComposerProduct,
-  ComposerBrand,
-  ComposerProductType,
-  ComposerUserProduct,
   ComposeCustomerInput,
-  ComposeContactInput,
   ComposeProductInput,
-  ComposeUserProductInput,
   ComposeServiceOrderInput,
+  ComposeUserProductInput,
+  ComposerProduct,
+  ServiceOrderComposerSearchParams,
+  ServiceOrderComposerSearchResult,
 } from '../models/service-order-composer.model';
 
-type Database = typeof kysely extends Kysely<infer DB> ? DB : never;
+const composerUserColumns = ['userId', 'userName', 'email', 'address', 'roleId'] as const;
 
-type DbExecutor = Kysely<Database> | Transaction<Database>;
+const productWithNames = (executor: DbExecutor) =>
+  executor
+    .selectFrom('product as p')
+    .innerJoin('brand as b', 'b.brandId', 'p.brandId')
+    .innerJoin('product_type as pt', 'pt.productTypeId', 'p.productTypeId')
+    .select([
+      'p.productId',
+      'p.productName',
+      'p.description',
+      'b.brandId',
+      'b.brandName',
+      'pt.productTypeId',
+      'pt.productTypeName',
+    ]);
 
-type ContactWithUserId = ComposerContact & {
-  userId: string;
-};
-
-type UserProductWithRelations = ComposerUserProduct & {
-  userId: string;
+type ProductRow = {
   productId: string;
+  productName: string;
+  description: string | null;
+  brandId: string;
+  brandName: string;
+  productTypeId: string;
+  productTypeName: string;
 };
 
-const mapUserRow = (row: any): ComposerUser => ({
-  userId: row.user_id,
-  userName: row.user_name,
-  email: row.email,
-  address: row.address,
-  roleId: row.role_id,
-});
-
-const mapContactRow = (row: any): ComposerContact => ({
-  contactId: row.contact_id,
-  contactNumber: row.contact_number,
-});
-
-const mapBrandRow = (row: any): ComposerBrand => ({
-  brandId: row.brand_id,
-  brandName: row.brand_name,
-});
-
-const mapProductTypeRow = (row: any): ComposerProductType => ({
-  productTypeId: row.product_type_id,
-  productTypeName: row.product_type_name,
+const toComposerProduct = (row: ProductRow): ComposerProduct => ({
+  productId: row.productId,
+  productName: row.productName,
+  description: row.description,
+  brand: { brandId: row.brandId, brandName: row.brandName },
+  productType: { productTypeId: row.productTypeId, productTypeName: row.productTypeName },
 });
 
 export const serviceOrderComposerRepo = {
-  async searchComposer(
-    params: ServiceOrderComposerSearchParams
-  ) {
-    const limit = params.limit ?? 10;
-
-    let query = kysely
+  /**
+   * Type-ahead search for the order form. A result is one customer/device
+   * pairing; `limit` counts pairings, not joined rows, and every contact of a
+   * matched customer is always included.
+   */
+  async searchContexts(
+    params: ServiceOrderComposerSearchParams & { limit: number }
+  ): Promise<ServiceOrderComposerSearchResult[]> {
+    const contextKeys = await db
       .selectFrom('user_data as u')
-      .leftJoin('contact as c', 'c.user_id', 'u.user_id')
-      .leftJoin('user_product as up', 'up.user_id', 'u.user_id')
-      .leftJoin('product as p', 'p.product_id', 'up.product_id')
-      .leftJoin('brand as b', 'b.brand_id', 'p.brand_id')
-      .leftJoin(
-        'product_type as pt',
-        'pt.product_type_id',
-        'p.product_type_id'
+      .leftJoin('contact as c', 'c.userId', 'u.userId')
+      .leftJoin('user_product as up', 'up.userId', 'u.userId')
+      .leftJoin('product as p', 'p.productId', 'up.productId')
+      .leftJoin('brand as b', 'b.brandId', 'p.brandId')
+      .leftJoin('product_type as pt', 'pt.productTypeId', 'p.productTypeId')
+      .select(['u.userId', 'up.userProductId', 'u.createdAt'])
+      .distinct()
+      .$if(!!params.userName, (qb) => qb.where('u.userName', 'ilike', `%${params.userName}%`))
+      .$if(!!params.email, (qb) => qb.where('u.email', 'ilike', `%${params.email}%`))
+      .$if(!!params.contactNumber, (qb) =>
+        qb.where('c.contactNumber', 'like', `${params.contactNumber}%`)
       )
-      .select([
-        'u.user_id',
-        'u.user_name',
-        'u.created_at',
-        'u.email',
-        'u.address',
-        'u.role_id',
-
-        'c.contact_id',
-        'c.contact_number',
-
-        'p.product_id',
-        'p.product_name',
-        'p.description',
-
-        'b.brand_id',
-        'b.brand_name',
-
-        'pt.product_type_id',
-        'pt.product_type_name',
-
-        'up.user_product_id',
-        'up.serial_number',
-        'up.login_password',
-        'up.additional_info',
-      ]);
-
-    if (params.userName) {
-      query = query.where(
-        'u.user_name',
-        'ilike',
-        `%${params.userName}%`
-      );
-    }
-
-    if (params.email) {
-      query = query.where(
-        'u.email',
-        'ilike',
-        `%${params.email}%`
-      );
-    }
-
-    if (params.contactNumber) {
-      query = query.where(
-        'c.contact_number',
-        'like',
-        `${params.contactNumber}%`
-      );
-    }
-
-    if (params.productName) {
-      query = query.where(
-        'p.product_name',
-        'ilike',
-        `%${params.productName}%`
-      );
-    }
-
-    if (params.brandName) {
-      query = query.where(
-        'b.brand_name',
-        'ilike',
-        `%${params.brandName}%`
-      );
-    }
-
-    if (params.productTypeName) {
-      query = query.where(
-        'pt.product_type_name',
-        'ilike',
-        `%${params.productTypeName}%`
-      );
-    }
-
-    if (params.serialNumber) {
-      query = query.where(
-        'up.serial_number',
-        'like',
-        `${params.serialNumber}%`
-      );
-    }
-
-    return query
-      .orderBy('u.created_at', 'desc')
-      .limit(limit)
+      .$if(!!params.productName, (qb) =>
+        qb.where('p.productName', 'ilike', `%${params.productName}%`)
+      )
+      .$if(!!params.brandName, (qb) => qb.where('b.brandName', 'ilike', `%${params.brandName}%`))
+      .$if(!!params.productTypeName, (qb) =>
+        qb.where('pt.productTypeName', 'ilike', `%${params.productTypeName}%`)
+      )
+      .$if(!!params.serialNumber, (qb) =>
+        qb.where('up.serialNumber', 'like', `${params.serialNumber}%`)
+      )
+      .orderBy('u.createdAt', 'desc')
+      .limit(params.limit)
       .execute();
+
+    if (contextKeys.length === 0) {
+      return [];
+    }
+
+    const userIds = [...new Set(contextKeys.map((key) => key.userId))];
+    const userProductIds = contextKeys
+      .map((key) => key.userProductId)
+      .filter((id): id is string => id !== null);
+
+    const [users, contacts, devices] = await Promise.all([
+      db.selectFrom('user_data').select(composerUserColumns).where('userId', 'in', userIds).execute(),
+      db
+        .selectFrom('contact')
+        .select(['contactId', 'contactNumber', 'userId'])
+        .where('userId', 'in', userIds)
+        .orderBy('createdAt', 'asc')
+        .execute(),
+      userProductIds.length === 0
+        ? []
+        : db
+            .selectFrom('user_product as up')
+            .innerJoin('product as p', 'p.productId', 'up.productId')
+            .innerJoin('brand as b', 'b.brandId', 'p.brandId')
+            .innerJoin('product_type as pt', 'pt.productTypeId', 'p.productTypeId')
+            .select([
+              'up.userProductId',
+              'up.serialNumber',
+              'up.loginPassword',
+              'up.additionalInfo',
+              'p.productId',
+              'p.productName',
+              'p.description',
+              'b.brandId',
+              'b.brandName',
+              'pt.productTypeId',
+              'pt.productTypeName',
+            ])
+            .where('up.userProductId', 'in', userProductIds)
+            .execute(),
+    ]);
+
+    const userById = new Map(users.map((user) => [user.userId, user]));
+    const deviceById = new Map(devices.map((device) => [device.userProductId, device]));
+
+    return contextKeys.flatMap((key) => {
+      const user = userById.get(key.userId);
+      if (!user) return [];
+
+      const device = key.userProductId ? deviceById.get(key.userProductId) : undefined;
+
+      return [
+        {
+          user,
+          contacts: contacts
+            .filter((contact) => contact.userId === key.userId)
+            .map(({ contactId, contactNumber }) => ({ contactId, contactNumber })),
+          product: device ? toComposerProduct(device) : undefined,
+          userProduct: device
+            ? {
+                userProductId: device.userProductId,
+                serialNumber: device.serialNumber,
+                loginPassword: device.loginPassword,
+                additionalInfo: device.additionalInfo,
+              }
+            : undefined,
+        },
+      ];
+    });
   },
 
-  async getUserById(
-    db: DbExecutor,
-    userId: string
-  ): Promise<ComposerUser | null> {
-    const row = await db
+  // ---------- Users ----------
+  async getUserById(executor: DbExecutor, userId: string) {
+    return executor
       .selectFrom('user_data')
-      .select([
-        'user_id',
-        'user_name',
-        'email',
-        'address',
-        'role_id',
-      ])
-      .where('user_id', '=', userId)
+      .select(composerUserColumns)
+      .where('userId', '=', userId)
       .executeTakeFirst();
-
-    return row ? mapUserRow(row) : null;
   },
 
-  async getUserByEmail(
-    db: DbExecutor,
-    email: string
-  ): Promise<ComposerUser | null> {
-    const row = await db
+  async getUserByEmail(executor: DbExecutor, email: string) {
+    return executor
       .selectFrom('user_data')
-      .select([
-        'user_id',
-        'user_name',
-        'email',
-        'address',
-        'role_id',
-      ])
+      .select(composerUserColumns)
       .where('email', '=', email)
       .executeTakeFirst();
-
-    return row ? mapUserRow(row) : null;
   },
 
-  async roleExists(
-    db: DbExecutor,
-    roleId: number
-  ): Promise<boolean> {
-    const row = await db
+  async roleExists(executor: DbExecutor, roleId: number): Promise<boolean> {
+    const row = await executor
       .selectFrom('role')
-      .select('role_id')
-      .where('role_id', '=', roleId)
+      .select('roleId')
+      .where('roleId', '=', roleId)
       .executeTakeFirst();
-
     return Boolean(row);
   },
 
-  async createUser(
-    db: DbExecutor,
-    data: ComposeCustomerInput
-  ): Promise<ComposerUser> {
-    const result = await db
+  async createUser(executor: DbExecutor, data: ComposeCustomerInput) {
+    return executor
       .insertInto('user_data')
       .values({
-        user_name: data.userName,
-        role_id: data.roleId,
+        userName: data.userName,
+        roleId: data.roleId,
         email: data.email || null,
         address: data.address || null,
       })
-      .returning([
-        'user_id',
-        'user_name',
-        'email',
-        'address',
-        'role_id',
-      ])
+      .returning(composerUserColumns)
       .executeTakeFirstOrThrow();
-
-    return mapUserRow(result);
   },
 
-  async getContactById(
-    db: DbExecutor,
-    contactId: string
-  ): Promise<ContactWithUserId | null> {
-    const row = await db
+  // ---------- Contacts ----------
+  async getContactById(executor: DbExecutor, contactId: string) {
+    return executor
       .selectFrom('contact')
-      .select([
-        'contact_id',
-        'contact_number',
-        'user_id',
-      ])
-      .where('contact_id', '=', contactId)
+      .select(['contactId', 'contactNumber', 'userId'])
+      .where('contactId', '=', contactId)
       .executeTakeFirst();
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      contactId: row.contact_id,
-      contactNumber: row.contact_number,
-      userId: row.user_id,
-    };
   },
 
-  async getContactByNumberForUser(
-    db: DbExecutor,
-    userId: string,
-    contactNumber: string
-  ): Promise<ComposerContact | null> {
-    const row = await db
+  async getContactByNumberForUser(executor: DbExecutor, userId: string, contactNumber: string) {
+    return executor
       .selectFrom('contact')
-      .select([
-        'contact_id',
-        'contact_number',
-      ])
-      .where('user_id', '=', userId)
-      .where('contact_number', '=', contactNumber)
+      .select(['contactId', 'contactNumber'])
+      .where('userId', '=', userId)
+      .where('contactNumber', '=', contactNumber)
       .executeTakeFirst();
-
-    return row ? mapContactRow(row) : null;
   },
 
-  async createContact(
-    db: DbExecutor,
-    userId: string,
-    data: ComposeContactInput
-  ): Promise<ComposerContact> {
-    const result = await db
+  async createContact(executor: DbExecutor, userId: string, contactNumber: string) {
+    return executor
       .insertInto('contact')
-      .values({
-        user_id: userId,
-        contact_number: data.contactNumber,
-      })
-      .returning([
-        'contact_id',
-        'contact_number',
-      ])
+      .values({ userId, contactNumber })
+      .returning(['contactId', 'contactNumber'])
       .executeTakeFirstOrThrow();
-
-    return mapContactRow(result);
   },
 
-  async getBrandByName(
-    db: DbExecutor,
-    brandName: string
-  ): Promise<ComposerBrand | null> {
-    const row = await db
+  // ---------- Brands ----------
+  async getBrandById(executor: DbExecutor, brandId: string) {
+    return executor
       .selectFrom('brand')
-      .select([
-        'brand_id',
-        'brand_name',
-      ])
-      .where('brand_name', '=', brandName)
+      .select(['brandId', 'brandName'])
+      .where('brandId', '=', brandId)
       .executeTakeFirst();
-
-    return row ? mapBrandRow(row) : null;
   },
 
-  async getBrandById(
-    db: DbExecutor,
-    brandId: string
-  ): Promise<ComposerBrand | null> {
-    const row = await db
+  async getBrandByName(executor: DbExecutor, brandName: string) {
+    return executor
       .selectFrom('brand')
-      .select([
-        'brand_id',
-        'brand_name',
-      ])
-      .where('brand_id', '=', brandId)
+      .select(['brandId', 'brandName'])
+      .where('brandName', '=', brandName)
       .executeTakeFirst();
-
-    return row ? mapBrandRow(row) : null;
   },
 
-  async createBrand(
-    db: DbExecutor,
-    brandName: string
-  ): Promise<ComposerBrand> {
-    const result = await db
+  async createBrand(executor: DbExecutor, brandName: string) {
+    return executor
       .insertInto('brand')
-      .values({
-        brand_name: brandName,
-      })
-      .returning([
-        'brand_id',
-        'brand_name',
-      ])
+      .values({ brandName })
+      .returning(['brandId', 'brandName'])
       .executeTakeFirstOrThrow();
-
-    return mapBrandRow(result);
   },
 
-  async getProductTypeByName(
-    db: DbExecutor,
-    productTypeName: string
-  ): Promise<ComposerProductType | null> {
-    const row = await db
+  // ---------- Product types ----------
+  async getProductTypeById(executor: DbExecutor, productTypeId: string) {
+    return executor
       .selectFrom('product_type')
-      .select([
-        'product_type_id',
-        'product_type_name',
-      ])
-      .where(
-        'product_type_name',
-        '=',
-        productTypeName
-      )
+      .select(['productTypeId', 'productTypeName'])
+      .where('productTypeId', '=', productTypeId)
       .executeTakeFirst();
-
-    return row ? mapProductTypeRow(row) : null;
   },
 
-  async getProductTypeById(
-    db: DbExecutor,
-    productTypeId: string
-  ): Promise<ComposerProductType | null> {
-    const row = await db
+  async getProductTypeByName(executor: DbExecutor, productTypeName: string) {
+    return executor
       .selectFrom('product_type')
-      .select([
-        'product_type_id',
-        'product_type_name',
-      ])
-      .where(
-        'product_type_id',
-        '=',
-        productTypeId
-      )
+      .select(['productTypeId', 'productTypeName'])
+      .where('productTypeName', '=', productTypeName)
       .executeTakeFirst();
-
-    return row ? mapProductTypeRow(row) : null;
   },
 
-  async createProductType(
-    db: DbExecutor,
-    productTypeName: string
-  ): Promise<ComposerProductType> {
-    const result = await db
+  async createProductType(executor: DbExecutor, productTypeName: string) {
+    return executor
       .insertInto('product_type')
-      .values({
-        product_type_name: productTypeName,
-      })
-      .returning([
-        'product_type_id',
-        'product_type_name',
-      ])
+      .values({ productTypeName })
+      .returning(['productTypeId', 'productTypeName'])
       .executeTakeFirstOrThrow();
+  },
 
-    return mapProductTypeRow(result);
+  // ---------- Products ----------
+  async getProductById(executor: DbExecutor, productId: string): Promise<ComposerProduct | undefined> {
+    const row = await productWithNames(executor).where('p.productId', '=', productId).executeTakeFirst();
+    return row ? toComposerProduct(row) : undefined;
   },
 
   async getProductByUnique(
-    db: DbExecutor,
+    executor: DbExecutor,
     productName: string,
     brandId: string,
     productTypeId: string
-  ): Promise<ComposerProduct | null> {
-    const row = await db
-      .selectFrom('product as p')
-      .innerJoin(
-        'brand as b',
-        'b.brand_id',
-        'p.brand_id'
-      )
-      .innerJoin(
-        'product_type as pt',
-        'pt.product_type_id',
-        'p.product_type_id'
-      )
-      .select([
-        'p.product_id',
-        'p.product_name',
-        'p.description',
-
-        'b.brand_id',
-        'b.brand_name',
-
-        'pt.product_type_id',
-        'pt.product_type_name',
-      ])
-      .where(
-        'p.product_name',
-        '=',
-        productName
-      )
-      .where(
-        'p.brand_id',
-        '=',
-        brandId
-      )
-      .where(
-        'p.product_type_id',
-        '=',
-        productTypeId
-      )
+  ): Promise<ComposerProduct | undefined> {
+    const row = await productWithNames(executor)
+      .where('p.productName', '=', productName)
+      .where('p.brandId', '=', brandId)
+      .where('p.productTypeId', '=', productTypeId)
       .executeTakeFirst();
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      productId: row.product_id,
-      productName: row.product_name,
-      description: row.description,
-
-      brand: {
-        brandId: row.brand_id,
-        brandName: row.brand_name,
-      },
-
-      productType: {
-        productTypeId: row.product_type_id,
-        productTypeName: row.product_type_name,
-      },
-    };
-  },
-
-  async getProductById(
-    db: DbExecutor,
-    productId: string
-  ): Promise<ComposerProduct | null> {
-    const row = await db
-      .selectFrom('product as p')
-      .innerJoin(
-        'brand as b',
-        'b.brand_id',
-        'p.brand_id'
-      )
-      .innerJoin(
-        'product_type as pt',
-        'pt.product_type_id',
-        'p.product_type_id'
-      )
-      .select([
-        'p.product_id',
-        'p.product_name',
-        'p.description',
-
-        'b.brand_id',
-        'b.brand_name',
-
-        'pt.product_type_id',
-        'pt.product_type_name',
-      ])
-      .where(
-        'p.product_id',
-        '=',
-        productId
-      )
-      .executeTakeFirst();
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      productId: row.product_id,
-      productName: row.product_name,
-      description: row.description,
-
-      brand: {
-        brandId: row.brand_id,
-        brandName: row.brand_name,
-      },
-
-      productType: {
-        productTypeId: row.product_type_id,
-        productTypeName: row.product_type_name,
-      },
-    };
+    return row ? toComposerProduct(row) : undefined;
   },
 
   async createProduct(
-    db: DbExecutor,
+    executor: DbExecutor,
     product: ComposeProductInput,
     brandId: string,
     productTypeId: string
-  ): Promise<ComposerProduct> {
-    const result = await db
+  ) {
+    return executor
       .insertInto('product')
       .values({
-        product_name: product.productName,
+        productName: product.productName,
         description: product.description || null,
-        brand_id: brandId,
-        product_type_id: productTypeId,
-      })
-      .returning([
-        'product_id',
-        'product_name',
-        'description',
-      ])
-      .executeTakeFirstOrThrow();
-
-    return {
-      productId: result.product_id,
-      productName: result.product_name,
-      description: result.description,
-
-      brand: {
         brandId,
-        brandName: product.brandName,
-      },
-
-      productType: {
         productTypeId,
-        productTypeName: product.productTypeName,
-      },
-    };
+      })
+      .returning(['productId', 'productName', 'description'])
+      .executeTakeFirstOrThrow();
   },
 
-  async getUserProductById(
-    db: DbExecutor,
-    userProductId: string
-  ): Promise<UserProductWithRelations | null> {
-    const row = await db
+  // ---------- User products (devices) ----------
+  async getUserProductById(executor: DbExecutor, userProductId: string) {
+    return executor
       .selectFrom('user_product')
-      .select([
-        'user_product_id',
-        'user_id',
-        'product_id',
-        'serial_number',
-        'login_password',
-        'additional_info',
-      ])
-      .where(
-        'user_product_id',
-        '=',
-        userProductId
-      )
+      .select(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
+      .where('userProductId', '=', userProductId)
       .executeTakeFirst();
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      userProductId: row.user_product_id,
-      userId: row.user_id,
-      productId: row.product_id,
-      serialNumber: row.serial_number,
-      loginPassword: row.login_password,
-      additionalInfo: row.additional_info,
-    };
   },
 
-  async getUserProductBySerial(
-    db: DbExecutor,
-    serialNumber: string
-  ): Promise<UserProductWithRelations | null> {
-    const row = await db
+  async getUserProductBySerial(executor: DbExecutor, serialNumber: string) {
+    return executor
       .selectFrom('user_product')
-      .select([
-        'user_product_id',
-        'user_id',
-        'product_id',
-        'serial_number',
-        'login_password',
-        'additional_info',
-      ])
-      .where(
-        'serial_number',
-        '=',
-        serialNumber
-      )
+      .select(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
+      .where('serialNumber', '=', serialNumber)
       .executeTakeFirst();
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      userProductId: row.user_product_id,
-      userId: row.user_id,
-      productId: row.product_id,
-      serialNumber: row.serial_number,
-      loginPassword: row.login_password,
-      additionalInfo: row.additional_info,
-    };
   },
 
   async createUserProduct(
-    db: DbExecutor,
+    executor: DbExecutor,
     userId: string,
     productId: string,
     data: ComposeUserProductInput
-  ): Promise<ComposerUserProduct> {
-    const result = await db
+  ) {
+    return executor
       .insertInto('user_product')
       .values({
-        user_id: userId,
-        product_id: productId,
-        serial_number: data.serialNumber,
-        login_password: data.loginPassword || null,
-        additional_info: data.additionalInfo || null,
+        userId,
+        productId,
+        serialNumber: data.serialNumber,
+        loginPassword: data.loginPassword || null,
+        additionalInfo: data.additionalInfo || null,
       })
-      .returning([
-        'user_product_id',
-        'serial_number',
-        'login_password',
-        'additional_info',
-      ])
+      .returning(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
       .executeTakeFirstOrThrow();
-
-    return {
-      userProductId: result.user_product_id,
-      serialNumber: result.serial_number,
-      loginPassword: result.login_password,
-      additionalInfo: result.additional_info,
-    };
   },
 
+  // ---------- Service order ----------
   async createServiceOrder(
-    db: DbExecutor,
+    executor: DbExecutor,
     userProductId: string,
     serviceOrder: ComposeServiceOrderInput
   ) {
-    return db
+    return executor
       .insertInto('service_order')
       .values({
-        user_product_id: userProductId,
-        estimated_price:
-          serviceOrder.estimatedPrice ?? null,
-        payment_method: null,
-        payment_status: 'PENDING',
-        priority_level:
-          serviceOrder.priorityLevel,
-        estimated_completion_date:
-          serviceOrder.estimatedCompletionDate ?? null,
-        issue_description:
-          serviceOrder.issueDescription,
-        issue_notes:
-          serviceOrder.issueNotes || null,
-        entry_by:
-          serviceOrder.entryByUserId,
+        userProductId,
+        estimatedPrice: serviceOrder.estimatedPrice ?? null,
+        paymentMethod: null,
+        priorityLevel: serviceOrder.priorityLevel,
+        estimatedCompletionDate: serviceOrder.estimatedCompletionDate ?? null,
+        issueDescription: serviceOrder.issueDescription,
+        issueNotes: serviceOrder.issueNotes || null,
+        entryBy: serviceOrder.entryByUserId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

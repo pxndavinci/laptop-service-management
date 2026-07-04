@@ -39,80 +39,50 @@ import type {
   ServiceOrders
 } from '../model';
 
+import { customInstance } from '../../lib/api/mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export type getServiceOrdersResponse200 = {
-  data: GetServiceOrders200
-  status: 200
-}
-
-export type getServiceOrdersResponseSuccess = (getServiceOrdersResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getServiceOrdersResponse = (getServiceOrdersResponseSuccess)
-
-export const getGetServiceOrdersUrl = (params?: GetServiceOrdersParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:3000/service-orders?${stringifiedParams}` : `http://localhost:3000/service-orders`
-}
 
 /**
  * Retrieve all service orders with optional filtering
  * @summary Get all service orders
  */
-export const getServiceOrders = async (params?: GetServiceOrdersParams, options?: RequestInit): Promise<getServiceOrdersResponse> => {
-
-  const res = await fetch(getGetServiceOrdersUrl(params),
-  {
-    ...options,
-    method: 'GET'
+export const getServiceOrders = (
+    params?: GetServiceOrdersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getServiceOrdersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getServiceOrdersResponse
-}
-
+      return customInstance<GetServiceOrders200>(
+      {url: `/service-orders`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetServiceOrdersQueryKey = (params?: GetServiceOrdersParams,) => {
     return [
-    `http://localhost:3000/service-orders`, ...(params ? [params] : [])
+    `/service-orders`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetServiceOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrders>>, TError = unknown>(params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, fetch?: RequestInit}
+export const getGetServiceOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrders>>, TError = unknown>(params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetServiceOrdersQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrders>>> = ({ signal }) => getServiceOrders(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrders>>> = ({ signal }) => getServiceOrders(params, requestOptions, signal);
 
 
 
@@ -132,7 +102,7 @@ export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getService
           TError,
           Awaited<ReturnType<typeof getServiceOrders>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getServiceOrders>>, TError = unknown>(
@@ -142,11 +112,11 @@ export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getService
           TError,
           Awaited<ReturnType<typeof getServiceOrders>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getServiceOrders>>, TError = unknown>(
- params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -154,7 +124,7 @@ export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getService
  */
 
 export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getServiceOrders>>, TError = unknown>(
- params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -170,61 +140,36 @@ export function useGetServiceOrders<TData = Awaited<ReturnType<typeof getService
 
 
 
-export type postServiceOrdersResponse201 = {
-  data: ServiceOrders
-  status: 201
-}
-
-export type postServiceOrdersResponseSuccess = (postServiceOrdersResponse201) & {
-  headers: Headers;
-};
-;
-
-export type postServiceOrdersResponse = (postServiceOrdersResponseSuccess)
-
-export const getPostServiceOrdersUrl = () => {
-
-
-
-
-  return `http://localhost:3000/service-orders`
-}
-
 /**
  * Create a new service order
  * @summary Create service order
  */
-export const postServiceOrders = async (createServiceOrder: CreateServiceOrder, options?: RequestInit): Promise<postServiceOrdersResponse> => {
-
-  const res = await fetch(getPostServiceOrdersUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createServiceOrder)
-  }
-)
+export const postServiceOrders = (
+    createServiceOrder: CreateServiceOrder,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postServiceOrdersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postServiceOrdersResponse
-}
-
+      return customInstance<ServiceOrders>(
+      {url: `/service-orders`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createServiceOrder, signal
+    },
+      options);
+    }
 
 
 
 export const getPostServiceOrdersMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrders>>, TError,{data: CreateServiceOrder}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrders>>, TError,{data: CreateServiceOrder}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postServiceOrders>>, TError,{data: CreateServiceOrder}, TContext> => {
 
 const mutationKey = ['postServiceOrders'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -232,7 +177,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postServiceOrders>>, {data: CreateServiceOrder}> = (props) => {
           const {data} = props ?? {};
 
-          return  postServiceOrders(data,fetchOptions)
+          return  postServiceOrders(data,requestOptions)
         }
 
 
@@ -250,7 +195,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create service order
  */
 export const usePostServiceOrders = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrders>>, TError,{data: CreateServiceOrder}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrders>>, TError,{data: CreateServiceOrder}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postServiceOrders>>,
         TError,
@@ -259,75 +204,41 @@ export const usePostServiceOrders = <TError = unknown,
       > => {
       return useMutation(getPostServiceOrdersMutationOptions(options), queryClient);
     }
-    export type getServiceOrdersServiceOrderIdResponse200 = {
-  data: ServiceOrders
-  status: 200
-}
-
-export type getServiceOrdersServiceOrderIdResponse404 = {
-  data: void
-  status: 404
-}
-
-export type getServiceOrdersServiceOrderIdResponseSuccess = (getServiceOrdersServiceOrderIdResponse200) & {
-  headers: Headers;
-};
-export type getServiceOrdersServiceOrderIdResponseError = (getServiceOrdersServiceOrderIdResponse404) & {
-  headers: Headers;
-};
-
-export type getServiceOrdersServiceOrderIdResponse = (getServiceOrdersServiceOrderIdResponseSuccess | getServiceOrdersServiceOrderIdResponseError)
-
-export const getGetServiceOrdersServiceOrderIdUrl = (serviceOrderId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-orders/${serviceOrderId}`
-}
-
-/**
+    /**
  * @summary Get service order by ID
  */
-export const getServiceOrdersServiceOrderId = async (serviceOrderId: string, options?: RequestInit): Promise<getServiceOrdersServiceOrderIdResponse> => {
-
-  const res = await fetch(getGetServiceOrdersServiceOrderIdUrl(serviceOrderId),
-  {
-    ...options,
-    method: 'GET'
+export const getServiceOrdersServiceOrderId = (
+    serviceOrderId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getServiceOrdersServiceOrderIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getServiceOrdersServiceOrderIdResponse
-}
-
+      return customInstance<ServiceOrders>(
+      {url: `/service-orders/${serviceOrderId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetServiceOrdersServiceOrderIdQueryKey = (serviceOrderId: string,) => {
     return [
-    `http://localhost:3000/service-orders/${serviceOrderId}`
+    `/service-orders/${serviceOrderId}`
     ] as const;
     }
 
 
-export const getGetServiceOrdersServiceOrderIdQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError = void>(serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, fetch?: RequestInit}
+export const getGetServiceOrdersServiceOrderIdQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError = void>(serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetServiceOrdersServiceOrderIdQueryKey(serviceOrderId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>> = ({ signal }) => getServiceOrdersServiceOrderId(serviceOrderId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>> = ({ signal }) => getServiceOrdersServiceOrderId(serviceOrderId, requestOptions, signal);
 
 
 
@@ -347,7 +258,7 @@ export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typ
           TError,
           Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError = void>(
@@ -357,11 +268,11 @@ export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typ
           TError,
           Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError = void>(
- serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, fetch?: RequestInit}
+ serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -369,7 +280,7 @@ export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typ
  */
 
 export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError = void>(
- serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, fetch?: RequestInit}
+ serviceOrderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrdersServiceOrderId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -385,68 +296,36 @@ export function useGetServiceOrdersServiceOrderId<TData = Awaited<ReturnType<typ
 
 
 
-export type patchServiceOrdersServiceOrderIdResponse200 = {
-  data: ServiceOrders
-  status: 200
-}
-
-export type patchServiceOrdersServiceOrderIdResponse404 = {
-  data: void
-  status: 404
-}
-
-export type patchServiceOrdersServiceOrderIdResponseSuccess = (patchServiceOrdersServiceOrderIdResponse200) & {
-  headers: Headers;
-};
-export type patchServiceOrdersServiceOrderIdResponseError = (patchServiceOrdersServiceOrderIdResponse404) & {
-  headers: Headers;
-};
-
-export type patchServiceOrdersServiceOrderIdResponse = (patchServiceOrdersServiceOrderIdResponseSuccess | patchServiceOrdersServiceOrderIdResponseError)
-
-export const getPatchServiceOrdersServiceOrderIdUrl = (serviceOrderId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-orders/${serviceOrderId}`
-}
-
 /**
  * @summary Update service order
  */
-export const patchServiceOrdersServiceOrderId = async (serviceOrderId: string,
-    patchServiceOrder: PatchServiceOrder, options?: RequestInit): Promise<patchServiceOrdersServiceOrderIdResponse> => {
-
-  const res = await fetch(getPatchServiceOrdersServiceOrderIdUrl(serviceOrderId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchServiceOrder)
-  }
-)
+export const patchServiceOrdersServiceOrderId = (
+    serviceOrderId: string,
+    patchServiceOrder: PatchServiceOrder,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchServiceOrdersServiceOrderIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as patchServiceOrdersServiceOrderIdResponse
-}
-
+      return customInstance<ServiceOrders>(
+      {url: `/service-orders/${serviceOrderId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchServiceOrder, signal
+    },
+      options);
+    }
 
 
 
 export const getPatchServiceOrdersServiceOrderIdMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string;data: PatchServiceOrder}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string;data: PatchServiceOrder}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string;data: PatchServiceOrder}, TContext> => {
 
 const mutationKey = ['patchServiceOrdersServiceOrderId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -454,7 +333,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, {serviceOrderId: string;data: PatchServiceOrder}> = (props) => {
           const {serviceOrderId,data} = props ?? {};
 
-          return  patchServiceOrdersServiceOrderId(serviceOrderId,data,fetchOptions)
+          return  patchServiceOrdersServiceOrderId(serviceOrderId,data,requestOptions)
         }
 
 
@@ -472,7 +351,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update service order
  */
 export const usePatchServiceOrdersServiceOrderId = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string;data: PatchServiceOrder}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string;data: PatchServiceOrder}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchServiceOrdersServiceOrderId>>,
         TError,
@@ -481,60 +360,33 @@ export const usePatchServiceOrdersServiceOrderId = <TError = void,
       > => {
       return useMutation(getPatchServiceOrdersServiceOrderIdMutationOptions(options), queryClient);
     }
-    export type deleteServiceOrdersServiceOrderIdResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteServiceOrdersServiceOrderIdResponseSuccess = (deleteServiceOrdersServiceOrderIdResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteServiceOrdersServiceOrderIdResponse = (deleteServiceOrdersServiceOrderIdResponseSuccess)
-
-export const getDeleteServiceOrdersServiceOrderIdUrl = (serviceOrderId: string,) => {
-
-
-
-
-  return `http://localhost:3000/service-orders/${serviceOrderId}`
-}
-
-/**
+    /**
  * @summary Delete service order
  */
-export const deleteServiceOrdersServiceOrderId = async (serviceOrderId: string, options?: RequestInit): Promise<deleteServiceOrdersServiceOrderIdResponse> => {
-
-  const res = await fetch(getDeleteServiceOrdersServiceOrderIdUrl(serviceOrderId),
-  {
-    ...options,
-    method: 'DELETE'
+export const deleteServiceOrdersServiceOrderId = (
+    serviceOrderId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteServiceOrdersServiceOrderIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteServiceOrdersServiceOrderIdResponse
-}
-
+      return customInstance<void>(
+      {url: `/service-orders/${serviceOrderId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteServiceOrdersServiceOrderIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string}, TContext> => {
 
 const mutationKey = ['deleteServiceOrdersServiceOrderId'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -542,7 +394,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, {serviceOrderId: string}> = (props) => {
           const {serviceOrderId} = props ?? {};
 
-          return  deleteServiceOrdersServiceOrderId(serviceOrderId,fetchOptions)
+          return  deleteServiceOrdersServiceOrderId(serviceOrderId,requestOptions)
         }
 
 
@@ -560,7 +412,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete service order
  */
 export const useDeleteServiceOrdersServiceOrderId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>, TError,{serviceOrderId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteServiceOrdersServiceOrderId>>,
         TError,
@@ -569,76 +421,43 @@ export const useDeleteServiceOrdersServiceOrderId = <TError = unknown,
       > => {
       return useMutation(getDeleteServiceOrdersServiceOrderIdMutationOptions(options), queryClient);
     }
-    export type getServiceOrderComposerSearchResponse200 = {
-  data: ServiceOrderComposerSearchResponse
-  status: 200
-}
-
-export type getServiceOrderComposerSearchResponseSuccess = (getServiceOrderComposerSearchResponse200) & {
-  headers: Headers;
-};
-;
-
-export type getServiceOrderComposerSearchResponse = (getServiceOrderComposerSearchResponseSuccess)
-
-export const getGetServiceOrderComposerSearchUrl = (params?: GetServiceOrderComposerSearchParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:3000/service-order-composer/search?${stringifiedParams}` : `http://localhost:3000/service-order-composer/search`
-}
-
-/**
+    /**
  * Retrieve relationship-aware customer, product, and device contexts for service order creation.
  * @summary Search service order composition contexts
  */
-export const getServiceOrderComposerSearch = async (params?: GetServiceOrderComposerSearchParams, options?: RequestInit): Promise<getServiceOrderComposerSearchResponse> => {
-
-  const res = await fetch(getGetServiceOrderComposerSearchUrl(params),
-  {
-    ...options,
-    method: 'GET'
+export const getServiceOrderComposerSearch = (
+    params?: GetServiceOrderComposerSearchParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getServiceOrderComposerSearchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getServiceOrderComposerSearchResponse
-}
-
+      return customInstance<ServiceOrderComposerSearchResponse>(
+      {url: `/service-order-composer/search`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetServiceOrderComposerSearchQueryKey = (params?: GetServiceOrderComposerSearchParams,) => {
     return [
-    `http://localhost:3000/service-order-composer/search`, ...(params ? [params] : [])
+    `/service-order-composer/search`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetServiceOrderComposerSearchQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError = unknown>(params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, fetch?: RequestInit}
+export const getGetServiceOrderComposerSearchQueryOptions = <TData = Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError = unknown>(params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetServiceOrderComposerSearchQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>> = ({ signal }) => getServiceOrderComposerSearch(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>> = ({ signal }) => getServiceOrderComposerSearch(params, requestOptions, signal);
 
 
 
@@ -658,7 +477,7 @@ export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<type
           TError,
           Awaited<ReturnType<typeof getServiceOrderComposerSearch>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError = unknown>(
@@ -668,11 +487,11 @@ export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<type
           TError,
           Awaited<ReturnType<typeof getServiceOrderComposerSearch>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError = unknown>(
- params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -680,7 +499,7 @@ export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<type
  */
 
 export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError = unknown>(
- params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetServiceOrderComposerSearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getServiceOrderComposerSearch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -696,78 +515,36 @@ export function useGetServiceOrderComposerSearch<TData = Awaited<ReturnType<type
 
 
 
-export type postServiceOrderComposerSubmitResponse201 = {
-  data: ComposeServiceOrderResponse
-  status: 201
-}
-
-export type postServiceOrderComposerSubmitResponse400 = {
-  data: PostServiceOrderComposerSubmit400
-  status: 400
-}
-
-export type postServiceOrderComposerSubmitResponse404 = {
-  data: PostServiceOrderComposerSubmit404
-  status: 404
-}
-
-export type postServiceOrderComposerSubmitResponse409 = {
-  data: PostServiceOrderComposerSubmit409
-  status: 409
-}
-
-export type postServiceOrderComposerSubmitResponseSuccess = (postServiceOrderComposerSubmitResponse201) & {
-  headers: Headers;
-};
-export type postServiceOrderComposerSubmitResponseError = (postServiceOrderComposerSubmitResponse400 | postServiceOrderComposerSubmitResponse404 | postServiceOrderComposerSubmitResponse409) & {
-  headers: Headers;
-};
-
-export type postServiceOrderComposerSubmitResponse = (postServiceOrderComposerSubmitResponseSuccess | postServiceOrderComposerSubmitResponseError)
-
-export const getPostServiceOrderComposerSubmitUrl = () => {
-
-
-
-
-  return `http://localhost:3000/service-order-composer/submit`
-}
-
 /**
  * Create or reuse existing related entities and persist a new service order in a single transaction.
  * @summary Submit composed service order workflow
  */
-export const postServiceOrderComposerSubmit = async (composeServiceOrderRequest: ComposeServiceOrderRequest, options?: RequestInit): Promise<postServiceOrderComposerSubmitResponse> => {
-
-  const res = await fetch(getPostServiceOrderComposerSubmitUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(composeServiceOrderRequest)
-  }
-)
+export const postServiceOrderComposerSubmit = (
+    composeServiceOrderRequest: ComposeServiceOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postServiceOrderComposerSubmitResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postServiceOrderComposerSubmitResponse
-}
-
+      return customInstance<ComposeServiceOrderResponse>(
+      {url: `/service-order-composer/submit`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: composeServiceOrderRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getPostServiceOrderComposerSubmitMutationOptions = <TError = PostServiceOrderComposerSubmit400 | PostServiceOrderComposerSubmit404 | PostServiceOrderComposerSubmit409,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, TError,{data: ComposeServiceOrderRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, TError,{data: ComposeServiceOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, TError,{data: ComposeServiceOrderRequest}, TContext> => {
 
 const mutationKey = ['postServiceOrderComposerSubmit'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -775,7 +552,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, {data: ComposeServiceOrderRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  postServiceOrderComposerSubmit(data,fetchOptions)
+          return  postServiceOrderComposerSubmit(data,requestOptions)
         }
 
 
@@ -793,7 +570,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Submit composed service order workflow
  */
 export const usePostServiceOrderComposerSubmit = <TError = PostServiceOrderComposerSubmit400 | PostServiceOrderComposerSubmit404 | PostServiceOrderComposerSubmit409,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, TError,{data: ComposeServiceOrderRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>, TError,{data: ComposeServiceOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postServiceOrderComposerSubmit>>,
         TError,

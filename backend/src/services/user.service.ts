@@ -1,33 +1,34 @@
-import {userRepo} from '../repos/user.repo';
+import { userRepo } from '../repos/user.repo';
 import * as User from '../models/user.model';
+import { NotFoundError } from '../middlewares/error.middleware';
+import { paginate, requireAnyField } from '../lib/utils';
 
 export const userService = {
-    async getUsers(params: User.UserQueryParams) {
-        params.page = params.page && params.page > 0 ? params.page : 1,
-        params.limit = params.limit && params.limit > 0 ? params.limit : 10,
-        params.offset = (params.page - 1) * params.limit;
-        const [users, total]= await userRepo.getUsers(params);
-        return {
-            users: users,
-            total: total,
-            page: params.page,
-            limit: params.limit
-        };
-    },
-    async getUserByID(userId: string) {
-        return await userRepo.getUserByID(userId);
-    },
-    async createUser(data: User.CreateUser) {
-        return await userRepo.createUser(data);
-    },
-    async updateUser(userId: string, data: User.PatchUser) {
-        const result = await userRepo.updateUser(userId, data)
-        if (result === null) {
-            return "No updates performed or user not found";
-        }
-        return result;
-    },
-    async deleteUser(userId: string) {
-        return await userRepo.deleteUser(userId);
-    }
-}
+  async getUsers(params: User.UserQueryParams) {
+    const { page, limit, offset } = paginate(params.page, params.limit);
+    const [data, total] = await userRepo.getUsers({ ...params, limit, offset });
+    return { data, total, page, limit };
+  },
+
+  async getUserByID(userId: string) {
+    const user = await userRepo.getUserByID(userId);
+    if (!user) throw new NotFoundError('User not found');
+    return user;
+  },
+
+  async createUser(data: User.CreateUser) {
+    return userRepo.createUser(data);
+  },
+
+  async updateUser(userId: string, data: User.PatchUser) {
+    requireAnyField(data);
+    const user = await userRepo.updateUser(userId, data);
+    if (!user) throw new NotFoundError('User not found');
+    return user;
+  },
+
+  async deleteUser(userId: string) {
+    const deleted = await userRepo.deleteUser(userId);
+    if (!deleted) throw new NotFoundError('User not found');
+  },
+};

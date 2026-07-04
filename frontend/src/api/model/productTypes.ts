@@ -9,7 +9,7 @@
 export interface ProductTypes {
   productTypeId?: string;
   /** Type name (e.g., Laptop, Desktop, Tablet) */
-  typeName?: string;
+  productTypeName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

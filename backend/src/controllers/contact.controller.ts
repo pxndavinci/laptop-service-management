@@ -1,51 +1,45 @@
 import { Request, Response } from 'express';
 import { contactService } from '../services/contact.service';
-import * as ContactModel from '../models/contact.model';
+import * as Contact from '../models/contact.model';
 
 const ContactController = {
   getContacts: async (req: Request, res: Response) => {
-    const input: ContactModel.ContactQueryParams = {
+    const input: Contact.ContactQueryParams = {
       contactNumber: req.query.contactNumber as string | undefined,
       userId: req.query.userId as string | undefined,
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-      offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
     };
-
     const result = await contactService.getContacts(input);
-    return res.status(200).json(result);
+    res.status(200).json(result);
   },
 
   createContact: async (req: Request, res: Response) => {
-    const input: ContactModel.CreateContact = {
-      contactNumber: req.body.contactNumber as string,
-      userId: req.body.userId as string,
+    const input: Contact.CreateContact = {
+      contactNumber: req.body.contactNumber,
+      userId: req.body.userId,
     };
-
     const result = await contactService.createContact(input);
     res.status(201).json(result);
   },
 
   getContactById: async (req: Request, res: Response) => {
-    const contactId: string = req.params.contactId[0];
-    const result = await contactService.getContactByID(contactId);
+    const result = await contactService.getContactByID(req.params.contactId);
     res.status(200).json(result);
   },
 
   updateContact: async (req: Request, res: Response) => {
-    const input: ContactModel.PatchContact = {
-      contactNumber: req.body.contactNumber as string | undefined,
-      userId: req.body.userId as string | undefined,
+    const input: Contact.PatchContact = {
+      contactNumber: req.body.contactNumber,
+      userId: req.body.userId,
     };
-    const contactId: string = req.params.contactId[0];
-    const result = await contactService.updateContact(contactId, input);
+    const result = await contactService.updateContact(req.params.contactId, input);
     res.status(200).json(result);
   },
 
   deleteContact: async (req: Request, res: Response) => {
-    const contactId: string = req.params.contactId[0];
-    const result = await contactService.deleteContact(contactId);
-    res.status(200).json(result);
+    await contactService.deleteContact(req.params.contactId);
+    res.status(204).send();
   },
 };
 

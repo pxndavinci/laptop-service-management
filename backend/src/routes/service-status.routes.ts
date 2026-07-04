@@ -1,13 +1,12 @@
 import express, { Router } from 'express';
-import ServiceTimelineController from '../controllers/service-status.controller';
+import ServiceStatusController from '../controllers/service-status.controller';
 
 const router: Router = express.Router();
 
-/* Service status endpoints */
-router.get('/', ServiceTimelineController.getServiceTimelines);
-router.post('/', ServiceTimelineController.createServiceStatus);
-router.get('/:serviceStatusId', ServiceTimelineController.getServiceStatusById);
-router.patch('/:serviceStatusId', ServiceTimelineController.updateServiceStatus);
-router.delete('/:serviceStatusId', ServiceTimelineController.deleteServiceStatus);
+router.get('/', ServiceStatusController.getServiceStatuses);
+router.post('/', ServiceStatusController.createServiceStatus);
+router.get('/:serviceStatusId', ServiceStatusController.getServiceStatusById);
+router.patch('/:serviceStatusId', ServiceStatusController.updateServiceStatus);
+router.delete('/:serviceStatusId', ServiceStatusController.deleteServiceStatus);
 
 export default router;

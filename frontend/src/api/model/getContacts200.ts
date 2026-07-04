@@ -8,6 +8,8 @@
 import type { Contacts } from './contacts';
 
 export type GetContacts200 = {
-  contacts?: Contacts[];
+  data?: Contacts[];
   total?: number;
+  page?: number;
+  limit?: number;
 };

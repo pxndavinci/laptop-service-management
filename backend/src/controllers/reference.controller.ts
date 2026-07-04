@@ -1,135 +1,111 @@
 import { Request, Response } from 'express';
 import { referenceService } from '../services/reference.service';
-import * as RoleModel from '../models/role.model';
-import * as BrandModel from '../models/brand.model';
-import * as ProductTypeModel from '../models/product-type.model';
-import * as StatusModel from '../models/status.model';
+import * as Role from '../models/role.model';
+import * as Brand from '../models/brand.model';
+import * as ProductType from '../models/product-type.model';
+import * as Status from '../models/status.model';
 
 const ReferenceController = {
-  getRoles: async (req: Request, res: Response) => {
-    const result = await referenceService.getAllRole();
+  // ---------- Roles ----------
+  getRoles: async (_req: Request, res: Response) => {
+    const result = await referenceService.getAllRoles();
     res.status(200).json(result);
   },
 
   createRole: async (req: Request, res: Response) => {
-    const input: RoleModel.CreateRole = {
-      roleId: req.body.roleId as number,
-      roleName: req.body.roleName as string,
+    const input: Role.CreateRole = {
+      roleId: req.body.roleId,
+      roleName: req.body.roleName,
       isCustomer: req.body.isCustomer ?? false,
       isBusiness: req.body.isBusiness ?? false,
       isServicer: req.body.isServicer ?? false,
     };
-
-    const result: RoleModel.Role = await referenceService.createRole(input);
+    const result = await referenceService.createRole(input);
     res.status(201).json(result);
   },
 
   updateRole: async (req: Request, res: Response) => {
-    const roleId = Number(req.params.roleId);
-    const input: RoleModel.PatchRole = {
-      roleName: req.body.roleName as string | undefined,
-      isCustomer: req.body.isCustomer as boolean | undefined,
-      isBusiness: req.body.isBusiness as boolean | undefined,
-      isServicer: req.body.isServicer as boolean | undefined,
+    const input: Role.PatchRole = {
+      roleName: req.body.roleName,
+      isCustomer: req.body.isCustomer,
+      isBusiness: req.body.isBusiness,
+      isServicer: req.body.isServicer,
     };
-
-    const result = await referenceService.updateRole(roleId, input);
+    const result = await referenceService.updateRole(Number(req.params.roleId), input);
     res.status(200).json(result);
   },
 
   deleteRole: async (req: Request, res: Response) => {
-    const roleId = Number(req.params.roleId);
-    await referenceService.deleteRole(roleId);
+    await referenceService.deleteRole(Number(req.params.roleId));
     res.status(204).send();
   },
 
-  getBrands: async (req: Request, res: Response) => {
-    const result = await referenceService.getAllBrand();
+  // ---------- Brands ----------
+  getBrands: async (_req: Request, res: Response) => {
+    const result = await referenceService.getAllBrands();
     res.status(200).json(result);
   },
 
   createBrand: async (req: Request, res: Response) => {
-    const input: BrandModel.CreateBrand = {
-      brandName: req.body.brandName as string,
-    };
-
-    const result: BrandModel.Brand = await referenceService.createBrand(input);
+    const input: Brand.CreateBrand = { brandName: req.body.brandName };
+    const result = await referenceService.createBrand(input);
     res.status(201).json(result);
   },
 
   updateBrand: async (req: Request, res: Response) => {
-    const brandId = req.params.brandId as string;
-    const input: BrandModel.PatchBrand = {
-      brandName: req.body.brandName as string | undefined,
-    };
-
-    const result = await referenceService.updateBrand(brandId, input);
+    const input: Brand.PatchBrand = { brandName: req.body.brandName };
+    const result = await referenceService.updateBrand(req.params.brandId, input);
     res.status(200).json(result);
   },
 
   deleteBrand: async (req: Request, res: Response) => {
-    const brandId = req.params.brandId as string;
-    await referenceService.deleteBrand(brandId);
+    await referenceService.deleteBrand(req.params.brandId);
     res.status(204).send();
   },
 
-  getProductTypes: async (req: Request, res: Response) => {
-    const result = await referenceService.getAllProductType();
+  // ---------- Product types ----------
+  getProductTypes: async (_req: Request, res: Response) => {
+    const result = await referenceService.getAllProductTypes();
     res.status(200).json(result);
   },
 
   createProductType: async (req: Request, res: Response) => {
-    const input: ProductTypeModel.CreateProductType = {
-      typeName: req.body.typeName as string,
-    };
-
-    const result: ProductTypeModel.ProductType = await referenceService.createProductType(input);
+    const input: ProductType.CreateProductType = { typeName: req.body.typeName };
+    const result = await referenceService.createProductType(input);
     res.status(201).json(result);
   },
 
   updateProductType: async (req: Request, res: Response) => {
-    const productTypeId = req.params.productTypeId as string;
-    const input: ProductTypeModel.PatchProductType = {
-      typeName: req.body.typeName as string | undefined,
-    };
-
-    const result = await referenceService.updateProductType(productTypeId, input);
+    const input: ProductType.PatchProductType = { typeName: req.body.typeName };
+    const result = await referenceService.updateProductType(req.params.productTypeId, input);
     res.status(200).json(result);
   },
 
   deleteProductType: async (req: Request, res: Response) => {
-    const productTypeId = req.params.productTypeId as string;
-    await referenceService.deleteProductType(productTypeId);
+    await referenceService.deleteProductType(req.params.productTypeId);
     res.status(204).send();
   },
 
-  getStatuses: async (req: Request, res: Response) => {
-    const result = await referenceService.getAllStatus();
+  // ---------- Statuses ----------
+  getStatuses: async (_req: Request, res: Response) => {
+    const result = await referenceService.getAllStatuses();
     res.status(200).json(result);
   },
 
   createStatus: async (req: Request, res: Response) => {
-    const input: StatusModel.CreateStatus = {
-      statusName: req.body.statusName as string,
-    };
-
-    const result: StatusModel.Status = await referenceService.createStatus(input);
+    const input: Status.CreateStatus = { statusName: req.body.statusName };
+    const result = await referenceService.createStatus(input);
     res.status(201).json(result);
   },
 
   updateStatus: async (req: Request, res: Response) => {
-    const statusId = req.params.statusId as string;
-    const input: StatusModel.PatchStatus = {
-      statusName: req.body.statusName as string | undefined,
-    };
-
-    const result = await referenceService.updateStatus(statusId, input);
+    const input: Status.PatchStatus = { statusName: req.body.statusName };
+    const result = await referenceService.updateStatus(req.params.statusId, input);
     res.status(200).json(result);
   },
 
   deleteStatus: async (req: Request, res: Response) => {
-    const statusId = req.params.statusId as string;
-    await referenceService.deleteStatus(statusId);
+    await referenceService.deleteStatus(req.params.statusId);
     res.status(204).send();
   },
 };

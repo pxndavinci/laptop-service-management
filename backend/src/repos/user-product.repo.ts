@@ -1,111 +1,77 @@
 import db from '../db/index';
-import * as UserProductModel from '../models/user-product.model';
+import * as UserProduct from '../models/user-product.model';
 
 export const userProductRepo = {
-  async getUserProducts(params: UserProductModel.UserProductQueryParams): Promise<[UserProductModel.UserProduct[], number]> {
-    let query = `SELECT * FROM user_product WHERE 1=1`;
-    let values: any[] = [];
-    let idx: number = 1;
+  async getUserProducts(
+    params: UserProduct.UserProductQueryParams & { limit: number; offset: number }
+  ): Promise<[UserProduct.UserProduct[], number]> {
+    const filtered = db
+      .selectFrom('user_product')
+      .$if(!!params.userId, (qb) => qb.where('userId', '=', params.userId!))
+      .$if(!!params.productId, (qb) => qb.where('productId', '=', params.productId!))
+      .$if(!!params.serialNumber, (qb) =>
+        qb.where('serialNumber', 'ilike', `%${params.serialNumber}%`)
+      );
 
-    if (params.userId) {
-      query += ` AND user_id = $${idx}::uuid`;
-      values.push(params.userId);
-      idx++;
-    }
+    const userProducts = await filtered
+      .selectAll()
+      .orderBy('createdAt', 'desc')
+      .limit(params.limit)
+      .offset(params.offset)
+      .execute();
 
-    if (params.productId) {
-      query += ` AND product_id = $${idx}::uuid`;
-      values.push(params.productId);
-      idx++;
-    }
+    const { total } = await filtered
+      .select((eb) => eb.fn.countAll<number>().as('total'))
+      .executeTakeFirstOrThrow();
 
-    if (params.serialNumber !== undefined) {
-      query += ` AND serial_number ILIKE $${idx}::text`;
-      values.push(`%${params.serialNumber}%`);
-      idx++;
-    }
-
-    query += ` LIMIT $${idx}::int`;
-    values.push(params.limit);
-    idx++;
-    query += ` OFFSET $${idx}::int`;
-    values.push(params.offset);
-    idx++;
-
-    const result = await db.query(query, values);
-    return [result.rows as UserProductModel.UserProduct[], result.rowCount ?? 0];
+    return [userProducts, total];
   },
 
-  async createUserProduct(params: UserProductModel.CreateUserProduct): Promise<UserProductModel.UserProduct> {
-    const query = `
-      INSERT INTO user_product (user_id, product_id, serial_number, login_password, additional_info)
-      VALUES ($1::uuid, $2::uuid, $3::text, $4::text, $5::text)
-      RETURNING *;`;
-    const values = [
-      params.userId,
-      params.productId,
-      params.serialNumber,
-      params.loginPassword ?? null,
-      params.additionalInfo ?? null,
-    ];
-    const result = await db.query(query, values);
-    return result.rows[0] as UserProductModel.UserProduct;
+  async getUserProductByID(userProductId: string): Promise<UserProduct.UserProduct | undefined> {
+    return db
+      .selectFrom('user_product')
+      .selectAll()
+      .where('userProductId', '=', userProductId)
+      .executeTakeFirst();
   },
 
-  async getUserProductByID(user_product_id: string): Promise<UserProductModel.UserProduct> {
-    const query = `SELECT * FROM user_product WHERE user_product_id = $1::uuid;`;
-    const result = await db.query(query, [user_product_id]);
-    return result.rows[0] as UserProductModel.UserProduct;
+  async createUserProduct(data: UserProduct.CreateUserProduct): Promise<UserProduct.UserProduct> {
+    return db
+      .insertInto('user_product')
+      .values({
+        userId: data.userId,
+        productId: data.productId,
+        serialNumber: data.serialNumber,
+        loginPassword: data.loginPassword ?? null,
+        additionalInfo: data.additionalInfo ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
   },
 
-  async updateUserProduct(user_product_id: string, params: UserProductModel.PatchUserProduct): Promise<UserProductModel.UserProduct | null> {
-    let query = `UPDATE user_product SET `;
-    let values: any[] = [];
-    let idx: number = 1;
-    const updates: string[] = [];
-
-    if (params.userId !== undefined) {
-      updates.push(`user_id = $${idx}::uuid`);
-      values.push(params.userId);
-      idx++;
-    }
-
-    if (params.productId !== undefined) {
-      updates.push(`product_id = $${idx}::uuid`);
-      values.push(params.productId);
-      idx++;
-    }
-
-    if (params.serialNumber !== undefined) {
-      updates.push(`serial_number = $${idx}::text`);
-      values.push(params.serialNumber);
-      idx++;
-    }
-
-    if (params.loginPassword !== undefined) {
-      updates.push(`login_password = $${idx}::text`);
-      values.push(params.loginPassword);
-      idx++;
-    }
-
-    if (params.additionalInfo !== undefined) {
-      updates.push(`additional_info = $${idx}::text`);
-      values.push(params.additionalInfo);
-      idx++;
-    }
-
-    if (updates.length === 0) {
-      return null;
-    }
-
-    query += updates.join(', ') + ` WHERE user_product_id = $${idx}::uuid RETURNING *;`;
-    values.push(user_product_id);
-    const result = await db.query(query, values);
-    return result.rows[0] as UserProductModel.UserProduct ?? null;
+  async updateUserProduct(
+    userProductId: string,
+    data: UserProduct.PatchUserProduct
+  ): Promise<UserProduct.UserProduct | undefined> {
+    return db
+      .updateTable('user_product')
+      .set({
+        userId: data.userId,
+        productId: data.productId,
+        serialNumber: data.serialNumber,
+        loginPassword: data.loginPassword,
+        additionalInfo: data.additionalInfo,
+      })
+      .where('userProductId', '=', userProductId)
+      .returningAll()
+      .executeTakeFirst();
   },
 
-  async deleteUserProduct(user_product_id: string) {
-    const query = `DELETE FROM user_product WHERE user_product_id = $1::uuid;`;
-    return await db.query(query, [user_product_id]);
+  async deleteUserProduct(userProductId: string): Promise<boolean> {
+    const result = await db
+      .deleteFrom('user_product')
+      .where('userProductId', '=', userProductId)
+      .executeTakeFirst();
+    return result.numDeletedRows > 0n;
   },
 };

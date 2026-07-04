@@ -1,24 +1,19 @@
-export interface Role {
-  roleId:number;
-  roleName:string;
-  isServicer:boolean;
-  isCustomer:boolean;
-  isBusiness:boolean;
-  createdAt:string;
-  updatedAt:string;
-}
+import { Selectable } from 'kysely';
+import { RoleTable } from '../db/schema';
 
-export interface CreateRole{
+export type Role = Selectable<RoleTable>;
+
+export interface CreateRole {
   roleId: number;
-  roleName:string;
-  isServicer?:boolean;
-  isCustomer?:boolean;
-  isBusiness?:boolean;
+  roleName: string;
+  isServicer?: boolean;
+  isCustomer?: boolean;
+  isBusiness?: boolean;
 }
 
-export interface PatchRole{
-  roleName?:string;
-  isServicer?:boolean;
-  isCustomer?:boolean;
-  isBusiness?:boolean;
+export interface PatchRole {
+  roleName?: string;
+  isServicer?: boolean;
+  isCustomer?: boolean;
+  isBusiness?: boolean;
 }

@@ -8,19 +8,27 @@
 import type { ServiceOrdersIssueDescription } from './serviceOrdersIssueDescription';
 import type { ServiceOrdersPaymentMethod } from './serviceOrdersPaymentMethod';
 import type { ServiceOrdersPaymentStatus } from './serviceOrdersPaymentStatus';
-import type { UserProducts } from './userProducts';
-import type { Users } from './users';
 
 export interface ServiceOrders {
   serviceOrderId?: string;
   /** Auto-generated order number (YYDDDD format, e.g., 260001) */
   tagNo?: number;
-  userProduct?: UserProducts;
-  /** Estimated repair cost */
-  estimatedPrice?: number;
-  /** Final repair cost */
-  finalPrice?: number;
-  /** Payment method used */
+  /** Device this order services */
+  userProductId?: string;
+  /**
+     * Estimated repair cost
+     * @nullable
+     */
+  estimatedPrice?: number | null;
+  /**
+     * Final repair cost
+     * @nullable
+     */
+  finalPrice?: number | null;
+  /**
+     * Payment method used
+     * @nullable
+     */
   paymentMethod?: ServiceOrdersPaymentMethod;
   /** Payment status */
   paymentStatus?: ServiceOrdersPaymentStatus;
@@ -30,13 +38,39 @@ export interface ServiceOrders {
      * @maximum 5
      */
   priorityLevel?: number;
-  estimatedCompletionDate?: string;
-  actualCompletionDate?: string;
+  /** @nullable */
+  estimatedCompletionDate?: string | null;
+  /** @nullable */
+  actualCompletionDate?: string | null;
   /** Type of issue */
   issueDescription?: ServiceOrdersIssueDescription;
-  /** Detailed notes about the issue */
-  issueNotes?: string;
-  entryBy?: Users;
+  /**
+     * Detailed notes about the issue
+     * @nullable
+     */
+  issueNotes?: string | null;
+  /** Staff user who logged the order */
+  entryBy?: string;
   createdAt?: string;
   updatedAt?: string;
+  /** Customer who owns the device */
+  userId?: string;
+  /** Customer name */
+  userName?: string;
+  /**
+     * Customer's primary contact number
+     * @nullable
+     */
+  contactNumber?: string | null;
+  /** Device product name */
+  productName?: string;
+  /** Device brand */
+  brandName?: string;
+  /** Device serial number */
+  serialNumber?: string;
+  /**
+     * Latest status entry, if any
+     * @nullable
+     */
+  currentStatus?: string | null;
 }

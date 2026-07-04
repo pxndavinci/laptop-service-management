@@ -7,7 +7,6 @@
  */
 
 export interface PatchRole {
-  roleId?: number;
   roleName?: string;
   isServicer?: boolean;
   isCustomer?: boolean;

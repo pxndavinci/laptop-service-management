@@ -1,14 +1,12 @@
-export interface Status{
-  statusId:string;
-  statusName:string;
-  createdAt:string;
-  updatedAt:string;
+import { Selectable } from 'kysely';
+import { StatusTable } from '../db/schema';
+
+export type Status = Selectable<StatusTable>;
+
+export interface CreateStatus {
+  statusName: string;
 }
 
-export interface CreateStatus{
-  statusName:string;
-}
-
-export interface PatchStatus{
-  statusName?:string;
+export interface PatchStatus {
+  statusName?: string;
 }
