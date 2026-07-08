@@ -1,9 +1,7 @@
-import 'dotenv/config';
+import { env } from './config/env';
 import app from './app';
 
-const port = parseInt(process.env.PORT || '3000', 10);
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
+app.listen(env.port, () => {
+  console.log(`Server is running on port ${env.port}`);
+  console.log(`Swagger UI available at http://localhost:${env.port}/api-docs`);
 });

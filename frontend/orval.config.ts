@@ -3,7 +3,7 @@ import { defineConfig } from 'orval';
 export default defineConfig({
   KSTech: {
     input: {
-      target: '../backend/src/doc/swaggerdoc.yaml',
+      target: '../backend/src/openapi/openapi.yaml',
     },
     output: {
       mode: 'tags-split',

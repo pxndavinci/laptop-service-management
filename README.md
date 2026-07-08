@@ -7,7 +7,7 @@ A simple web app for a small laptop repair shop: log service orders, track repai
 | Layer    | Technology |
 |----------|------------|
 | Frontend | React 19, Vite, TypeScript, Material UI, TanStack Query, React Hook Form + Zod, Zustand |
-| API contract | OpenAPI 3 (`backend/src/doc/swaggerdoc.yaml`) — single source of truth |
+| API contract | OpenAPI 3 (`backend/src/openapi/openapi.yaml`) — single source of truth |
 | Backend  | Node.js, Express, TypeScript, Kysely (typed query builder) |
 | Database | PostgreSQL (`schema.sql`) |
 
@@ -16,7 +16,7 @@ A simple web app for a small laptop repair shop: log service orders, track repai
 ```
 schema.sql  ──►  Postgres
                     ▲
-swaggerdoc.yaml ──► backend (routes → controllers → services → repos → Kysely)
+openapi.yaml ──►  backend (routes → controllers → services → repos → Kysely)
       │                 ▲
       │                 └── express-openapi-validator validates every request
       └──► orval ──► frontend/src/api (generated React Query hooks)
@@ -26,35 +26,42 @@ The OpenAPI document drives everything: the backend validates requests against i
 
 ## Getting Started
 
-### 1. Database
+> **Environment files:** each app reads its config from a local `.env` file that is **never committed** (git-ignored). Setting one up is a single copy command — the committed `.env.example` files already contain working defaults for the docker-compose database. The backend refuses to start without one and prints exactly what to do.
+
+### Option A — everything in Docker
 
 ```bash
-docker compose up -d postgres   # Postgres 16 on localhost:5433, db "lsm"
+docker compose up --build
 ```
 
-`schema.sql` runs automatically on the first start. (Or use any local Postgres and apply `schema.sql` yourself.)
+Postgres (with `schema.sql` applied), backend on <http://localhost:3000>, frontend on <http://localhost:3001>. No `.env` needed — compose provides the configuration.
 
-Seed the minimum reference data once (via Swagger UI or curl):
-- a role for customers (e.g. `roleId: 1, roleName: "customer"`)
-- a role + user for staff (orders record who logged them)
-
-### 2. Backend
+### Option B — database in Docker, apps local (recommended for development)
 
 ```bash
+# 1. Database (Postgres 16 on localhost:5433, schema applied automatically)
+docker compose up -d postgres
+
+# 2. Backend
 cd backend
-cp .env.example .env    # point it at your database
+cp .env.example .env        # defaults already match the compose database
 npm install
-npm run dev             # http://localhost:3000, Swagger UI at /api-docs
-```
+npm run dev                 # http://localhost:3000, Swagger UI at /api-docs
 
-### 3. Frontend
-
-```bash
+# 3. Frontend (new terminal)
 cd frontend
-cp .env.example .env    # API URL + staff user id for new orders
 npm install
-npm run dev             # http://localhost:3001
+npm run dev                 # http://localhost:3001
 ```
+
+The frontend works without a `.env` (it defaults to `http://localhost:3000`). Copy `frontend/.env.example` to `.env` only if you need to change the API URL or the staff user id.
+
+### First-run data
+
+Seed the minimum reference data once (via Swagger UI at `/api-docs` or curl):
+
+- a role for customers (e.g. `roleId: 1, roleName: "customer"`)
+- a role + user for staff — orders record who logged them (`VITE_ENTRY_USER_ID`)
 
 ## The Core Workflow
 
@@ -72,9 +79,10 @@ The whole submission runs in **one database transaction** (`POST /service-order-
 
 ```
 schema.sql                  # Postgres schema (source of truth for the DB)
-docker-compose.yaml
+docker-compose.yaml         # Postgres + backend + frontend
 backend/src/
-  doc/swaggerdoc.yaml       # OpenAPI contract (source of truth for the API)
+  openapi/openapi.yaml      # OpenAPI contract (source of truth for the API)
+  config/env.ts             # validated environment access
   db/                       # Kysely instance + typed schema mirror
   routes/ controllers/      # HTTP layer (thin)
   services/                 # business rules, transactions, 404s
@@ -89,7 +97,7 @@ frontend/src/
 
 ## Changing the API
 
-1. Edit `backend/src/doc/swaggerdoc.yaml`
+1. Edit `backend/src/openapi/openapi.yaml`
 2. Implement it in the backend (repo → service → controller → route)
 3. Regenerate the frontend client:
 
@@ -101,7 +109,7 @@ cd frontend && npx orval
 
 | File | Variable | Purpose |
 |------|----------|---------|
-| `backend/.env` | `DB_USER` `DB_PASSWORD` `DB_HOST` `DB_PORT` `DB_NAME` | Postgres connection |
+| `backend/.env` | `DB_USER` `DB_PASSWORD` `DB_HOST` `DB_PORT` `DB_NAME` | Postgres connection (required) |
 | `backend/.env` | `PORT`, `CORS_ORIGIN` | Server port (3000) and allowed frontend origin |
 | `frontend/.env` | `VITE_API_BASE_URL` | Backend URL (default `http://localhost:3000`) |
 | `frontend/.env` | `VITE_ENTRY_USER_ID` | Staff user that new orders are logged against |

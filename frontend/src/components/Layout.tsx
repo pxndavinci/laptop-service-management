@@ -23,7 +23,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
 import ProfileIcon from '@mui/icons-material/AccountCircle'
 import { Link, useLocation } from 'react-router-dom'
-import navItems from '../lib/constants/navItems'
+import navItems from '../lib/navItems'
 
 const DRAWER_WIDTH = 225
 

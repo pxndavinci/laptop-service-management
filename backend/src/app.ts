@@ -9,15 +9,16 @@ import * as OpenApiValidator from 'express-openapi-validator';
 import yaml from 'yaml';
 import router from './routes/index';
 import { errorMiddleware } from './middlewares/error.middleware';
+import { env } from './config/env';
 
-const openApiPath = path.join(__dirname, 'doc/swaggerdoc.yaml');
+const openApiPath = path.join(__dirname, 'openapi/openapi.yaml');
 const openApiDocument = yaml.parse(fs.readFileSync(openApiPath, 'utf8'));
 
 const app = express();
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    origin: env.corsOrigin,
     credentials: true,
   })
 );
