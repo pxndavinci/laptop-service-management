@@ -13,6 +13,7 @@ const ServiceOrderDetail = lazy(() => import('./pages/ServiceOrders/Detail'))
 const CreateServiceOrder = lazy(() => import('./pages/ServiceOrders/Create'))
 const CustomersList = lazy(() => import('./pages/Customers/List'))
 const ProductsList = lazy(() => import('./pages/Products/List'))
+const DashboardPage = lazy(() => import('./pages/Dashboard'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,7 +43,7 @@ function App() {
               }
             >
               <Routes>
-                <Route path="/" element={<Navigate to="/service-orders" replace />} />
+                <Route path="/" element={<DashboardPage />} />
                 <Route path="/service-orders" element={<ServiceOrdersList />} />
                 <Route path="/service-orders/new" element={<CreateServiceOrder />} />
                 <Route path="/service-orders/:id" element={<ServiceOrderDetail />} />
