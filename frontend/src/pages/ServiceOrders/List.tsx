@@ -24,8 +24,7 @@ import {
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import ViewIcon from '@mui/icons-material/Visibility'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   getGetServiceOrdersQueryKey,
@@ -53,6 +52,7 @@ const formatDate = (value: string | undefined) =>
   value ? new Date(value).toLocaleDateString() : '—'
 
 const ServiceOrdersList = () => {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [tagNo, setTagNo] = useState('')
@@ -185,7 +185,12 @@ const ServiceOrdersList = () => {
                     </TableRow>
                   ) : (
                     orders.map((order) => (
-                      <TableRow key={order.serviceOrderId} hover>
+                      <TableRow
+                        key={order.serviceOrderId}
+                        hover
+                        onClick={() => navigate(`/service-orders/${order.serviceOrderId}`)}
+                        sx={{ cursor: 'pointer' }}
+                      >
                         <TableCell sx={{ fontWeight: 500 }}>{order.tagNo}</TableCell>
                         <TableCell>{order.userName}</TableCell>
                         <TableCell>{order.contactNumber ?? '—'}</TableCell>
@@ -210,19 +215,14 @@ const ServiceOrdersList = () => {
                         <TableCell>{order.currentStatus ?? 'Received'}</TableCell>
                         <TableCell align="right">{formatPrice(order.estimatedPrice)}</TableCell>
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        <TableCell align="right">
+                        <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                           <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
                             <IconButton
                               size="small"
-                              component={Link}
-                              to={`/service-orders/${order.serviceOrderId}`}
-                              title="View"
-                            >
-                              <ViewIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(order.serviceOrderId, order.tagNo)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(order.serviceOrderId, order.tagNo)
+                              }}
                               title="Delete"
                             >
                               <DeleteIcon sx={{ fontSize: 18 }} color="error" />
