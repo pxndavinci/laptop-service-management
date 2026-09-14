@@ -66,7 +66,7 @@ async function seedStaff(strict: boolean, log: Log) {
     .where('userId', '=', staff.userId)
     .executeTakeFirst();
   if (account) {
-    log(`login:    exists — username "${account.username}"`);
+    log('login:    exists');
     return;
   }
 
@@ -88,7 +88,7 @@ async function seedStaff(strict: boolean, log: Log) {
       passwordHash: await hashPassword(STAFF_PASSWORD!),
     })
     .execute();
-  log(`login:    created — username "${STAFF_USERNAME}"`);
+  log('login:    created (from STAFF_USERNAME / STAFF_PASSWORD)');
 }
 
 export async function seed({

@@ -24,7 +24,7 @@ async function main() {
     .where('username', '=', username!)
     .executeTakeFirst();
   if (updated.numUpdatedRows > 0n) {
-    console.log(`Password changed for "${username}". Existing sessions are signed out.`);
+    console.log('Password changed. Existing sessions are signed out.');
     return;
   }
 
@@ -42,14 +42,14 @@ async function main() {
     .where('userId', '=', staff.userId)
     .executeTakeFirst();
   if (hasAccount) {
-    throw new Error(`No login named "${username}". The staff login is "${hasAccount.username}".`);
+    throw new Error('STAFF_USERNAME does not match the existing staff login.');
   }
 
   await db
     .insertInto('staff_account')
     .values({ userId: staff.userId, username: username!, passwordHash })
     .execute();
-  console.log(`Login "${username}" created.`);
+  console.log('Staff login created.');
 }
 
 main()

@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import * as OpenApiValidator from 'express-openapi-validator';
@@ -35,6 +36,19 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
+
+// Per-IP ceiling for the whole API, ahead of the session check (which hits the
+// database). Far above normal use: a dashboard load is ~5 requests.
+app.use(
+  rateLimit({
+    windowMs: 5 * 60 * 1000,
+    limit: 1000,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    skip: (req) => req.path === '/health',
+    message: { error: 'Too many requests. Slow down and try again shortly.' },
+  })
+);
 
 // Every route needs a staff session except these. Checked before validation so
 // anonymous callers learn nothing about the API beyond "log in".
