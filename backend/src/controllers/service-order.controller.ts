@@ -7,7 +7,8 @@ import { IssueType, PaymentMethod, PaymentStatus } from '../db/schema';
 const ServiceOrderController = {
   getServiceOrders: async (req: Request, res: Response) => {
     const input: ServiceOrder.ServiceOrderQueryParams = {
-      tagNo: req.query.tagNo ? Number(req.query.tagNo) : undefined,
+      tagSearch: req.query.tagSearch as string | undefined,
+      status: req.query.status as string | undefined,
       userProductId: req.query.userProductId as string | undefined,
       paymentMethod: req.query.paymentMethod as PaymentMethod | undefined,
       paymentStatus: req.query.paymentStatus as PaymentStatus | undefined,

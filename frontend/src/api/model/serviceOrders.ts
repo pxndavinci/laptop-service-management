@@ -73,4 +73,9 @@ export interface ServiceOrders {
      * @nullable
      */
   currentStatus?: string | null;
+  /**
+     * When the latest status entry was recorded
+     * @nullable
+     */
+  currentStatusAt?: string | null;
 }

@@ -11,11 +11,14 @@ import type { GetServiceOrdersPaymentStatus } from './getServiceOrdersPaymentSta
 
 export type GetServiceOrdersParams = {
 /**
- * Filter by tagNo
- * @minimum 0
- * @maximum 999999
+ * Partial tag number match — digits anywhere in the tag (`0004` finds `260004`)
+ * @pattern ^[0-9]{1,6}$
  */
-tagNo?: number;
+tagSearch?: string;
+/**
+ * Latest repair status name (e.g. IN_PROGRESS). Orders with no status entry match RECEIVED.
+ */
+status?: string;
 /**
  * Filter by userProductId
  */

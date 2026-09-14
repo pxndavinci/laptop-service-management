@@ -587,13 +587,17 @@ paths:
       summary: Get all service orders
       description: Retrieve all service orders with optional filtering
       parameters:
-        - name: tagNo
+        - name: tagSearch
           in: query
           schema:
-            type: integer
-            minimum: 0
-            maximum: 999999
-          description: Filter by tagNo
+            type: string
+            pattern: '^[0-9]{1,6}$'
+          description: Partial tag number match — digits anywhere in the tag (`0004` finds `260004`)
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Latest repair status name (e.g. IN_PROGRESS). Orders with no status entry match RECEIVED.
         - name: userProductId
           in: query
           schema:
@@ -1996,6 +2000,11 @@ components:
           type: string
           nullable: true
           description: Latest status entry, if any
+        currentStatusAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the latest status entry was recorded
 
     CreateServiceOrder:
       type: object

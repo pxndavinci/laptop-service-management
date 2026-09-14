@@ -12,10 +12,12 @@ export interface ServiceOrderSummary extends ServiceOrder {
   brandName: string;
   serialNumber: string;
   currentStatus: string | null;
+  currentStatusAt: Date | null;
 }
 
 export interface ServiceOrderQueryParams {
-  tagNo?: number;
+  tagSearch?: string;
+  status?: string;
   userProductId?: string;
   paymentMethod?: PaymentMethod;
   paymentStatus?: PaymentStatus;

@@ -4,95 +4,90 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Container,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
   TablePagination,
-  TableRow,
   TextField,
   Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import ViewIcon from '@mui/icons-material/Visibility'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import {
-  getGetServiceOrdersQueryKey,
-  useDeleteServiceOrdersServiceOrderId,
+  deleteServiceOrdersServiceOrderId,
   useGetServiceOrders,
 } from '../../api/service-orders/service-orders'
-import type {
-  GetServiceOrdersIssueDescription,
-  GetServiceOrdersPaymentStatus,
-} from '../../api/model'
+import { useGetReferencesStatuses } from '../../api/reference-data/reference-data'
+import type { GetServiceOrdersIssueDescription } from '../../api/model'
 import { useUIStore } from '../../store/uiStore'
-
-const PRIORITY_COLORS: Record<number, 'error' | 'warning' | 'info' | 'success' | 'default'> = {
-  1: 'error',
-  2: 'warning',
-  3: 'info',
-  4: 'success',
-  5: 'default',
-}
-
-const formatPrice = (value: number | null | undefined) =>
-  value === null || value === undefined ? '—' : `₹${value.toLocaleString()}`
-
-const formatDate = (value: string | undefined) =>
-  value ? new Date(value).toLocaleDateString() : '—'
+import { useDebounce } from '../../lib/hooks/useDebounce'
+import { humanize } from '../../lib/format'
+import { sortStatuses } from '../../lib/statuses'
+import { ServiceOrdersTable } from '../../components/ServiceOrdersTable'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { invalidateOrderQueries } from '../../lib/queries'
 
 const ServiceOrdersList = () => {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
-  const [tagNo, setTagNo] = useState('')
-  const [paymentStatus, setPaymentStatus] = useState<GetServiceOrdersPaymentStatus | ''>('')
+  const [tagSearch, setTagSearch] = useState('')
+  const [status, setStatus] = useState('')
   const [issueType, setIssueType] = useState<GetServiceOrdersIssueDescription | ''>('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const debouncedTag = useDebounce(tagSearch, 300)
 
   const queryClient = useQueryClient()
   const addNotification = useUIStore((state) => state.addNotification)
+  const { data: statuses = [] } = useGetReferencesStatuses()
 
   const { data, isLoading } = useGetServiceOrders({
-    tagNo: tagNo ? Number(tagNo) : undefined,
-    paymentStatus: paymentStatus || undefined,
+    tagSearch: debouncedTag || undefined,
+    status: status || undefined,
     issueDescription: issueType || undefined,
     page,
     limit,
   })
 
-  const deleteMutation = useDeleteServiceOrdersServiceOrderId({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetServiceOrdersQueryKey() })
-        addNotification('Service order deleted', 'success')
-      },
-      onError: () => addNotification('Failed to delete service order', 'error'),
-    },
-  })
-
   const orders = data?.data ?? []
   const total = data?.total ?? 0
+  const selectedOrders = orders.filter((order) => selected.has(order.serviceOrderId ?? ''))
 
-  const handleDelete = (serviceOrderId: string | undefined, tag: number | undefined) => {
-    if (!serviceOrderId) return
-    if (window.confirm(`Delete service order #${tag ?? ''}? This cannot be undone.`)) {
-      deleteMutation.mutate({ serviceOrderId })
+  // Selection is per page: changing page or filters clears it
+  const resetPaging = () => {
+    setPage(1)
+    setSelected(new Set())
+  }
+
+  const deleteSelected = async () => {
+    const ids = [...selected]
+    setDeleting(true)
+    const results = await Promise.allSettled(
+      ids.map((serviceOrderId) => deleteServiceOrdersServiceOrderId(serviceOrderId)),
+    )
+    setDeleting(false)
+    setConfirmOpen(false)
+    setSelected(new Set())
+    await invalidateOrderQueries(queryClient)
+
+    const failed = results.filter((result) => result.status === 'rejected').length
+    if (failed === 0) {
+      addNotification(`Deleted ${ids.length} order${ids.length === 1 ? '' : 's'}`, 'success')
+    } else {
+      addNotification(`Deleted ${ids.length - failed} of ${ids.length}; ${failed} failed`, 'error')
     }
   }
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ py: 3 }}>
+      <Box sx={{ py: 3, pb: selected.size > 0 ? 12 : 3 }}>
         <Box
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}
         >
@@ -112,40 +107,44 @@ const ServiceOrdersList = () => {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
                 label="Tag #"
+                placeholder="e.g. 0004"
                 size="small"
-                type="number"
-                value={tagNo}
+                value={tagSearch}
                 onChange={(e) => {
-                  setTagNo(e.target.value)
-                  setPage(1)
+                  setTagSearch(e.target.value.replace(/\D/g, '').slice(0, 6))
+                  resetPaging()
                 }}
+                slotProps={{ htmlInput: { inputMode: 'numeric' } }}
                 sx={{ minWidth: 140 }}
               />
               <FormControl size="small" sx={{ minWidth: 180 }}>
-                <InputLabel>Payment status</InputLabel>
+                <InputLabel id="status-filter-label">Status</InputLabel>
                 <Select
-                  value={paymentStatus}
-                  label="Payment status"
+                  labelId="status-filter-label"
+                  value={status}
+                  label="Status"
                   onChange={(e) => {
-                    setPaymentStatus(e.target.value as GetServiceOrdersPaymentStatus | '')
-                    setPage(1)
+                    setStatus(e.target.value)
+                    resetPaging()
                   }}
                 >
                   <MenuItem value="">All</MenuItem>
-                  <MenuItem value="PENDING">Pending</MenuItem>
-                  <MenuItem value="PARTIAL">Partial</MenuItem>
-                  <MenuItem value="COMPLETED">Completed</MenuItem>
-                  <MenuItem value="REFUNDED">Refunded</MenuItem>
+                  {sortStatuses(statuses).map((option) => (
+                    <MenuItem key={option.statusId} value={option.statusName}>
+                      {humanize(option.statusName)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
               <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>Issue type</InputLabel>
+                <InputLabel id="issue-filter-label">Issue type</InputLabel>
                 <Select
+                  labelId="issue-filter-label"
                   value={issueType}
                   label="Issue type"
                   onChange={(e) => {
                     setIssueType(e.target.value as GetServiceOrdersIssueDescription | '')
-                    setPage(1)
+                    resetPaging()
                   }}
                 >
                   <MenuItem value="">All</MenuItem>
@@ -161,110 +160,74 @@ const ServiceOrdersList = () => {
 
         <Card>
           <CardContent>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Tag #</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Customer</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Contact</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Device</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Issue</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Priority</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>
-                      Est. price
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>
-                      Actions
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
-                        Loading…
-                      </TableCell>
-                    </TableRow>
-                  ) : orders.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={10}
-                        align="center"
-                        sx={{ py: 4, color: 'text.secondary' }}
-                      >
-                        No service orders found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    orders.map((order) => (
-                      <TableRow key={order.serviceOrderId} hover>
-                        <TableCell sx={{ fontWeight: 500 }}>{order.tagNo}</TableCell>
-                        <TableCell>{order.userName}</TableCell>
-                        <TableCell>{order.contactNumber ?? '—'}</TableCell>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {[order.brandName, order.productName].filter(Boolean).join(' ')}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {order.serialNumber}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={order.issueDescription} size="small" variant="outlined" />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={`P${order.priorityLevel}`}
-                            size="small"
-                            color={PRIORITY_COLORS[order.priorityLevel ?? 3] ?? 'default'}
-                          />
-                        </TableCell>
-                        <TableCell>{order.currentStatus ?? 'Received'}</TableCell>
-                        <TableCell align="right">{formatPrice(order.estimatedPrice)}</TableCell>
-                        <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        <TableCell align="right">
-                          <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-                            <IconButton
-                              size="small"
-                              component={Link}
-                              to={`/service-orders/${order.serviceOrderId}`}
-                              title="View"
-                            >
-                              <ViewIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(order.serviceOrderId, order.tagNo)}
-                              title="Delete"
-                            >
-                              <DeleteIcon sx={{ fontSize: 18 }} color="error" />
-                            </IconButton>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <ServiceOrdersTable
+              orders={orders}
+              isLoading={isLoading}
+              selection={{ selected, onChange: setSelected }}
+            />
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
               count={total}
               rowsPerPage={limit}
               page={page - 1}
-              onPageChange={(_, newPage) => setPage(newPage + 1)}
+              onPageChange={(_, newPage) => {
+                setPage(newPage + 1)
+                setSelected(new Set())
+              }}
               onRowsPerPageChange={(event) => {
                 setLimit(parseInt(event.target.value, 10))
-                setPage(1)
+                resetPaging()
               }}
             />
           </CardContent>
         </Card>
       </Box>
+
+      {selected.size > 0 && (
+        <Paper
+          elevation={8}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            px: 3,
+            py: 1.5,
+            borderRadius: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            zIndex: (theme) => theme.zIndex.appBar,
+          }}
+        >
+          <Typography>{selected.size} selected</Typography>
+          <Button onClick={() => setSelected(new Set())}>Clear</Button>
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => setConfirmOpen(true)}
+          >
+            Delete selected ({selected.size})
+          </Button>
+        </Paper>
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={`Delete ${selected.size} service order${selected.size === 1 ? '' : 's'}?`}
+        confirmLabel="Delete"
+        destructive
+        isLoading={deleting}
+        onConfirm={deleteSelected}
+        onClose={() => setConfirmOpen(false)}
+      >
+        <Typography>
+          Tag {selectedOrders.map((order) => `#${order.tagNo}`).join(', ')} and their status history
+          will be permanently removed.
+        </Typography>
+      </ConfirmDialog>
     </Container>
   )
 }
