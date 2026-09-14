@@ -26,6 +26,7 @@ import type {
 
 import type {
   CreateUser,
+  ErrorResponse,
   GetUsers200,
   GetUsersParams,
   PatchUser,
@@ -356,7 +357,7 @@ export const usePatchUsersUserId = <TError = unknown,
       return useMutation(getPatchUsersUserIdMutationOptions(options), queryClient);
     }
     /**
- * Remove a user from the system
+ * Removes a user. Cascades to their contacts, devices, service orders and status history.
  * @summary Delete user
  */
 export const deleteUsersUserId = (
@@ -373,7 +374,7 @@ export const deleteUsersUserId = (
 
 
 
-export const getDeleteUsersUserIdMutationOptions = <TError = unknown,
+export const getDeleteUsersUserIdMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext> => {
 
@@ -402,12 +403,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteUsersUserIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteUsersUserId>>>
 
-    export type DeleteUsersUserIdMutationError = unknown
+    export type DeleteUsersUserIdMutationError = ErrorResponse
 
     /**
  * @summary Delete user
  */
-export const useDeleteUsersUserId = <TError = unknown,
+export const useDeleteUsersUserId = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUsersUserId>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteUsersUserId>>,

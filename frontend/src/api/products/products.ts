@@ -27,6 +27,7 @@ import type {
 import type {
   CreateProduct,
   CreateUserProduct,
+  ErrorResponse,
   GetProducts200,
   GetProductsParams,
   GetUserProducts200,
@@ -157,7 +158,7 @@ export const postProducts = (
 
 
 
-export const getPostProductsMutationOptions = <TError = unknown,
+export const getPostProductsMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postProducts>>, TError,{data: CreateProduct}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postProducts>>, TError,{data: CreateProduct}, TContext> => {
 
@@ -186,12 +187,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PostProductsMutationResult = NonNullable<Awaited<ReturnType<typeof postProducts>>>
     export type PostProductsMutationBody = CreateProduct
-    export type PostProductsMutationError = unknown
+    export type PostProductsMutationError = ErrorResponse
 
     /**
  * @summary Create product
  */
-export const usePostProducts = <TError = unknown,
+export const usePostProducts = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postProducts>>, TError,{data: CreateProduct}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postProducts>>,
@@ -313,7 +314,7 @@ export const patchProductsProductId = (
 
 
 
-export const getPatchProductsProductIdMutationOptions = <TError = unknown,
+export const getPatchProductsProductIdMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchProductsProductId>>, TError,{productId: string;data: PatchProduct}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchProductsProductId>>, TError,{productId: string;data: PatchProduct}, TContext> => {
 
@@ -342,12 +343,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PatchProductsProductIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchProductsProductId>>>
     export type PatchProductsProductIdMutationBody = PatchProduct
-    export type PatchProductsProductIdMutationError = unknown
+    export type PatchProductsProductIdMutationError = ErrorResponse
 
     /**
  * @summary Update product
  */
-export const usePatchProductsProductId = <TError = unknown,
+export const usePatchProductsProductId = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchProductsProductId>>, TError,{productId: string;data: PatchProduct}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchProductsProductId>>,
@@ -374,7 +375,7 @@ export const deleteProductsProductId = (
 
 
 
-export const getDeleteProductsProductIdMutationOptions = <TError = unknown,
+export const getDeleteProductsProductIdMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductsProductId>>, TError,{productId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteProductsProductId>>, TError,{productId: string}, TContext> => {
 
@@ -403,12 +404,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteProductsProductIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProductsProductId>>>
 
-    export type DeleteProductsProductIdMutationError = unknown
+    export type DeleteProductsProductIdMutationError = ErrorResponse
 
     /**
  * @summary Delete product
  */
-export const useDeleteProductsProductId = <TError = unknown,
+export const useDeleteProductsProductId = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductsProductId>>, TError,{productId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteProductsProductId>>,

@@ -1,9 +1,14 @@
+import { sql } from 'kysely';
 import db from '../db/index';
+import { DEFAULT_STATUS, STATUS, WORK_DONE_STATUSES } from '../lib/statuses';
 import * as ServiceOrder from '../models/service-order.model';
 
 /**
  * Service orders joined with their customer/device context plus the latest
  * status, so lists and details can be rendered from a single query.
+ *
+ * The latest status comes from a LATERAL join (evaluated once per order), so
+ * filters can use it without repeating the correlated subquery.
  */
 const orderSummary = () =>
   db
@@ -12,6 +17,19 @@ const orderSummary = () =>
     .innerJoin('user_data as u', 'u.userId', 'up.userId')
     .innerJoin('product as p', 'p.productId', 'up.productId')
     .innerJoin('brand as b', 'b.brandId', 'p.brandId')
+    .leftJoinLateral(
+      (eb) =>
+        eb
+          .selectFrom('service_status as ss')
+          .innerJoin('status as st', 'st.statusId', 'ss.statusId')
+          .select(['st.statusName', 'ss.createdAt as statusAt'])
+          .whereRef('ss.serviceOrderId', '=', 'so.serviceOrderId')
+          .orderBy('ss.createdAt', 'desc')
+          .orderBy('ss.serviceStatusId', 'desc')
+          .limit(1)
+          .as('ls'),
+      (join) => join.onTrue()
+    )
     .select((eb) => [
       'so.serviceOrderId',
       'so.tagNo',
@@ -30,6 +48,7 @@ const orderSummary = () =>
       'so.updatedAt',
       'u.userId',
       'u.userName',
+      'p.productId',
       'p.productName',
       'b.brandName',
       'up.serialNumber',
@@ -40,41 +59,58 @@ const orderSummary = () =>
         .orderBy('c.createdAt', 'asc')
         .limit(1)
         .as('contactNumber'),
-      eb
-        .selectFrom('service_status as ss')
-        .innerJoin('status as st', 'st.statusId', 'ss.statusId')
-        .select('st.statusName')
-        .whereRef('ss.serviceOrderId', '=', 'so.serviceOrderId')
-        .orderBy('ss.createdAt', 'desc')
-        .limit(1)
-        .as('currentStatus'),
+      'ls.statusName as currentStatus',
+      'ls.statusAt as currentStatusAt',
     ]);
+
+/** Latest status name, treating orders without any status entry as RECEIVED. */
+const effectiveStatus = sql<string>`coalesce(ls.status_name, ${DEFAULT_STATUS})`;
+
+/** Estimated completion has passed and repair work is not finished. */
+const isOverdue = sql<boolean>`so.estimated_completion_date < now()
+  and coalesce(ls.status_name, ${DEFAULT_STATUS}) not in (${sql.join(WORK_DONE_STATUSES)})`;
 
 export const serviceOrderRepo = {
   async getServiceOrders(
     params: ServiceOrder.ServiceOrderQueryParams & { limit: number; offset: number }
   ): Promise<[ServiceOrder.ServiceOrderSummary[], number]> {
     const filtered = orderSummary()
-      .$if(params.tagNo !== undefined, (qb) => qb.where('so.tagNo', '=', params.tagNo!))
-      .$if(!!params.userProductId, (qb) =>
-        qb.where('so.userProductId', '=', params.userProductId!)
+      // Digits are guaranteed by the contract pattern, so no LIKE wildcards to escape
+      .$if(!!params.tagSearch, (qb) =>
+        qb.where(sql`so.tag_no::text`, 'like', `%${params.tagSearch}%`)
       )
-      .$if(!!params.paymentMethod, (qb) =>
-        qb.where('so.paymentMethod', '=', params.paymentMethod!)
-      )
-      .$if(!!params.paymentStatus, (qb) =>
-        qb.where('so.paymentStatus', '=', params.paymentStatus!)
-      )
+      .$if(!!params.status, (qb) => qb.where(effectiveStatus, '=', params.status!))
+      .$if(!!params.userProductId, (qb) => qb.where('so.userProductId', '=', params.userProductId!))
+      .$if(!!params.paymentMethod, (qb) => qb.where('so.paymentMethod', '=', params.paymentMethod!))
+      .$if(!!params.paymentStatus, (qb) => qb.where('so.paymentStatus', '=', params.paymentStatus!))
       .$if(params.priorityLevel !== undefined, (qb) =>
         qb.where('so.priorityLevel', '=', params.priorityLevel!)
       )
       .$if(!!params.issueDescription, (qb) =>
         qb.where('so.issueDescription', '=', params.issueDescription!)
       )
-      .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!));
+      .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!))
+      .$if(!!params.userId, (qb) => qb.where('u.userId', '=', params.userId!))
+      .$if(!!params.overdue, (qb) => qb.where(isOverdue))
+      .$if(params.completedNotDeliveredDays !== undefined, (qb) =>
+        qb
+          .where(effectiveStatus, '=', STATUS.COMPLETED)
+          .where(
+            sql`ls.status_at`,
+            '<=',
+            sql`now() - make_interval(days => ${params.completedNotDeliveredDays})`
+          )
+      );
 
-    const orders = await filtered
-      .orderBy('so.createdAt', 'desc')
+    // Attention lists show the longest-waiting orders first; everything else newest first
+    const sorted = params.overdue
+      ? filtered.orderBy(sql`so.estimated_completion_date`, 'asc')
+      : params.completedNotDeliveredDays !== undefined
+        ? filtered.orderBy(sql`ls.status_at`, 'asc')
+        : filtered.orderBy('so.createdAt', 'desc');
+
+    const orders = await sorted
+      .orderBy('so.tagNo', 'desc')
       .limit(params.limit)
       .offset(params.offset)
       .execute();
@@ -93,7 +129,9 @@ export const serviceOrderRepo = {
     return orderSummary().where('so.serviceOrderId', '=', serviceOrderId).executeTakeFirst();
   },
 
-  async createServiceOrder(data: ServiceOrder.CreateServiceOrder): Promise<ServiceOrder.ServiceOrder> {
+  async createServiceOrder(
+    data: ServiceOrder.CreateServiceOrder
+  ): Promise<ServiceOrder.ServiceOrder> {
     return db
       .insertInto('service_order')
       .values({

@@ -90,7 +90,11 @@ export interface ServiceOrderTable {
   paymentStatus: Generated<PaymentStatus>;
   priorityLevel: Generated<number>;
   estimatedCompletionDate: ColumnType<Date | null, string | Date | null, string | Date | null>;
-  actualCompletionDate: ColumnType<Date | null, string | Date | null | undefined, string | Date | null>;
+  actualCompletionDate: ColumnType<
+    Date | null,
+    string | Date | null | undefined,
+    string | Date | null
+  >;
   issueDescription: IssueType;
   issueNotes: string | null;
   entryBy: string;
@@ -116,6 +120,15 @@ export interface ServiceStatusTable {
   updatedAt: Timestamp;
 }
 
+export interface StaffAccountTable {
+  userId: string;
+  username: string;
+  passwordHash: string;
+  passwordChangedAt: ColumnType<Date, never, Date | string>;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export interface Database {
   role: RoleTable;
   user_data: UserDataTable;
@@ -127,4 +140,5 @@ export interface Database {
   service_order: ServiceOrderTable;
   status: StatusTable;
   service_status: ServiceStatusTable;
+  staff_account: StaffAccountTable;
 }

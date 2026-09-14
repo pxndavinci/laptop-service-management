@@ -5,6 +5,13 @@ import * as ProductType from '../models/product-type.model';
 import * as Status from '../models/status.model';
 import { NotFoundError } from '../middlewares/error.middleware';
 import { requireAnyField } from '../lib/utils';
+import { withUniqueMessages } from '../lib/db-errors';
+
+const BRAND_UNIQUE = { brand_brand_name_key: 'A brand with this name already exists' };
+const PRODUCT_TYPE_UNIQUE = {
+  product_type_product_type_name_key: 'A product type with this name already exists',
+};
+const STATUS_UNIQUE = { status_status_name_key: 'A status with this name already exists' };
 
 export const referenceService = {
   // ---------- Roles ----------
@@ -34,12 +41,14 @@ export const referenceService = {
   },
 
   async createBrand(data: Brand.CreateBrand) {
-    return referenceRepo.createBrand(data);
+    return withUniqueMessages(BRAND_UNIQUE, () => referenceRepo.createBrand(data));
   },
 
   async updateBrand(brandId: string, data: Brand.PatchBrand) {
     requireAnyField(data);
-    const brand = await referenceRepo.updateBrand(brandId, data);
+    const brand = await withUniqueMessages(BRAND_UNIQUE, () =>
+      referenceRepo.updateBrand(brandId, data)
+    );
     if (!brand) throw new NotFoundError('Brand not found');
     return brand;
   },
@@ -55,12 +64,14 @@ export const referenceService = {
   },
 
   async createProductType(data: ProductType.CreateProductType) {
-    return referenceRepo.createProductType(data);
+    return withUniqueMessages(PRODUCT_TYPE_UNIQUE, () => referenceRepo.createProductType(data));
   },
 
   async updateProductType(productTypeId: string, data: ProductType.PatchProductType) {
     requireAnyField(data);
-    const productType = await referenceRepo.updateProductType(productTypeId, data);
+    const productType = await withUniqueMessages(PRODUCT_TYPE_UNIQUE, () =>
+      referenceRepo.updateProductType(productTypeId, data)
+    );
     if (!productType) throw new NotFoundError('Product type not found');
     return productType;
   },
@@ -76,12 +87,14 @@ export const referenceService = {
   },
 
   async createStatus(data: Status.CreateStatus) {
-    return referenceRepo.createStatus(data);
+    return withUniqueMessages(STATUS_UNIQUE, () => referenceRepo.createStatus(data));
   },
 
   async updateStatus(statusId: string, data: Status.PatchStatus) {
     requireAnyField(data);
-    const status = await referenceRepo.updateStatus(statusId, data);
+    const status = await withUniqueMessages(STATUS_UNIQUE, () =>
+      referenceRepo.updateStatus(statusId, data)
+    );
     if (!status) throw new NotFoundError('Status not found');
     return status;
   },

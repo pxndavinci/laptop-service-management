@@ -1,18 +1,27 @@
 import { Request, Response } from 'express';
 import serviceOrderService from '../services/service-order.service';
 import * as ServiceOrder from '../models/service-order.model';
+import { currentUser } from '../middlewares/auth.middleware';
 import { IssueType, PaymentMethod, PaymentStatus } from '../db/schema';
 
 const ServiceOrderController = {
   getServiceOrders: async (req: Request, res: Response) => {
     const input: ServiceOrder.ServiceOrderQueryParams = {
-      tagNo: req.query.tagNo ? Number(req.query.tagNo) : undefined,
+      tagSearch: req.query.tagSearch as string | undefined,
+      status: req.query.status as string | undefined,
       userProductId: req.query.userProductId as string | undefined,
       paymentMethod: req.query.paymentMethod as PaymentMethod | undefined,
       paymentStatus: req.query.paymentStatus as PaymentStatus | undefined,
       priorityLevel: req.query.priorityLevel ? Number(req.query.priorityLevel) : undefined,
       issueDescription: req.query.issueDescription as IssueType | undefined,
       entryBy: req.query.entryBy as string | undefined,
+      userId: req.query.userId as string | undefined,
+      // The validator may already have coerced these from strings
+      overdue: String(req.query.overdue) === 'true' || undefined,
+      completedNotDeliveredDays:
+        req.query.completedNotDeliveredDays !== undefined
+          ? Number(req.query.completedNotDeliveredDays)
+          : undefined,
       page: req.query.page ? Number(req.query.page) : undefined,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
     };
@@ -28,7 +37,7 @@ const ServiceOrderController = {
       estimatedCompletionDate: req.body.estimatedCompletionDate,
       issueDescription: req.body.issueDescription,
       issueNotes: req.body.issueNotes,
-      entryBy: req.body.entryBy,
+      entryBy: currentUser(res).userId,
     };
     const result = await serviceOrderService.createServiceOrder(input);
     res.status(201).json(result);

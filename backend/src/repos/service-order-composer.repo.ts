@@ -91,7 +91,11 @@ export const serviceOrderComposerRepo = {
       .filter((id): id is string => id !== null);
 
     const [users, contacts, devices] = await Promise.all([
-      db.selectFrom('user_data').select(composerUserColumns).where('userId', 'in', userIds).execute(),
+      db
+        .selectFrom('user_data')
+        .select(composerUserColumns)
+        .where('userId', 'in', userIds)
+        .execute(),
       db
         .selectFrom('contact')
         .select(['contactId', 'contactNumber', 'userId'])
@@ -267,8 +271,13 @@ export const serviceOrderComposerRepo = {
   },
 
   // ---------- Products ----------
-  async getProductById(executor: DbExecutor, productId: string): Promise<ComposerProduct | undefined> {
-    const row = await productWithNames(executor).where('p.productId', '=', productId).executeTakeFirst();
+  async getProductById(
+    executor: DbExecutor,
+    productId: string
+  ): Promise<ComposerProduct | undefined> {
+    const row = await productWithNames(executor)
+      .where('p.productId', '=', productId)
+      .executeTakeFirst();
     return row ? toComposerProduct(row) : undefined;
   },
 
@@ -308,7 +317,14 @@ export const serviceOrderComposerRepo = {
   async getUserProductById(executor: DbExecutor, userProductId: string) {
     return executor
       .selectFrom('user_product')
-      .select(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
+      .select([
+        'userProductId',
+        'userId',
+        'productId',
+        'serialNumber',
+        'loginPassword',
+        'additionalInfo',
+      ])
       .where('userProductId', '=', userProductId)
       .executeTakeFirst();
   },
@@ -316,7 +332,14 @@ export const serviceOrderComposerRepo = {
   async getUserProductBySerial(executor: DbExecutor, serialNumber: string) {
     return executor
       .selectFrom('user_product')
-      .select(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
+      .select([
+        'userProductId',
+        'userId',
+        'productId',
+        'serialNumber',
+        'loginPassword',
+        'additionalInfo',
+      ])
       .where('serialNumber', '=', serialNumber)
       .executeTakeFirst();
   },
@@ -336,7 +359,14 @@ export const serviceOrderComposerRepo = {
         loginPassword: data.loginPassword || null,
         additionalInfo: data.additionalInfo || null,
       })
-      .returning(['userProductId', 'userId', 'productId', 'serialNumber', 'loginPassword', 'additionalInfo'])
+      .returning([
+        'userProductId',
+        'userId',
+        'productId',
+        'serialNumber',
+        'loginPassword',
+        'additionalInfo',
+      ])
       .executeTakeFirstOrThrow();
   },
 
@@ -344,7 +374,8 @@ export const serviceOrderComposerRepo = {
   async createServiceOrder(
     executor: DbExecutor,
     userProductId: string,
-    serviceOrder: ComposeServiceOrderInput
+    serviceOrder: ComposeServiceOrderInput,
+    entryByUserId: string
   ) {
     return executor
       .insertInto('service_order')
@@ -356,7 +387,7 @@ export const serviceOrderComposerRepo = {
         estimatedCompletionDate: serviceOrder.estimatedCompletionDate ?? null,
         issueDescription: serviceOrder.issueDescription,
         issueNotes: serviceOrder.issueNotes || null,
-        entryBy: serviceOrder.entryByUserId,
+        entryBy: entryByUserId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

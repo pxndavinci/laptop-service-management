@@ -3,23 +3,93 @@ openapi: 3.0.3
 info:
   title: KS Tech Service Management API
   version: 1.0.0
-  description: 
-    API for managing users, Products, and service orders
+  description: API for managing users, Products, and service orders
     in a service-center / repair business.
     Designed using API-first principles.
 
 servers:
-  - url: https://localhost:3000
+  - url: http://localhost:3000
+
+# Every operation requires a staff session unless it declares `security: []`.
+# Log in via POST /auth/login; the session travels in an httpOnly cookie.
+security:
+  - cookieAuth: []
 
 tags:
+  - name: Auth
   - name: Users
   - name: Contacts
   - name: Products
   - name: Service Orders
   - name: Service Status
   - name: Reference Data
+  - name: Dashboard
 
 paths:
+  # ==================== AUTH ====================
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: postAuthLogin
+      summary: Log in as staff
+      description: Verifies the credentials and sets the `lsm_session` httpOnly cookie. Limited to 10 failed attempts per IP per 15 minutes.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in; session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: postAuthLogout
+      summary: Log out
+      description: Clears the session cookie.
+      security: []
+      responses:
+        '204':
+          description: Logged out
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getAuthMe
+      summary: Current staff user
+      responses:
+        '200':
+          description: The logged-in staff user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: No valid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   # ==================== USERS ====================
   /users:
     get:
@@ -52,7 +122,7 @@ paths:
           schema:
             type: integer
             default: 10
-      responses:  
+      responses:
         '200':
           description: List of users
           content:
@@ -81,7 +151,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateUser'
-      responses:  
+      responses:
         '201':
           description: Users created successfully
           content:
@@ -125,7 +195,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchUser'
-      responses:  
+      responses:
         '200':
           description: Users updated successfully
           content:
@@ -136,7 +206,7 @@ paths:
     delete:
       tags: [Users]
       summary: Delete user
-      description: Remove a user from the system
+      description: Removes a user. Cascades to their contacts, devices, service orders and status history.
       parameters:
         - name: userId
           in: path
@@ -144,9 +214,15 @@ paths:
           schema:
             type: string
             format: uuid
-      responses:  
+      responses:
         '204':
           description: Users deleted successfully
+        '409':
+          description: The user is the staff login and cannot be deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ==================== CONTACTS ====================
   /contacts:
@@ -176,7 +252,7 @@ paths:
           schema:
             type: integer
             default: 10
-      responses:  
+      responses:
         '200':
           description: List of contacts
           content:
@@ -212,7 +288,7 @@ paths:
                 $ref: '#/components/schemas/Contacts'
 
   /contacts/{contactId}:
-    get: 
+    get:
       tags: [Contacts]
       summary: Get contact by ID
       description: Get contact by ID
@@ -332,6 +408,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Products'
+        '409':
+          description: A product with the same name, brand and type already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /products/{productId}:
     get:
@@ -374,6 +456,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Products'
+        '409':
+          description: A product with the same name, brand and type already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     delete:
       tags: [Products]
@@ -388,6 +476,12 @@ paths:
       responses:
         '204':
           description: Products deleted successfully
+        '409':
+          description: Devices are registered with this product; it cannot be deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ==================== USER Products ====================
   /user-products:
@@ -454,7 +548,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProducts'
 
-
   /user-products/{userProductId}:
     get:
       tags: [Products]
@@ -519,13 +612,17 @@ paths:
       summary: Get all service orders
       description: Retrieve all service orders with optional filtering
       parameters:
-        - name: tagNo
+        - name: tagSearch
           in: query
           schema:
-            type: integer
-            minimum: 0
-            maximum: 999999
-          description: Filter by tagNo
+            type: string
+            pattern: '^[0-9]{1,6}$'
+          description: Partial tag number match — digits anywhere in the tag (`0004` finds `260004`)
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Latest repair status name (e.g. IN_PROGRESS). Orders with no status entry match RECEIVED.
         - name: userProductId
           in: query
           schema:
@@ -562,6 +659,28 @@ paths:
             type: string
             format: uuid
           description: Filter by entered by service order person
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Orders for devices owned by this customer
+        - name: overdue
+          in: query
+          schema:
+            type: boolean
+          description: >-
+            true = estimated completion is in the past and the latest status is not
+            COMPLETED, DELIVERED or CANCELLED. Sorted by estimated completion, oldest first.
+        - name: completedNotDeliveredDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+          description: >-
+            Orders whose latest status is COMPLETED and was set at least this many days ago
+            (finished repairs waiting for pickup). Sorted by completion time, oldest first.
         - name: page
           in: query
           schema:
@@ -891,6 +1010,23 @@ paths:
         '204':
           description: Status update deleted successfully
 
+  # ==================== DASHBOARD ====================
+  /dashboard/metrics:
+    get:
+      tags: [Dashboard]
+      operationId: getDashboardMetrics
+      summary: Shop metrics for the dashboard
+      description: >-
+        Counts for the dashboard cards. Day, week (Monday start), month and year boundaries use
+        APP_TIMEZONE. See DashboardMetrics for how each number is defined.
+      responses:
+        '200':
+          description: Current metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+
   # ==================== REFERENCE DATA ====================
   /references/roles:
     get:
@@ -931,8 +1067,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -954,12 +1089,11 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '204':
           description: Role deleted successfully
-    
+
   /references/brands:
     get:
       tags: [Reference Data]
@@ -989,6 +1123,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Brands'
+        '409':
+          description: Brand name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /references/brands/{brandId}:
     patch:
@@ -1057,6 +1197,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductTypes'
+        '409':
+          description: Product type name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /references/product-types/{productTypeId}:
     patch:
@@ -1165,8 +1311,55 @@ paths:
           description: Status deleted successfully
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: lsm_session
 
   schemas:
+    # ==================== AUTH ====================
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    AuthUser:
+      type: object
+      required:
+        - userId
+        - userName
+        - username
+      properties:
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+          description: Display name
+        username:
+          type: string
+          description: Login name
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
 
     ServiceOrderComposerSearchResponse:
       type: object
@@ -1361,7 +1554,6 @@ components:
       required:
         - priorityLevel
         - issueDescription
-        - entryByUserId
       properties:
         estimatedPrice:
           type: number
@@ -1378,9 +1570,6 @@ components:
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
-        entryByUserId:
-          type: string
-          format: uuid
 
     ComposeServiceOrderRequest:
       type: object
@@ -1467,7 +1656,7 @@ components:
           type: integer
         roleName:
           type: string
-          example: "servicer"
+          example: 'servicer'
         isServicer:
           type: boolean
           example: true
@@ -1482,7 +1671,7 @@ components:
       properties:
         roleName:
           type: string
-          example: "servicer"
+          example: 'servicer'
         isServicer:
           type: boolean
           example: true
@@ -1516,6 +1705,11 @@ components:
         roleId:
           type: integer
           description: Role of the user
+        contactNumber:
+          type: string
+          nullable: true
+          readOnly: true
+          description: First contact number on file (for lists)
         createdAt:
           type: string
           format: date-time
@@ -1544,6 +1738,7 @@ components:
 
     PatchUser:
       type: object
+      description: Send only the fields to change. `null` clears email or address.
       properties:
         userName:
           type: string
@@ -1552,9 +1747,11 @@ components:
         email:
           type: string
           format: email
+          nullable: true
           example: john@example.com
         address:
           type: string
+          nullable: true
         roleId:
           type: integer
 
@@ -1588,7 +1785,7 @@ components:
       properties:
         contactNumber:
           type: string
-          example: "9876543210"
+          example: '9876543210'
         userId:
           type: string
           format: uuid
@@ -1598,7 +1795,7 @@ components:
       properties:
         contactNumber:
           type: string
-          example: "9876543210"
+          example: '9876543210'
         userId:
           type: string
           format: uuid
@@ -1627,13 +1824,13 @@ components:
       properties:
         brandName:
           type: string
-          example: "Dell"
+          example: 'Dell'
     PatchBrand:
       type: object
       properties:
         brandName:
           type: string
-          example: "Dell"
+          example: 'Dell'
     # ==================== PRODUCT TYPE ====================
     ProductTypes:
       type: object
@@ -1658,13 +1855,13 @@ components:
       properties:
         typeName:
           type: string
-          example: "Laptop"
+          example: 'Laptop'
     PatchProductType:
       type: object
       properties:
         typeName:
           type: string
-          example: "Laptop"
+          example: 'Laptop'
 
     # ==================== PRODUCT ====================
     Products:
@@ -1675,23 +1872,23 @@ components:
           format: uuid
         productName:
           type: string
-          example: "Dell Inspiron 15"
+          example: 'Dell Inspiron 15'
         description:
           type: string
           nullable: true
-          example: "15-inch laptop with Intel Core i7"
+          example: '15-inch laptop with Intel Core i7'
         brandId:
           type: string
           format: uuid
         brandName:
           type: string
-          example: "Dell"
+          example: 'Dell'
         productTypeId:
           type: string
           format: uuid
         productTypeName:
           type: string
-          example: "Laptop"
+          example: 'Laptop'
         createdAt:
           type: string
           format: date-time
@@ -1708,6 +1905,7 @@ components:
       properties:
         productName:
           type: string
+          minLength: 1
         description:
           type: string
         brandId:
@@ -1721,8 +1919,10 @@ components:
       properties:
         productName:
           type: string
+          minLength: 1
         description:
           type: string
+          nullable: true
         brandId:
           type: string
           format: uuid
@@ -1755,6 +1955,15 @@ components:
           type: string
           nullable: true
           description: Extra information (e.g., RAM, Storage specs)
+        productName:
+          type: string
+          readOnly: true
+        brandName:
+          type: string
+          readOnly: true
+        productTypeName:
+          type: string
+          readOnly: true
         createdAt:
           type: string
           format: date-time
@@ -1872,6 +2081,10 @@ components:
           type: string
           nullable: true
           description: Customer's primary contact number
+        productId:
+          type: string
+          format: uuid
+          description: Device product model id
         productName:
           type: string
           description: Device product name
@@ -1885,13 +2098,17 @@ components:
           type: string
           nullable: true
           description: Latest status entry, if any
+        currentStatusAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the latest status entry was recorded
 
     CreateServiceOrder:
       type: object
       required:
         - userProductId
         - issueDescription
-        - entryBy
       properties:
         userProductId:
           type: string
@@ -1913,13 +2130,10 @@ components:
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
-        entryBy:
-          type: string
-          format: uuid
-          description: Must be a servicer or admin user
 
     PatchServiceOrder:
       type: object
+      description: Send only the fields to change. `null` clears an optional field.
       properties:
         userProductId:
           type: string
@@ -1928,13 +2142,16 @@ components:
           type: number
           format: double
           minimum: 0
+          nullable: true
         finalPrice:
           type: number
           format: double
           minimum: 0
+          nullable: true
         paymentMethod:
           type: string
-          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
+          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER, null]
+          nullable: true
         paymentStatus:
           type: string
           enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
@@ -1945,14 +2162,17 @@ components:
         estimatedCompletionDate:
           type: string
           format: date-time
+          nullable: true
         actualCompletionDate:
           type: string
           format: date-time
+          nullable: true
         issueDescription:
           type: string
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
+          nullable: true
 
     # ==================== STATUS ====================
     Statuses:
@@ -1982,8 +2202,6 @@ components:
       properties:
         statusName:
           type: string
-
-
 
     # ==================== SERVICE STATUS ====================
     ServiceStatuses:
@@ -2027,7 +2245,6 @@ components:
       required:
         - serviceOrderId
         - statusId
-        - assignedTo
       properties:
         serviceOrderId:
           type: string
@@ -2038,6 +2255,7 @@ components:
         assignedTo:
           type: string
           format: uuid
+          description: Staff member responsible; defaults to the logged-in user
         comment:
           type: string
         notifyCustomer:
@@ -2054,8 +2272,53 @@ components:
           format: uuid
         comment:
           type: string
+          nullable: true
         notifyCustomer:
           type: boolean
+
+    # ==================== DASHBOARD ====================
+    DashboardMetrics:
+      type: object
+      required: [received, open, completed, delivered, overdue, awaitingPickup]
+      properties:
+        received:
+          type: object
+          description: Orders created in the current period
+          required: [today, week, month, year]
+          properties:
+            today:
+              type: integer
+            week:
+              type: integer
+            month:
+              type: integer
+            year:
+              type: integer
+        open:
+          type: integer
+          description: Orders whose latest status is not DELIVERED or CANCELLED (no status = RECEIVED)
+        completed:
+          type: object
+          description: Orders that got a COMPLETED status entry in the period (counted once per order)
+          required: [today, week]
+          properties:
+            today:
+              type: integer
+            week:
+              type: integer
+        delivered:
+          type: object
+          description: Orders that got a DELIVERED status entry in the period
+          required: [week]
+          properties:
+            week:
+              type: integer
+        overdue:
+          type: integer
+          description: Same rule as GET /service-orders?overdue=true
+        awaitingPickup:
+          type: integer
+          description: Orders whose latest status is COMPLETED (repair done, not yet delivered)
 
     # ==================== ERROR ====================
     Error:

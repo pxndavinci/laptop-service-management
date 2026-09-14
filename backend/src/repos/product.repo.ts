@@ -79,6 +79,15 @@ export const productRepo = {
       .executeTakeFirst();
   },
 
+  async countDevices(productId: string): Promise<number> {
+    const { count } = await db
+      .selectFrom('user_product')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('productId', '=', productId)
+      .executeTakeFirstOrThrow();
+    return count;
+  },
+
   async deleteProduct(productId: string): Promise<boolean> {
     const result = await db
       .deleteFrom('product')

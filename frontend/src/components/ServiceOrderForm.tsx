@@ -106,10 +106,10 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
 
   const shouldSearch = Boolean(
     debouncedUserName.trim() ||
-      debouncedContactNumber.trim() ||
-      debouncedEmail.trim() ||
-      debouncedProductName.trim() ||
-      debouncedSerialNumber.trim()
+    debouncedContactNumber.trim() ||
+    debouncedEmail.trim() ||
+    debouncedProductName.trim() ||
+    debouncedSerialNumber.trim(),
   )
 
   const { data: searchResponse, isFetching: searchLoading } = useGetServiceOrderComposerSearch(
@@ -126,7 +126,11 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
   const searchResults = useMemo(() => searchResponse?.data ?? [], [searchResponse?.data])
 
   const customerOptions = useMemo(
-    () => uniqueBy(searchResults.filter((r) => r.user?.userName), (r) => r.user?.userId),
+    () =>
+      uniqueBy(
+        searchResults.filter((r) => r.user?.userName),
+        (r) => r.user?.userId,
+      ),
     [searchResults],
   )
   const contactOptions = useMemo(
@@ -140,11 +144,19 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
     [searchResults],
   )
   const productOptions = useMemo(
-    () => uniqueBy(searchResults.filter((r) => r.product), (r) => r.product?.productId),
+    () =>
+      uniqueBy(
+        searchResults.filter((r) => r.product),
+        (r) => r.product?.productId,
+      ),
     [searchResults],
   )
   const serialOptions = useMemo(
-    () => uniqueBy(searchResults.filter((r) => r.userProduct), (r) => r.userProduct?.userProductId),
+    () =>
+      uniqueBy(
+        searchResults.filter((r) => r.userProduct),
+        (r) => r.userProduct?.userProductId,
+      ),
     [searchResults],
   )
 
@@ -188,8 +200,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
     setLinks((prev) => ({ ...prev, userProductId: result.userProduct?.userProductId }))
   }
 
-  const clearCustomerLink = () =>
-    setLinks(({ userId, contactId, ...rest }) => rest)
+  const clearCustomerLink = () => setLinks(({ userId, contactId, ...rest }) => rest)
 
   const clearProductLink = () =>
     setLinks(({ brandId, productTypeId, productId, userProductId, ...rest }) => rest)
@@ -266,7 +277,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                         freeSolo
                         options={customerOptions}
                         getOptionLabel={(option) =>
-                          typeof option === 'string' ? option : option.user?.userName ?? ''
+                          typeof option === 'string' ? option : (option.user?.userName ?? '')
                         }
                         filterOptions={(options) => options}
                         loading={searchLoading}
@@ -316,7 +327,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                         freeSolo
                         options={contactOptions}
                         getOptionLabel={(option) =>
-                          typeof option === 'string' ? option : option.contact.contactNumber ?? ''
+                          typeof option === 'string' ? option : (option.contact.contactNumber ?? '')
                         }
                         filterOptions={(options) => options}
                         loading={searchLoading}
@@ -336,7 +347,9 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                         renderOption={(props, option) => (
                           <li {...props} key={option.contact.contactId}>
                             <Box>
-                              <Typography variant="body2">{option.contact.contactNumber}</Typography>
+                              <Typography variant="body2">
+                                {option.contact.contactNumber}
+                              </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {option.result.user?.userName}
                               </Typography>
@@ -403,8 +416,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                 Device details
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Picking a serial number fills the whole form from the matching device and its
-                owner.
+                Picking a serial number fills the whole form from the matching device and its owner.
               </Typography>
 
               <Stack spacing={2}>
@@ -419,7 +431,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                         getOptionLabel={(option) =>
                           typeof option === 'string'
                             ? option
-                            : option.userProduct?.serialNumber ?? ''
+                            : (option.userProduct?.serialNumber ?? '')
                         }
                         filterOptions={(options) => options}
                         loading={searchLoading}
@@ -471,7 +483,7 @@ export const ServiceOrderForm = ({ isLoading = false, onSubmit }: ServiceOrderFo
                         freeSolo
                         options={productOptions}
                         getOptionLabel={(option) =>
-                          typeof option === 'string' ? option : option.product?.productName ?? ''
+                          typeof option === 'string' ? option : (option.product?.productName ?? '')
                         }
                         filterOptions={(options) => options}
                         loading={searchLoading}

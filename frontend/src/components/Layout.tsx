@@ -22,8 +22,10 @@ import LogoIcon from '@mui/icons-material/AssignmentTurnedIn'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
 import ProfileIcon from '@mui/icons-material/AccountCircle'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { Link, useLocation } from 'react-router-dom'
 import navItems from '../lib/navItems'
+import { useAuth, useLogout } from '../lib/auth/useAuth'
 
 const DRAWER_WIDTH = 225
 
@@ -31,13 +33,13 @@ interface LayoutProps {
   children: React.ReactNode
 }
 
-
-
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null)
   const location = useLocation()
+  const { user } = useAuth()
+  const logout = useLogout()
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
   const drawerOpen = isDesktop ? sidebarOpen : mobileSidebarOpen
@@ -84,7 +86,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
           <Box>
             <Typography variant="h6" sx={{ color: '#fff', lineHeight: 1.2 }}>
-              KS Tech 
+              KS Tech
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.66)' }}>
               Repair desk
@@ -97,7 +99,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <List sx={{ px: 1.5, pt: 2 }}>
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path
+            const isActive =
+              item.path === '/'
+                ? location.pathname === '/'
+                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
             return (
               <ListItemButton
                 key={item.path}
@@ -116,7 +121,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 42, color: isActive ? '#F2B878' : 'rgba(255,255,255,0.78)' }}>
+                <ListItemIcon
+                  sx={{ minWidth: 42, color: isActive ? '#F2B878' : 'rgba(255,255,255,0.78)' }}
+                >
                   <Icon />
                 </ListItemIcon>
                 <ListItemText
@@ -159,10 +166,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', minHeight: 68 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                onClick={toggleSidebar}
-                sx={{ color: 'primary.main' }}
-              >
+              <IconButton onClick={toggleSidebar} sx={{ color: 'primary.main' }}>
                 {drawerOpen ? <CloseIcon /> : <MenuIcon />}
               </IconButton>
               <Typography variant="h6" sx={{ color: 'text.primary' }}>
@@ -172,10 +176,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Profile Menu */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                onClick={handleProfileMenuOpen}
-                sx={{ p: 0.5 }}
-              >
+              <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0.5 }}>
                 <Avatar
                   sx={{
                     bgcolor: 'primary.main',
@@ -184,7 +185,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     cursor: 'pointer',
                   }}
                 >
-                  U
+                  {user?.userName?.charAt(0).toUpperCase() ?? 'U'}
                 </Avatar>
               </IconButton>
               <Menu
@@ -194,7 +195,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <MenuItem disabled>
                   <ProfileIcon sx={{ mr: 1 }} />
-                  <Typography>Shop Operator</Typography>
+                  <Typography>{user?.userName ?? 'Staff'}</Typography>
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleProfileMenuClose()
+                    void logout()
+                  }}
+                >
+                  <LogoutIcon sx={{ mr: 1 }} />
+                  <Typography>Log out</Typography>
                 </MenuItem>
               </Menu>
             </Box>

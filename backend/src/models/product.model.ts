@@ -26,7 +26,7 @@ export interface CreateProduct {
 
 export interface PatchProduct {
   productName?: string;
-  description?: string;
+  description?: string | null;
   brandId?: string;
   productTypeId?: string;
 }

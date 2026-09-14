@@ -1,10 +1,22 @@
+import { ExpressionBuilder } from 'kysely';
 import db from '../db/index';
+import { Database } from '../db/schema';
 import * as User from '../models/user.model';
+
+/** First contact number on file (oldest), as a correlated subquery. */
+const firstContact = (eb: ExpressionBuilder<Database, 'user_data'>) =>
+  eb
+    .selectFrom('contact as c')
+    .select('c.contactNumber')
+    .whereRef('c.userId', '=', 'user_data.userId')
+    .orderBy('c.createdAt', 'asc')
+    .limit(1)
+    .as('contactNumber');
 
 export const userRepo = {
   async getUsers(
     params: User.UserQueryParams & { limit: number; offset: number }
-  ): Promise<[User.User[], number]> {
+  ): Promise<[User.UserWithContact[], number]> {
     const filtered = db
       .selectFrom('user_data')
       .$if(!!params.userName, (qb) => qb.where('userName', 'ilike', `%${params.userName}%`))
@@ -12,7 +24,8 @@ export const userRepo = {
       .$if(params.roleId !== undefined, (qb) => qb.where('roleId', '=', params.roleId!));
 
     const users = await filtered
-      .selectAll()
+      .selectAll('user_data')
+      .select(firstContact)
       .orderBy('createdAt', 'desc')
       .limit(params.limit)
       .offset(params.offset)
@@ -25,8 +38,13 @@ export const userRepo = {
     return [users, total];
   },
 
-  async getUserByID(userId: string): Promise<User.User | undefined> {
-    return db.selectFrom('user_data').selectAll().where('userId', '=', userId).executeTakeFirst();
+  async getUserByID(userId: string): Promise<User.UserWithContact | undefined> {
+    return db
+      .selectFrom('user_data')
+      .selectAll('user_data')
+      .select(firstContact)
+      .where('userId', '=', userId)
+      .executeTakeFirst();
   },
 
   async createUser(data: User.CreateUser): Promise<User.User> {
@@ -54,6 +72,15 @@ export const userRepo = {
       .where('userId', '=', userId)
       .returningAll()
       .executeTakeFirst();
+  },
+
+  async hasStaffAccount(userId: string): Promise<boolean> {
+    const row = await db
+      .selectFrom('staff_account')
+      .select('userId')
+      .where('userId', '=', userId)
+      .executeTakeFirst();
+    return Boolean(row);
   },
 
   async deleteUser(userId: string): Promise<boolean> {

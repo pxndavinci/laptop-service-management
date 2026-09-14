@@ -7,6 +7,7 @@
  */
 
 export interface CreateProduct {
+  /** @minLength 1 */
   productName: string;
   description?: string;
   brandId: string;

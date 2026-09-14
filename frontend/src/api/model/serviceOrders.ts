@@ -62,6 +62,8 @@ export interface ServiceOrders {
      * @nullable
      */
   contactNumber?: string | null;
+  /** Device product model id */
+  productId?: string;
   /** Device product name */
   productName?: string;
   /** Device brand */
@@ -73,4 +75,9 @@ export interface ServiceOrders {
      * @nullable
      */
   currentStatus?: string | null;
+  /**
+     * When the latest status entry was recorded
+     * @nullable
+     */
+  currentStatusAt?: string | null;
 }

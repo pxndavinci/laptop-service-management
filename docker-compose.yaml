@@ -1,45 +1,114 @@
+# Production stack: `docker compose up -d --build` (after `cp .env.example .env`).
+# Development: `docker compose up -d postgres`, then run backend/frontend locally.
+#
+# Data lives in the named volume below. Nothing here (or in the release
+# watcher) ever runs `down -v`; recreating containers keeps the database.
+name: ${COMPOSE_PROJECT_NAME:-lsm}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
+    # Keep the major version pinned: a new major cannot read an old data directory
     image: postgres:16
-    container_name: lsm_postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: lsm
+      POSTGRES_USER: ${POSTGRES_USER:-lsm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-lsm}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      # Runs only when the volume is empty (first start)
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     ports:
-      - "5433:5432"
+      # Localhost only — for local development and psql on the server, never the network
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d lsm"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+    logging: *logging
 
   backend:
     build: ./backend
-    container_name: lsm_backend
     environment:
-      DB_USER: admin
-      DB_PASSWORD: admin123
+      DB_USER: ${POSTGRES_USER:-lsm}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: lsm
-      CORS_ORIGIN: http://localhost:3001
+      DB_NAME: ${POSTGRES_DB:-lsm}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (openssl rand -base64 48)}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      CORS_ORIGIN: ${PUBLIC_URL:-http://localhost:8080}
+      # Always behind the frontend's nginx
+      TRUST_PROXY: "true"
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+      STAFF_NAME: ${STAFF_NAME:-Shop Operator}
+      STAFF_USERNAME: ${STAFF_USERNAME:-}
+      STAFF_PASSWORD: ${STAFF_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "3000:3000"
+    # No published port: only reachable through the frontend's /api proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *logging
 
   frontend:
-    build: ./frontend
-    container_name: lsm_frontend
-    depends_on:
-      - backend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
     ports:
-      - "3001:3001"
+      # 0.0.0.0 = reachable from the LAN and by a tunnel on the host
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *logging
+
+  # Release watcher (deploy/auto_deploy.py). Idle unless AUTO_DEPLOY_ENABLED=true.
+  # It controls the host's Docker through the socket: that is root-equivalent
+  # access to the machine, which is why it is opt-in.
+  deployer:
+    build: ./deploy
+    user: "${LSM_UID:-1000}:${LSM_GID:-1000}"
+    group_add:
+      - "${DOCKER_GID:-962}"
+    environment:
+      AUTO_DEPLOY_ENABLED: ${AUTO_DEPLOY_ENABLED:-false}
+      RELEASE_SOURCE: ${RELEASE_SOURCE:-github}
+      GITHUB_REPO: ${GITHUB_REPO:-pxndavinci/laptop-service-management}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GIT_URL: ${GIT_URL:-}
+      DEPLOY_WINDOW_START: ${DEPLOY_WINDOW_START:-23:00}
+      DEPLOY_WINDOW_END: ${DEPLOY_WINDOW_END:-07:00}
+      DEPLOY_TIMEZONE: ${DEPLOY_TIMEZONE:-Asia/Kolkata}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-600}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      REPO_DIR: ${PWD}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Same absolute path as on the host, so paths compose sends to the host
+      # daemon (./schema.sql, build contexts) resolve correctly
+      - ${PWD}:${PWD}
+    working_dir: ${PWD}
+    # Let an in-progress deploy finish (or roll back) when the watcher is stopped
+    stop_grace_period: 20m
+    restart: unless-stopped
+    logging: *logging
 
 volumes:
   postgres_data:
+    # Fixed name, so renaming the compose project never points at an empty database
+    name: ${POSTGRES_VOLUME:-lsm_postgres_data}

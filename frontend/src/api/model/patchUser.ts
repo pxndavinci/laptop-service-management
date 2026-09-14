@@ -6,10 +6,15 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * Send only the fields to change. `null` clears email or address.
+ */
 export interface PatchUser {
   /** @minLength 1 */
   userName?: string;
-  email?: string;
-  address?: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  address?: string | null;
   roleId?: number;
 }

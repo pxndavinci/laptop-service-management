@@ -26,6 +26,6 @@ export interface CreateServiceStatus {
 export interface PatchServiceStatus {
   statusId?: string;
   assignedTo?: string;
-  comment?: string;
+  comment?: string | null;
   notifyCustomer?: boolean;
 }

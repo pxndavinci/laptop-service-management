@@ -116,7 +116,10 @@ export const referenceRepo = {
       .executeTakeFirstOrThrow();
   },
 
-  async updateStatus(statusId: string, data: Status.PatchStatus): Promise<Status.Status | undefined> {
+  async updateStatus(
+    statusId: string,
+    data: Status.PatchStatus
+  ): Promise<Status.Status | undefined> {
     return db
       .updateTable('status')
       .set({ statusName: data.statusName })

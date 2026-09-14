@@ -9,6 +9,7 @@
 export interface PatchServiceStatuses {
   statusId?: string;
   assignedTo?: string;
-  comment?: string;
+  /** @nullable */
+  comment?: string | null;
   notifyCustomer?: boolean;
 }

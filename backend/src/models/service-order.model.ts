@@ -8,20 +8,26 @@ export interface ServiceOrderSummary extends ServiceOrder {
   userId: string;
   userName: string;
   contactNumber: string | null;
+  productId: string;
   productName: string;
   brandName: string;
   serialNumber: string;
   currentStatus: string | null;
+  currentStatusAt: Date | null;
 }
 
 export interface ServiceOrderQueryParams {
-  tagNo?: number;
+  tagSearch?: string;
+  status?: string;
   userProductId?: string;
   paymentMethod?: PaymentMethod;
   paymentStatus?: PaymentStatus;
   priorityLevel?: number;
   issueDescription?: IssueType;
   entryBy?: string;
+  userId?: string;
+  overdue?: boolean;
+  completedNotDeliveredDays?: number;
   page?: number;
   limit?: number;
 }
@@ -36,15 +42,16 @@ export interface CreateServiceOrder {
   entryBy: string;
 }
 
+/** Omitted fields are left unchanged; `null` clears an optional field. */
 export interface PatchServiceOrder {
   userProductId?: string;
-  estimatedPrice?: number;
-  finalPrice?: number;
-  paymentMethod?: PaymentMethod;
+  estimatedPrice?: number | null;
+  finalPrice?: number | null;
+  paymentMethod?: PaymentMethod | null;
   paymentStatus?: PaymentStatus;
   priorityLevel?: number;
-  estimatedCompletionDate?: string;
-  actualCompletionDate?: string;
+  estimatedCompletionDate?: string | null;
+  actualCompletionDate?: string | null;
   issueDescription?: IssueType;
-  issueNotes?: string;
+  issueNotes?: string | null;
 }

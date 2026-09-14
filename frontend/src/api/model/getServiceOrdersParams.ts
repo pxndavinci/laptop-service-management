@@ -11,11 +11,14 @@ import type { GetServiceOrdersPaymentStatus } from './getServiceOrdersPaymentSta
 
 export type GetServiceOrdersParams = {
 /**
- * Filter by tagNo
- * @minimum 0
- * @maximum 999999
+ * Partial tag number match — digits anywhere in the tag (`0004` finds `260004`)
+ * @pattern ^[0-9]{1,6}$
  */
-tagNo?: number;
+tagSearch?: string;
+/**
+ * Latest repair status name (e.g. IN_PROGRESS). Orders with no status entry match RECEIVED.
+ */
+status?: string;
 /**
  * Filter by userProductId
  */
@@ -39,6 +42,20 @@ issueDescription?: GetServiceOrdersIssueDescription;
  * Filter by entered by service order person
  */
 entryBy?: string;
+/**
+ * Orders for devices owned by this customer
+ */
+userId?: string;
+/**
+ * true = estimated completion is in the past and the latest status is not COMPLETED, DELIVERED or CANCELLED. Sorted by estimated completion, oldest first.
+ */
+overdue?: boolean;
+/**
+ * Orders whose latest status is COMPLETED and was set at least this many days ago (finished repairs waiting for pickup). Sorted by completion time, oldest first.
+ * @minimum 0
+ * @maximum 365
+ */
+completedNotDeliveredDays?: number;
 page?: number;
 limit?: number;
 };

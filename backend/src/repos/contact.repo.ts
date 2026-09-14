@@ -27,7 +27,11 @@ export const contactRepo = {
   },
 
   async getContactByID(contactId: string): Promise<Contact.Contact | undefined> {
-    return db.selectFrom('contact').selectAll().where('contactId', '=', contactId).executeTakeFirst();
+    return db
+      .selectFrom('contact')
+      .selectAll()
+      .where('contactId', '=', contactId)
+      .executeTakeFirst();
   },
 
   async createContact(data: Contact.CreateContact): Promise<Contact.Contact> {

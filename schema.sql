@@ -219,6 +219,21 @@ CREATE INDEX idx_service_status_status_id ON service_status(status_id);
 CREATE INDEX idx_service_status_created_at ON service_status(created_at DESC);
 CREATE INDEX idx_service_status_assigned_to ON service_status(assigned_to);
 
+-- Login credentials for staff. Kept out of user_data so customer rows never
+-- carry auth fields. Passwords are bcrypt hashes, never plain text.
+CREATE TABLE IF NOT EXISTS staff_account (
+    user_id UUID NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    password_changed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT fk_staff_account_user_id
+        FOREIGN KEY (user_id)
+        REFERENCES user_data(user_id)
+        ON DELETE CASCADE
+);
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -274,5 +289,10 @@ EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER trg_service_status_updated_at
 BEFORE UPDATE ON service_status
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER trg_staff_account_updated_at
+BEFORE UPDATE ON staff_account
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
