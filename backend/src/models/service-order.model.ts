@@ -8,6 +8,7 @@ export interface ServiceOrderSummary extends ServiceOrder {
   userId: string;
   userName: string;
   contactNumber: string | null;
+  productId: string;
   productName: string;
   brandName: string;
   serialNumber: string;

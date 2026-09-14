@@ -13,6 +13,7 @@ import {
   Menu,
   MenuItem,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -20,6 +21,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import UpdateIcon from '@mui/icons-material/Update'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { Link, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetServiceOrdersServiceOrderId } from '../../api/service-orders/service-orders'
@@ -36,6 +38,7 @@ import { StatusChip } from '../../components/StatusChip'
 import { StatusDialog } from '../../components/StatusDialog'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { OrderDetailsEditor } from '../../components/OrderDetailsForm'
+import { ProductFormDialog } from '../../components/ProductFormDialog'
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box>
@@ -54,6 +57,7 @@ const ServiceOrderDetail = () => {
   const addNotification = useUIStore((state) => state.addNotification)
 
   const [editingDetails, setEditingDetails] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(false)
   const [statusDialog, setStatusDialog] = useState<{
     open: boolean
     entry: ServiceStatuses | null
@@ -136,7 +140,24 @@ const ServiceOrderDetail = () => {
             </Typography>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Field label="Customer" value={order.userName} />
+                <Field
+                  label="Customer"
+                  value={
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                      <span>{order.userName}</span>
+                      <Tooltip title="Open customer">
+                        <IconButton
+                          size="small"
+                          component={Link}
+                          to={`/customers/${order.userId}`}
+                          aria-label="Open customer"
+                        >
+                          <OpenInNewIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  }
+                />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Field label="Contact" value={order.contactNumber} />
@@ -144,7 +165,20 @@ const ServiceOrderDetail = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Field
                   label="Device"
-                  value={[order.brandName, order.productName].filter(Boolean).join(' ')}
+                  value={
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                      <span>{[order.brandName, order.productName].filter(Boolean).join(' ')}</span>
+                      <Tooltip title="Edit product">
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditingProduct(true)}
+                          aria-label="Edit product"
+                        >
+                          <EditIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -302,6 +336,12 @@ const ServiceOrderDetail = () => {
           Delete
         </MenuItem>
       </Menu>
+
+      <ProductFormDialog
+        open={editingProduct}
+        productId={order.productId}
+        onClose={() => setEditingProduct(false)}
+      />
 
       <StatusDialog
         open={statusDialog.open}

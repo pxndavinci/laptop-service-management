@@ -62,6 +62,8 @@ export interface ServiceOrders {
      * @nullable
      */
   contactNumber?: string | null;
+  /** Device product model id */
+  productId?: string;
   /** Device product name */
   productName?: string;
   /** Device brand */

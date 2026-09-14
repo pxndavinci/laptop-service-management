@@ -48,6 +48,7 @@ const orderSummary = () =>
       'so.updatedAt',
       'u.userId',
       'u.userName',
+      'p.productId',
       'p.productName',
       'b.brandName',
       'up.serialNumber',

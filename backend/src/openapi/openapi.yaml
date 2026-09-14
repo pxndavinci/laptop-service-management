@@ -2047,6 +2047,10 @@ components:
           type: string
           nullable: true
           description: Customer's primary contact number
+        productId:
+          type: string
+          format: uuid
+          description: Device product model id
         productName:
           type: string
           description: Device product name
