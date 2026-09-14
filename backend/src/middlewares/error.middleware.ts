@@ -59,7 +59,12 @@ export function errorMiddleware(err: Error, req: Request, res: Response, _next: 
       .json({ error: err.message, details: validationError.errors });
   }
 
-  const pgResponse = PG_ERROR_RESPONSES[(err as Error & { code?: string }).code ?? ''];
+  const pgError = err as Error & { code?: string; detail?: string };
+  // 23503 on DELETE means other rows still point at this one, not a missing reference
+  if (pgError.code === '23503' && pgError.detail?.includes('is still referenced')) {
+    return res.status(409).json({ error: 'This record is still in use by other records' });
+  }
+  const pgResponse = PG_ERROR_RESPONSES[pgError.code ?? ''];
   if (pgResponse) {
     return res.status(pgResponse.status).json({ error: pgResponse.error });
   }

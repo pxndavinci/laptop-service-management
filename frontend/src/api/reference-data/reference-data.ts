@@ -30,6 +30,7 @@ import type {
   CreateProductType,
   CreateRole,
   CreateStatus,
+  ErrorResponse,
   PatchBrand,
   PatchProductType,
   PatchRole,
@@ -205,7 +206,7 @@ export const usePostReferencesRoles = <TError = unknown,
  * @summary Update role
  */
 export const patchReferencesRolesRoleId = (
-    roleId: string,
+    roleId: number,
     patchRole: PatchRole,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
@@ -222,8 +223,8 @@ export const patchReferencesRolesRoleId = (
 
 
 export const getPatchReferencesRolesRoleIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: number;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: number;data: PatchRole}, TContext> => {
 
 const mutationKey = ['patchReferencesRolesRoleId'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -235,7 +236,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, {roleId: string;data: PatchRole}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, {roleId: number;data: PatchRole}> = (props) => {
           const {roleId,data} = props ?? {};
 
           return  patchReferencesRolesRoleId(roleId,data,requestOptions)
@@ -256,11 +257,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * @summary Update role
  */
 export const usePatchReferencesRolesRoleId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: string;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchReferencesRolesRoleId>>, TError,{roleId: number;data: PatchRole}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchReferencesRolesRoleId>>,
         TError,
-        {roleId: string;data: PatchRole},
+        {roleId: number;data: PatchRole},
         TContext
       > => {
       return useMutation(getPatchReferencesRolesRoleIdMutationOptions(options), queryClient);
@@ -269,7 +270,7 @@ export const usePatchReferencesRolesRoleId = <TError = unknown,
  * @summary Delete role
  */
 export const deleteReferencesRolesRoleId = (
-    roleId: string,
+    roleId: number,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -283,8 +284,8 @@ export const deleteReferencesRolesRoleId = (
 
 
 export const getDeleteReferencesRolesRoleIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: number}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: number}, TContext> => {
 
 const mutationKey = ['deleteReferencesRolesRoleId'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -296,7 +297,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, {roleId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, {roleId: number}> = (props) => {
           const {roleId} = props ?? {};
 
           return  deleteReferencesRolesRoleId(roleId,requestOptions)
@@ -317,11 +318,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * @summary Delete role
  */
 export const useDeleteReferencesRolesRoleId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>, TError,{roleId: number}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReferencesRolesRoleId>>,
         TError,
-        {roleId: string},
+        {roleId: number},
         TContext
       > => {
       return useMutation(getDeleteReferencesRolesRoleIdMutationOptions(options), queryClient);
@@ -437,7 +438,7 @@ export const postReferencesBrands = (
 
 
 
-export const getPostReferencesBrandsMutationOptions = <TError = unknown,
+export const getPostReferencesBrandsMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext> => {
 
@@ -466,12 +467,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PostReferencesBrandsMutationResult = NonNullable<Awaited<ReturnType<typeof postReferencesBrands>>>
     export type PostReferencesBrandsMutationBody = CreateBrand
-    export type PostReferencesBrandsMutationError = unknown
+    export type PostReferencesBrandsMutationError = ErrorResponse
 
     /**
  * @summary Create brand
  */
-export const usePostReferencesBrands = <TError = unknown,
+export const usePostReferencesBrands = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesBrands>>, TError,{data: CreateBrand}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesBrands>>,
@@ -717,7 +718,7 @@ export const postReferencesProductTypes = (
 
 
 
-export const getPostReferencesProductTypesMutationOptions = <TError = unknown,
+export const getPostReferencesProductTypesMutationOptions = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext> => {
 
@@ -746,12 +747,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PostReferencesProductTypesMutationResult = NonNullable<Awaited<ReturnType<typeof postReferencesProductTypes>>>
     export type PostReferencesProductTypesMutationBody = CreateProductType
-    export type PostReferencesProductTypesMutationError = unknown
+    export type PostReferencesProductTypesMutationError = ErrorResponse
 
     /**
  * @summary Create product type
  */
-export const usePostReferencesProductTypes = <TError = unknown,
+export const usePostReferencesProductTypes = <TError = ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReferencesProductTypes>>, TError,{data: CreateProductType}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReferencesProductTypes>>,

@@ -407,6 +407,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Products'
+        '409':
+          description: A product with the same name, brand and type already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /products/{productId}:
     get:
@@ -449,6 +455,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Products'
+        '409':
+          description: A product with the same name, brand and type already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     delete:
       tags: [Products]
@@ -463,6 +475,12 @@ paths:
       responses:
         '204':
           description: Products deleted successfully
+        '409':
+          description: Devices are registered with this product; it cannot be deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ==================== USER Products ====================
   /user-products:
@@ -1015,8 +1033,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -1038,8 +1055,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '204':
           description: Role deleted successfully
@@ -1073,6 +1089,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Brands'
+        '409':
+          description: Brand name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /references/brands/{brandId}:
     patch:
@@ -1141,6 +1163,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductTypes'
+        '409':
+          description: Product type name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /references/product-types/{productTypeId}:
     patch:
@@ -1843,6 +1871,7 @@ components:
       properties:
         productName:
           type: string
+          minLength: 1
         description:
           type: string
         brandId:
@@ -1856,8 +1885,10 @@ components:
       properties:
         productName:
           type: string
+          minLength: 1
         description:
           type: string
+          nullable: true
         brandId:
           type: string
           format: uuid

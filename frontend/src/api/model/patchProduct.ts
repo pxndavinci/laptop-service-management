@@ -7,8 +7,10 @@
  */
 
 export interface PatchProduct {
+  /** @minLength 1 */
   productName?: string;
-  description?: string;
+  /** @nullable */
+  description?: string | null;
   brandId?: string;
   productTypeId?: string;
 }
