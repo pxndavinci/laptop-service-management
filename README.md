@@ -58,10 +58,28 @@ The frontend works without a `.env` (it defaults to `http://localhost:3000`). Co
 
 ### First-run data
 
-Seed the minimum reference data once (via Swagger UI at `/api-docs` or curl):
+Seed the reference data once (safe to re-run — existing rows are skipped):
 
-- a role for customers (e.g. `roleId: 1, roleName: "customer"`)
-- a role + user for staff — orders record who logged them (`VITE_ENTRY_USER_ID`)
+```bash
+cd backend && npm run seed
+```
+
+It inserts the `customer` (1) and `admin` (99) roles, the canonical repair statuses, and one staff user.
+
+### Repair statuses
+
+The seed guarantees this canonical set; the list filter and dashboard rely on these exact names.
+
+| Status | Meaning | Open/closed |
+|--------|---------|-------------|
+| `RECEIVED` | Device logged at the counter (orders with no status entry count as this) | open |
+| `IN_PROGRESS` | Being repaired | open |
+| `ON_HOLD` | Waiting on parts or the customer | open |
+| `COMPLETED` | Repair done, waiting for pickup | open (work done) |
+| `DELIVERED` | Handed back to the customer | closed |
+| `CANCELLED` | Abandoned | closed |
+
+Lifecycle: **Received → In Progress (↔ On Hold) → Completed → Delivered**. An order's current status is its latest status entry.
 
 ## The Core Workflow
 
