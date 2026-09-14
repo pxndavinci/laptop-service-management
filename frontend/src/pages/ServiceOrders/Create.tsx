@@ -1,5 +1,7 @@
 import { Box, Container, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { invalidateCustomerQueries, invalidateProductQueries } from '../../lib/queries'
 import { isAxiosError } from 'axios'
 import { ServiceOrderForm, ExistingLinks } from '../../components/ServiceOrderForm'
 import { ServiceOrderFormData } from '../../lib/schemas/serviceOrderSchema'
@@ -50,6 +52,7 @@ const toRequest = (
 })
 
 const CreateServiceOrder = () => {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const submitMutation = usePostServiceOrderComposerSubmit()
   const addNotification = useUIStore((state) => state.addNotification)
@@ -57,6 +60,11 @@ const CreateServiceOrder = () => {
   const handleSubmit = async (data: ServiceOrderFormData, links: ExistingLinks) => {
     try {
       const result = await submitMutation.mutateAsync({ data: toRequest(data, links) })
+      // The composer may also have created a customer, contact, brand, product or device
+      await Promise.all([
+        invalidateCustomerQueries(queryClient),
+        invalidateProductQueries(queryClient),
+      ])
       addNotification(`Service order #${result.serviceOrder?.tagNo ?? ''} created`, 'success')
       navigate('/service-orders')
     } catch (error) {

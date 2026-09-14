@@ -11,6 +11,7 @@ import { RequireAuth } from './lib/auth/RequireAuth'
 import { apiErrorStatus } from './lib/api/errors'
 
 const Login = lazy(() => import('./pages/Login/Login'))
+const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'))
 const ServiceOrdersList = lazy(() => import('./pages/ServiceOrders/List'))
 const ServiceOrderDetail = lazy(() => import('./pages/ServiceOrders/Detail'))
 const CreateServiceOrder = lazy(() => import('./pages/ServiceOrders/Create'))
@@ -66,7 +67,7 @@ function App() {
             />
             <Route element={<RequireAuth />}>
               <Route element={<AppShell />}>
-                <Route path="/" element={<Navigate to="/service-orders" replace />} />
+                <Route path="/" element={<Dashboard />} />
                 <Route path="/service-orders" element={<ServiceOrdersList />} />
                 <Route path="/service-orders/new" element={<CreateServiceOrder />} />
                 <Route path="/service-orders/:id" element={<ServiceOrderDetail />} />
