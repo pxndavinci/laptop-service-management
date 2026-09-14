@@ -99,7 +99,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <List sx={{ px: 1.5, pt: 2 }}>
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path
+            const isActive =
+              item.path === '/'
+                ? location.pathname === '/'
+                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
             return (
               <ListItemButton
                 key={item.path}

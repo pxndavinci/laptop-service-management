@@ -24,6 +24,9 @@ export interface UserProducts {
      * @nullable
      */
   additionalInfo?: string | null;
+  readonly productName?: string;
+  readonly brandName?: string;
+  readonly productTypeName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -15,6 +15,7 @@ const ServiceOrdersList = lazy(() => import('./pages/ServiceOrders/List'))
 const ServiceOrderDetail = lazy(() => import('./pages/ServiceOrders/Detail'))
 const CreateServiceOrder = lazy(() => import('./pages/ServiceOrders/Create'))
 const CustomersList = lazy(() => import('./pages/Customers/List'))
+const CustomerDetail = lazy(() => import('./pages/Customers/Detail'))
 const ProductsList = lazy(() => import('./pages/Products/List'))
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/service-orders/new" element={<CreateServiceOrder />} />
                 <Route path="/service-orders/:id" element={<ServiceOrderDetail />} />
                 <Route path="/customers" element={<CustomersList />} />
+                <Route path="/customers/:id" element={<CustomerDetail />} />
                 <Route path="/products" element={<ProductsList />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

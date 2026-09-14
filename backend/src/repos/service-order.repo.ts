@@ -84,7 +84,8 @@ export const serviceOrderRepo = {
       .$if(!!params.issueDescription, (qb) =>
         qb.where('so.issueDescription', '=', params.issueDescription!)
       )
-      .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!));
+      .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!))
+      .$if(!!params.userId, (qb) => qb.where('u.userId', '=', params.userId!));
 
     const orders = await filtered
       .orderBy('so.createdAt', 'desc')

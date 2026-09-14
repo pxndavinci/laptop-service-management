@@ -1,38 +1,44 @@
 import db from '../db/index';
 import * as UserProduct from '../models/user-product.model';
 
+const withNames = () =>
+  db
+    .selectFrom('user_product as up')
+    .innerJoin('product as p', 'p.productId', 'up.productId')
+    .innerJoin('brand as b', 'b.brandId', 'p.brandId')
+    .innerJoin('product_type as pt', 'pt.productTypeId', 'p.productTypeId')
+    .selectAll('up')
+    .select(['p.productName', 'b.brandName', 'pt.productTypeName']);
+
 export const userProductRepo = {
   async getUserProducts(
     params: UserProduct.UserProductQueryParams & { limit: number; offset: number }
-  ): Promise<[UserProduct.UserProduct[], number]> {
-    const filtered = db
-      .selectFrom('user_product')
-      .$if(!!params.userId, (qb) => qb.where('userId', '=', params.userId!))
-      .$if(!!params.productId, (qb) => qb.where('productId', '=', params.productId!))
+  ): Promise<[UserProduct.UserProductWithNames[], number]> {
+    const filtered = withNames()
+      .$if(!!params.userId, (qb) => qb.where('up.userId', '=', params.userId!))
+      .$if(!!params.productId, (qb) => qb.where('up.productId', '=', params.productId!))
       .$if(!!params.serialNumber, (qb) =>
-        qb.where('serialNumber', 'ilike', `%${params.serialNumber}%`)
+        qb.where('up.serialNumber', 'ilike', `%${params.serialNumber}%`)
       );
 
     const userProducts = await filtered
-      .selectAll()
-      .orderBy('createdAt', 'desc')
+      .orderBy('up.createdAt', 'desc')
       .limit(params.limit)
       .offset(params.offset)
       .execute();
 
     const { total } = await filtered
+      .clearSelect()
       .select((eb) => eb.fn.countAll<number>().as('total'))
       .executeTakeFirstOrThrow();
 
     return [userProducts, total];
   },
 
-  async getUserProductByID(userProductId: string): Promise<UserProduct.UserProduct | undefined> {
-    return db
-      .selectFrom('user_product')
-      .selectAll()
-      .where('userProductId', '=', userProductId)
-      .executeTakeFirst();
+  async getUserProductByID(
+    userProductId: string
+  ): Promise<UserProduct.UserProductWithNames | undefined> {
+    return withNames().where('up.userProductId', '=', userProductId).executeTakeFirst();
   },
 
   async createUserProduct(data: UserProduct.CreateUserProduct): Promise<UserProduct.UserProduct> {

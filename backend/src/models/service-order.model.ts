@@ -24,6 +24,7 @@ export interface ServiceOrderQueryParams {
   priorityLevel?: number;
   issueDescription?: IssueType;
   entryBy?: string;
+  userId?: string;
   page?: number;
   limit?: number;
 }

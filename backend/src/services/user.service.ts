@@ -1,7 +1,16 @@
 import { userRepo } from '../repos/user.repo';
 import * as User from '../models/user.model';
-import { NotFoundError } from '../middlewares/error.middleware';
+import { ConflictError, NotFoundError } from '../middlewares/error.middleware';
 import { paginate, requireAnyField } from '../lib/utils';
+
+/** Duplicate emails get a specific message instead of the generic unique-violation one. */
+const mapUniqueEmail = (error: unknown): unknown => {
+  const dbError = error as { code?: string; constraint?: string };
+  if (dbError.code === '23505' && dbError.constraint === 'user_data_email_key') {
+    return new ConflictError('A customer with this email already exists');
+  }
+  return error;
+};
 
 export const userService = {
   async getUsers(params: User.UserQueryParams) {
@@ -17,17 +26,30 @@ export const userService = {
   },
 
   async createUser(data: User.CreateUser) {
-    return userRepo.createUser(data);
+    try {
+      return await userRepo.createUser(data);
+    } catch (error) {
+      throw mapUniqueEmail(error);
+    }
   },
 
   async updateUser(userId: string, data: User.PatchUser) {
     requireAnyField(data);
-    const user = await userRepo.updateUser(userId, data);
+    let user;
+    try {
+      user = await userRepo.updateUser(userId, data);
+    } catch (error) {
+      throw mapUniqueEmail(error);
+    }
     if (!user) throw new NotFoundError('User not found');
     return user;
   },
 
+  /** Cascades (via foreign keys) to contacts, devices, orders and status history. */
   async deleteUser(userId: string) {
+    if (await userRepo.hasStaffAccount(userId)) {
+      throw new ConflictError('This user is the staff login and cannot be deleted');
+    }
     const deleted = await userRepo.deleteUser(userId);
     if (!deleted) throw new NotFoundError('User not found');
   },

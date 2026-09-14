@@ -23,6 +23,11 @@ export interface Users {
   address?: string | null;
   /** Role of the user */
   roleId?: number;
+  /**
+     * First contact number on file (for lists)
+     * @nullable
+     */
+  readonly contactNumber?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

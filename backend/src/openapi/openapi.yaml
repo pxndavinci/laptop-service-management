@@ -205,7 +205,7 @@ paths:
     delete:
       tags: [Users]
       summary: Delete user
-      description: Remove a user from the system
+      description: Removes a user. Cascades to their contacts, devices, service orders and status history.
       parameters:
         - name: userId
           in: path
@@ -216,6 +216,12 @@ paths:
       responses:
         '204':
           description: Users deleted successfully
+        '409':
+          description: The user is the staff login and cannot be deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ==================== CONTACTS ====================
   /contacts:
@@ -634,6 +640,12 @@ paths:
             type: string
             format: uuid
           description: Filter by entered by service order person
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Orders for devices owned by this customer
         - name: page
           in: query
           schema:
@@ -1631,6 +1643,11 @@ components:
         roleId:
           type: integer
           description: Role of the user
+        contactNumber:
+          type: string
+          nullable: true
+          readOnly: true
+          description: First contact number on file (for lists)
         createdAt:
           type: string
           format: date-time
@@ -1659,6 +1676,7 @@ components:
 
     PatchUser:
       type: object
+      description: Send only the fields to change. `null` clears email or address.
       properties:
         userName:
           type: string
@@ -1667,9 +1685,11 @@ components:
         email:
           type: string
           format: email
+          nullable: true
           example: john@example.com
         address:
           type: string
+          nullable: true
         roleId:
           type: integer
 
@@ -1870,6 +1890,15 @@ components:
           type: string
           nullable: true
           description: Extra information (e.g., RAM, Storage specs)
+        productName:
+          type: string
+          readOnly: true
+        brandName:
+          type: string
+          readOnly: true
+        productTypeName:
+          type: string
+          readOnly: true
         createdAt:
           type: string
           format: date-time

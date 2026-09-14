@@ -42,6 +42,10 @@ issueDescription?: GetServiceOrdersIssueDescription;
  * Filter by entered by service order person
  */
 entryBy?: string;
+/**
+ * Orders for devices owned by this customer
+ */
+userId?: string;
 page?: number;
 limit?: number;
 };
