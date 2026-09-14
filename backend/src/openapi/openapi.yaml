@@ -2035,6 +2035,7 @@ components:
 
     PatchServiceOrder:
       type: object
+      description: Send only the fields to change. `null` clears an optional field.
       properties:
         userProductId:
           type: string
@@ -2043,13 +2044,16 @@ components:
           type: number
           format: double
           minimum: 0
+          nullable: true
         finalPrice:
           type: number
           format: double
           minimum: 0
+          nullable: true
         paymentMethod:
           type: string
-          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER]
+          enum: [CASH, CREDIT_CARD, DEBIT_CARD, ONLINE_PAYMENT, OTHER, null]
+          nullable: true
         paymentStatus:
           type: string
           enum: [PENDING, COMPLETED, PARTIAL, REFUNDED]
@@ -2060,14 +2064,17 @@ components:
         estimatedCompletionDate:
           type: string
           format: date-time
+          nullable: true
         actualCompletionDate:
           type: string
           format: date-time
+          nullable: true
         issueDescription:
           type: string
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
+          nullable: true
 
     # ==================== STATUS ====================
     Statuses:
@@ -2167,6 +2174,7 @@ components:
           format: uuid
         comment:
           type: string
+          nullable: true
         notifyCustomer:
           type: boolean
 

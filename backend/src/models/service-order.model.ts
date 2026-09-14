@@ -38,15 +38,16 @@ export interface CreateServiceOrder {
   entryBy: string;
 }
 
+/** Omitted fields are left unchanged; `null` clears an optional field. */
 export interface PatchServiceOrder {
   userProductId?: string;
-  estimatedPrice?: number;
-  finalPrice?: number;
-  paymentMethod?: PaymentMethod;
+  estimatedPrice?: number | null;
+  finalPrice?: number | null;
+  paymentMethod?: PaymentMethod | null;
   paymentStatus?: PaymentStatus;
   priorityLevel?: number;
-  estimatedCompletionDate?: string;
-  actualCompletionDate?: string;
+  estimatedCompletionDate?: string | null;
+  actualCompletionDate?: string | null;
   issueDescription?: IssueType;
-  issueNotes?: string;
+  issueNotes?: string | null;
 }

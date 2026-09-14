@@ -9,12 +9,22 @@ import type { PatchServiceOrderIssueDescription } from './patchServiceOrderIssue
 import type { PatchServiceOrderPaymentMethod } from './patchServiceOrderPaymentMethod';
 import type { PatchServiceOrderPaymentStatus } from './patchServiceOrderPaymentStatus';
 
+/**
+ * Send only the fields to change. `null` clears an optional field.
+ */
 export interface PatchServiceOrder {
   userProductId?: string;
-  /** @minimum 0 */
-  estimatedPrice?: number;
-  /** @minimum 0 */
-  finalPrice?: number;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  estimatedPrice?: number | null;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  finalPrice?: number | null;
+  /** @nullable */
   paymentMethod?: PatchServiceOrderPaymentMethod;
   paymentStatus?: PatchServiceOrderPaymentStatus;
   /**
@@ -22,8 +32,11 @@ export interface PatchServiceOrder {
      * @maximum 5
      */
   priorityLevel?: number;
-  estimatedCompletionDate?: string;
-  actualCompletionDate?: string;
+  /** @nullable */
+  estimatedCompletionDate?: string | null;
+  /** @nullable */
+  actualCompletionDate?: string | null;
   issueDescription?: PatchServiceOrderIssueDescription;
-  issueNotes?: string;
+  /** @nullable */
+  issueNotes?: string | null;
 }

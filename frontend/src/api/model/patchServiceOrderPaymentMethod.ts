@@ -6,7 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PatchServiceOrderPaymentMethod = typeof PatchServiceOrderPaymentMethod[keyof typeof PatchServiceOrderPaymentMethod];
+/**
+ * @nullable
+ */
+export type PatchServiceOrderPaymentMethod = typeof PatchServiceOrderPaymentMethod[keyof typeof PatchServiceOrderPaymentMethod] | null;
 
 
 export const PatchServiceOrderPaymentMethod = {
