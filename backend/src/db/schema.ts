@@ -90,7 +90,11 @@ export interface ServiceOrderTable {
   paymentStatus: Generated<PaymentStatus>;
   priorityLevel: Generated<number>;
   estimatedCompletionDate: ColumnType<Date | null, string | Date | null, string | Date | null>;
-  actualCompletionDate: ColumnType<Date | null, string | Date | null | undefined, string | Date | null>;
+  actualCompletionDate: ColumnType<
+    Date | null,
+    string | Date | null | undefined,
+    string | Date | null
+  >;
   issueDescription: IssueType;
   issueNotes: string | null;
   entryBy: string;

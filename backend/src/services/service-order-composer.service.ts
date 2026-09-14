@@ -10,11 +10,7 @@ import {
   ComposerUserProduct,
   ServiceOrderComposerSearchParams,
 } from '../models/service-order-composer.model';
-import {
-  BadRequestError,
-  ConflictError,
-  NotFoundError,
-} from '../middlewares/error.middleware';
+import { BadRequestError, ConflictError, NotFoundError } from '../middlewares/error.middleware';
 
 /**
  * The composer creates a service order in one transaction, reusing entities

@@ -56,15 +56,9 @@ export const serviceOrderRepo = {
   ): Promise<[ServiceOrder.ServiceOrderSummary[], number]> {
     const filtered = orderSummary()
       .$if(params.tagNo !== undefined, (qb) => qb.where('so.tagNo', '=', params.tagNo!))
-      .$if(!!params.userProductId, (qb) =>
-        qb.where('so.userProductId', '=', params.userProductId!)
-      )
-      .$if(!!params.paymentMethod, (qb) =>
-        qb.where('so.paymentMethod', '=', params.paymentMethod!)
-      )
-      .$if(!!params.paymentStatus, (qb) =>
-        qb.where('so.paymentStatus', '=', params.paymentStatus!)
-      )
+      .$if(!!params.userProductId, (qb) => qb.where('so.userProductId', '=', params.userProductId!))
+      .$if(!!params.paymentMethod, (qb) => qb.where('so.paymentMethod', '=', params.paymentMethod!))
+      .$if(!!params.paymentStatus, (qb) => qb.where('so.paymentStatus', '=', params.paymentStatus!))
       .$if(params.priorityLevel !== undefined, (qb) =>
         qb.where('so.priorityLevel', '=', params.priorityLevel!)
       )
@@ -93,7 +87,9 @@ export const serviceOrderRepo = {
     return orderSummary().where('so.serviceOrderId', '=', serviceOrderId).executeTakeFirst();
   },
 
-  async createServiceOrder(data: ServiceOrder.CreateServiceOrder): Promise<ServiceOrder.ServiceOrder> {
+  async createServiceOrder(
+    data: ServiceOrder.CreateServiceOrder
+  ): Promise<ServiceOrder.ServiceOrder> {
     return db
       .insertInto('service_order')
       .values({

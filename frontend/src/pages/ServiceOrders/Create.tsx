@@ -8,7 +8,10 @@ import { usePostServiceOrderComposerSubmit } from '../../api/service-orders/serv
 import type { ComposeServiceOrderRequest } from '../../api/model'
 import { CUSTOMER_ROLE_ID, ENTRY_USER_ID } from '../../lib/config'
 
-const toRequest = (data: ServiceOrderFormData, links: ExistingLinks): ComposeServiceOrderRequest => ({
+const toRequest = (
+  data: ServiceOrderFormData,
+  links: ExistingLinks,
+): ComposeServiceOrderRequest => ({
   existing: {
     userId: links.userId ?? null,
     contactId: links.contactId ?? null,

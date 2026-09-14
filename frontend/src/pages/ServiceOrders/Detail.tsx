@@ -34,7 +34,11 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
 const ServiceOrderDetail = () => {
   const { id = '' } = useParams<{ id: string }>()
 
-  const { data: order, isLoading, isError } = useGetServiceOrdersServiceOrderId(id, {
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useGetServiceOrdersServiceOrderId(id, {
     query: { enabled: !!id },
   })
   const { data: statusHistory } = useGetServiceStatus(

@@ -31,8 +31,6 @@ interface LayoutProps {
   children: React.ReactNode
 }
 
-
-
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -84,7 +82,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
           <Box>
             <Typography variant="h6" sx={{ color: '#fff', lineHeight: 1.2 }}>
-              KS Tech 
+              KS Tech
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.66)' }}>
               Repair desk
@@ -116,7 +114,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 42, color: isActive ? '#F2B878' : 'rgba(255,255,255,0.78)' }}>
+                <ListItemIcon
+                  sx={{ minWidth: 42, color: isActive ? '#F2B878' : 'rgba(255,255,255,0.78)' }}
+                >
                   <Icon />
                 </ListItemIcon>
                 <ListItemText
@@ -159,10 +159,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', minHeight: 68 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                onClick={toggleSidebar}
-                sx={{ color: 'primary.main' }}
-              >
+              <IconButton onClick={toggleSidebar} sx={{ color: 'primary.main' }}>
                 {drawerOpen ? <CloseIcon /> : <MenuIcon />}
               </IconButton>
               <Typography variant="h6" sx={{ color: 'text.primary' }}>
@@ -172,10 +169,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Profile Menu */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                onClick={handleProfileMenuOpen}
-                sx={{ p: 0.5 }}
-              >
+              <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0.5 }}>
                 <Avatar
                   sx={{
                     bgcolor: 'primary.main',

@@ -93,9 +93,16 @@ const ServiceOrdersList = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}
+        >
           <Typography variant="h2">Service Orders</Typography>
-          <Button variant="contained" startIcon={<AddIcon />} component={Link} to="/service-orders/new">
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            component={Link}
+            to="/service-orders/new"
+          >
             New Order
           </Button>
         </Box>
@@ -165,9 +172,13 @@ const ServiceOrdersList = () => {
                     <TableCell sx={{ fontWeight: 600 }}>Issue</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Priority</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>Est. price</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      Est. price
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -179,7 +190,11 @@ const ServiceOrdersList = () => {
                     </TableRow>
                   ) : orders.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                      <TableCell
+                        colSpan={10}
+                        align="center"
+                        sx={{ py: 4, color: 'text.secondary' }}
+                      >
                         No service orders found
                       </TableCell>
                     </TableRow>

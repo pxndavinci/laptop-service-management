@@ -13,7 +13,7 @@ const router: Router = express.Router();
 
 /* Index */
 
-router.get('/health', function(req, res, next) {
+router.get('/health', (_req, res) => {
   res.status(200).send('OK');
 });
 
