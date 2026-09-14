@@ -360,7 +360,13 @@ def checkout(cfg: Config, ref: str) -> None:
 
 
 def deployer_changed(cfg: Config, old: str, new: str) -> bool:
-    changed = git(cfg, "diff", "--name-only", old, new, "--", "deploy/")
+    """
+    True when the watcher's code (deploy/) or its compose definition changed.
+    The compose file is included because the deployer's env, mounts or user
+    can change there alone; `up --no-deps deployer` is a no-op if its own
+    service definition did not actually change.
+    """
+    changed = git(cfg, "diff", "--name-only", old, new, "--", "deploy/", "docker-compose.yaml")
     return bool(changed)
 
 
@@ -369,7 +375,7 @@ def restart_deployer_later(cfg: Config) -> None:
     Rebuilds this watcher from a separate short-lived container, so the
     recreate is not cut off when compose stops the container running it.
     """
-    LOG.info("watcher code changed in this release — rebuilding the deployer service")
+    LOG.info("watcher code or compose config changed in this release — recreating the deployer service")
     run(
         [
             "docker", "run", "-d", "--rm", "--name", "lsm-deployer-updater",

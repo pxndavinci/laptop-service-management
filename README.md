@@ -141,7 +141,7 @@ docker compose exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTG
 3. Checks out the tag and builds the images **while the old containers keep serving**.
 4. Runs `docker compose up -d` for `postgres backend frontend`. It never runs `down` and never touches the volume. The backend applies new migrations on start.
 5. Waits for the healthchecks. **If they fail, it checks out the previous release and rebuilds it**, then marks the release as failed so it is not retried every poll. Publish a fixed release to move on.
-6. If the release changed `deploy/`, it rebuilds itself from a short-lived helper container.
+6. If the release changed `deploy/` or `docker-compose.yaml`, it recreates itself from a short-lived helper container. Compose leaves it untouched when its own service definition is unchanged.
 
 State is kept in `.deploy/state.json`. Logs go to `docker compose logs deployer`.
 
