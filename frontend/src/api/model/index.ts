@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './authUser';
 export * from './brands';
 export * from './composeContactInput';
 export * from './composeCustomerInput';
@@ -36,6 +37,8 @@ export * from './createUser';
 export * from './createUserProduct';
 export * from './error';
 export * from './errorDetails';
+export * from './errorResponse';
+export * from './errorResponseDetailsItem';
 export * from './existingEntityReferences';
 export * from './getContacts200';
 export * from './getContactsParams';
@@ -53,6 +56,7 @@ export * from './getUserProducts200';
 export * from './getUserProductsParams';
 export * from './getUsers200';
 export * from './getUsersParams';
+export * from './loginRequest';
 export * from './patchBrand';
 export * from './patchContact';
 export * from './patchProduct';

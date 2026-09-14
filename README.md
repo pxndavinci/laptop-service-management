@@ -44,8 +44,9 @@ docker compose up -d postgres
 
 # 2. Backend
 cd backend
-cp .env.example .env        # defaults already match the compose database
+cp .env.example .env        # DB defaults match compose; set JWT_SECRET, STAFF_USERNAME, STAFF_PASSWORD
 npm install
+npm run seed                # roles, statuses, staff login
 npm run dev                 # http://localhost:3000, Swagger UI at /api-docs
 
 # 3. Frontend (new terminal)
@@ -54,7 +55,7 @@ npm install
 npm run dev                 # http://localhost:3001
 ```
 
-The frontend works without a `.env` (it defaults to `http://localhost:3000`). Copy `frontend/.env.example` to `.env` only if you need to change the API URL or the staff user id.
+The frontend works without a `.env` (it defaults to `http://localhost:3000`). Copy `frontend/.env.example` to `.env` only if you need to change the API URL.
 
 ### First-run data
 
@@ -123,14 +124,43 @@ frontend/src/
 cd frontend && npx orval
 ```
 
+## Authentication
+
+The app has one staff login (a login gate, not multi-user accounts).
+
+- **Credentials** live in the `staff_account` table: a username plus a **bcrypt hash** (12 rounds) of the password — never the password itself. Device login passwords in `user_product` are a different case and stay plain text on purpose (see limitations).
+- **Login flow:** `POST /auth/login` checks the password and sets an `lsm_session` cookie holding a signed JWT (HS256, `JWT_SECRET`). The cookie is `httpOnly` (JavaScript cannot read it) and `SameSite=Lax` (not sent on cross-site POST/DELETE, which blocks CSRF). Set `COOKIE_SECURE=true` once served over HTTPS.
+- **Every other route** requires the session and returns `401` without it — except `/health`, `/api-docs`, `/auth/login`, `/auth/logout`. The frontend redirects to `/login` on any 401 and returns to the page you wanted after signing in.
+- **Attribution:** the logged-in user is recorded as `entry_by` on new orders and as the default `assigned_to` on status updates. The server takes it from the session, never from the request body.
+- **Brute force:** 10 failed logins per IP per 15 minutes, then `429`.
+- **Revocation:** sessions expire after `SESSION_TTL_HOURS`. Changing the password signs out every existing session.
+
+```bash
+# first run: creates the login from STAFF_USERNAME / STAFF_PASSWORD
+cd backend && npm run seed
+# change the password later (signs out existing sessions)
+STAFF_USERNAME=admin STAFF_PASSWORD='new long password' npm run staff:password
+```
+
+**Existing database from before auth?** Apply the migration once, then seed:
+
+```bash
+docker compose exec -T postgres psql -U admin -d lsm < migrations/0001_staff_account.sql
+```
+
 ## Environment Variables
 
 | File | Variable | Purpose |
 |------|----------|---------|
 | `backend/.env` | `DB_USER` `DB_PASSWORD` `DB_HOST` `DB_PORT` `DB_NAME` | Postgres connection (required) |
+| `backend/.env` | `JWT_SECRET` | Signs session tokens; required, 32+ random chars (`openssl rand -base64 48`) |
+| `backend/.env` | `SESSION_TTL_HOURS` | Login lifetime (default 12) |
+| `backend/.env` | `COOKIE_SECURE` | `true` when served over HTTPS (default `false`) |
+| `backend/.env` | `STAFF_NAME` `STAFF_USERNAME` `STAFF_PASSWORD` | Staff login created by `npm run seed` (password min 10 chars) |
 | `backend/.env` | `PORT`, `CORS_ORIGIN` | Server port (3000) and allowed frontend origin |
+| `backend/.env` | `TRUST_PROXY` | `true` behind a reverse proxy, so rate limiting sees real client IPs |
+| `backend/.env` | `APP_TIMEZONE` | Timezone for dashboard day/week boundaries (default `Asia/Kolkata`) |
 | `frontend/.env` | `VITE_API_BASE_URL` | Backend URL (default `http://localhost:3000`) |
-| `frontend/.env` | `VITE_ENTRY_USER_ID` | Staff user that new orders are logged against |
 
 ## License
 
@@ -138,6 +168,6 @@ cd frontend && npx orval
 
 ## Current Limitations
 
-- **No authentication yet** — the app assumes a single trusted operator; the entry user is configured, not logged in.
+- **One staff login** — there are no per-person accounts or roles; everyone at the counter shares the login.
 - Device login passwords are stored in plain text by design: technicians need them to service the machines.
 - Status updates and payments exist in the API (`/service-status`, `PATCH /service-orders/:id`) but have no UI yet.

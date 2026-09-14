@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import serviceOrderService from '../services/service-order.service';
 import * as ServiceOrder from '../models/service-order.model';
+import { currentUser } from '../middlewares/auth.middleware';
 import { IssueType, PaymentMethod, PaymentStatus } from '../db/schema';
 
 const ServiceOrderController = {
@@ -28,7 +29,7 @@ const ServiceOrderController = {
       estimatedCompletionDate: req.body.estimatedCompletionDate,
       issueDescription: req.body.issueDescription,
       issueNotes: req.body.issueNotes,
-      entryBy: req.body.entryBy,
+      entryBy: currentUser(res).userId,
     };
     const result = await serviceOrderService.createServiceOrder(input);
     res.status(201).json(result);

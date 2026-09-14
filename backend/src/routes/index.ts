@@ -8,6 +8,7 @@ import serviceOrderRouter from './service-order.routes';
 import serviceStatusRouter from './service-status.routes';
 import referenceRouter from './reference.routes';
 import serviceOrderComposerRouter from './service-order-composer.routes';
+import authRouter from './auth.routes';
 
 const router: Router = express.Router();
 
@@ -16,6 +17,9 @@ const router: Router = express.Router();
 router.get('/health', (_req, res) => {
   res.status(200).send('OK');
 });
+
+// Auth (see PUBLIC_PATHS in app.ts for what is reachable without a session)
+router.use('/auth', authRouter);
 
 // Users
 router.use('/users', userRouter);

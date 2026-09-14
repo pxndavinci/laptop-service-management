@@ -5,12 +5,9 @@
  * API for managing users, Products, and service orders in a service-center / repair business. Designed using API-first principles.
  * OpenAPI spec version: 1.0.0
  */
+import type { ErrorResponseDetailsItem } from './errorResponseDetailsItem';
 
-export interface CreateServiceStatuses {
-  serviceOrderId: string;
-  statusId: string;
-  /** Staff member responsible; defaults to the logged-in user */
-  assignedTo?: string;
-  comment?: string;
-  notifyCustomer?: boolean;
+export interface ErrorResponse {
+  error?: string;
+  details?: ErrorResponseDetailsItem[];
 }

@@ -8,9 +8,15 @@ info:
     Designed using API-first principles.
 
 servers:
-  - url: https://localhost:3000
+  - url: http://localhost:3000
+
+# Every operation requires a staff session unless it declares `security: []`.
+# Log in via POST /auth/login; the session travels in an httpOnly cookie.
+security:
+  - cookieAuth: []
 
 tags:
+  - name: Auth
   - name: Users
   - name: Contacts
   - name: Products
@@ -19,6 +25,70 @@ tags:
   - name: Reference Data
 
 paths:
+  # ==================== AUTH ====================
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: postAuthLogin
+      summary: Log in as staff
+      description: Verifies the credentials and sets the `lsm_session` httpOnly cookie. Limited to 10 failed attempts per IP per 15 minutes.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in; session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: postAuthLogout
+      summary: Log out
+      description: Clears the session cookie.
+      security: []
+      responses:
+        '204':
+          description: Logged out
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getAuthMe
+      summary: Current staff user
+      responses:
+        '200':
+          description: The logged-in staff user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: No valid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   # ==================== USERS ====================
   /users:
     get:
@@ -1163,7 +1233,56 @@ paths:
           description: Status deleted successfully
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: lsm_session
+
   schemas:
+    # ==================== AUTH ====================
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    AuthUser:
+      type: object
+      required:
+        - userId
+        - userName
+        - username
+      properties:
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+          description: Display name
+        username:
+          type: string
+          description: Login name
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+
     ServiceOrderComposerSearchResponse:
       type: object
       properties:
@@ -1357,7 +1476,6 @@ components:
       required:
         - priorityLevel
         - issueDescription
-        - entryByUserId
       properties:
         estimatedPrice:
           type: number
@@ -1374,9 +1492,6 @@ components:
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
-        entryByUserId:
-          type: string
-          format: uuid
 
     ComposeServiceOrderRequest:
       type: object
@@ -1887,7 +2002,6 @@ components:
       required:
         - userProductId
         - issueDescription
-        - entryBy
       properties:
         userProductId:
           type: string
@@ -1909,10 +2023,6 @@ components:
           enum: [HARDWARE, SOFTWARE, NETWORK, OTHER]
         issueNotes:
           type: string
-        entryBy:
-          type: string
-          format: uuid
-          description: Must be a servicer or admin user
 
     PatchServiceOrder:
       type: object
@@ -2021,7 +2131,6 @@ components:
       required:
         - serviceOrderId
         - statusId
-        - assignedTo
       properties:
         serviceOrderId:
           type: string
@@ -2032,6 +2141,7 @@ components:
         assignedTo:
           type: string
           format: uuid
+          description: Staff member responsible; defaults to the logged-in user
         comment:
           type: string
         notifyCustomer:

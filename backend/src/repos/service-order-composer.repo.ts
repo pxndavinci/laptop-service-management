@@ -374,7 +374,8 @@ export const serviceOrderComposerRepo = {
   async createServiceOrder(
     executor: DbExecutor,
     userProductId: string,
-    serviceOrder: ComposeServiceOrderInput
+    serviceOrder: ComposeServiceOrderInput,
+    entryByUserId: string
   ) {
     return executor
       .insertInto('service_order')
@@ -386,7 +387,7 @@ export const serviceOrderComposerRepo = {
         estimatedCompletionDate: serviceOrder.estimatedCompletionDate ?? null,
         issueDescription: serviceOrder.issueDescription,
         issueNotes: serviceOrder.issueNotes || null,
-        entryBy: serviceOrder.entryByUserId,
+        entryBy: entryByUserId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

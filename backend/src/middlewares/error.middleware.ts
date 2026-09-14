@@ -37,8 +37,15 @@ const PG_ERROR_RESPONSES: Record<string, { status: number; error: string }> = {
 };
 
 // Express recognizes error middleware by its four-argument signature
-export function errorMiddleware(err: Error, _req: Request, res: Response, _next: NextFunction) {
-  console.error(err);
+export function errorMiddleware(err: Error, req: Request, res: Response, _next: NextFunction) {
+  const status =
+    err instanceof AppError ? err.statusCode : (err as Error & { status?: number }).status;
+  if (status && status < 500) {
+    // Expected client errors (401, 404, validation): one line, no stack trace
+    console.warn(`${req.method} ${req.originalUrl} -> ${status}: ${err.message}`);
+  } else {
+    console.error(err);
+  }
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({ error: err.message });

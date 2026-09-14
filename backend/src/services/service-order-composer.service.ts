@@ -227,8 +227,10 @@ export const serviceOrderComposerService = {
     return { data, total: data.length };
   },
 
+  /** `entryByUserId` is the logged-in staff member, never taken from the request body. */
   async composeServiceOrder(
-    request: ComposeServiceOrderRequest
+    request: ComposeServiceOrderRequest,
+    entryByUserId: string
   ): Promise<ComposeServiceOrderResponse> {
     try {
       return await db.transaction().execute(async (trx) => {
@@ -244,16 +246,11 @@ export const serviceOrderComposerService = {
           product.entity.productId
         );
 
-        const entryUser = await serviceOrderComposerRepo.getUserById(
-          trx,
-          request.serviceOrder.entryByUserId
-        );
-        if (!entryUser) throw new NotFoundError('Entry user not found');
-
         const serviceOrder = await serviceOrderComposerRepo.createServiceOrder(
           trx,
           userProduct.entity.userProductId,
-          request.serviceOrder
+          request.serviceOrder,
+          entryByUserId
         );
 
         return {

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { serviceOrderComposerService } from '../services/service-order-composer.service';
+import { currentUser } from '../middlewares/auth.middleware';
 import {
   ServiceOrderComposerSearchParams,
   ComposeServiceOrderRequest,
@@ -23,7 +24,10 @@ const ServiceOrderComposerController = {
 
   composeServiceOrder: async (req: Request, res: Response) => {
     const input = req.body as ComposeServiceOrderRequest;
-    const result = await serviceOrderComposerService.composeServiceOrder(input);
+    const result = await serviceOrderComposerService.composeServiceOrder(
+      input,
+      currentUser(res).userId
+    );
     res.status(201).json(result);
   },
 };

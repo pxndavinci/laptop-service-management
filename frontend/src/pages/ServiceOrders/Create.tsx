@@ -6,7 +6,7 @@ import { ServiceOrderFormData } from '../../lib/schemas/serviceOrderSchema'
 import { useUIStore } from '../../store/uiStore'
 import { usePostServiceOrderComposerSubmit } from '../../api/service-orders/service-orders'
 import type { ComposeServiceOrderRequest } from '../../api/model'
-import { CUSTOMER_ROLE_ID, ENTRY_USER_ID } from '../../lib/config'
+import { CUSTOMER_ROLE_ID } from '../../lib/config'
 
 const toRequest = (
   data: ServiceOrderFormData,
@@ -46,7 +46,6 @@ const toRequest = (
     priorityLevel: data.priorityLevel,
     issueDescription: data.issueDescription,
     issueNotes: data.issueNotes || undefined,
-    entryByUserId: ENTRY_USER_ID,
   },
 })
 

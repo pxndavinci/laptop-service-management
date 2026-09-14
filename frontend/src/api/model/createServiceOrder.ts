@@ -19,6 +19,4 @@ export interface CreateServiceOrder {
   estimatedCompletionDate?: string;
   issueDescription: CreateServiceOrderIssueDescription;
   issueNotes?: string;
-  /** Must be a servicer or admin user */
-  entryBy: string;
 }

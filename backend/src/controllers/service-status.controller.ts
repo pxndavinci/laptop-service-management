@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import serviceStatusService from '../services/service-status.service';
 import * as ServiceStatus from '../models/service-status.model';
+import { currentUser } from '../middlewares/auth.middleware';
 
 const ServiceStatusController = {
   getServiceStatuses: async (req: Request, res: Response) => {
@@ -17,7 +18,7 @@ const ServiceStatusController = {
     const input: ServiceStatus.CreateServiceStatus = {
       serviceOrderId: req.body.serviceOrderId,
       statusId: req.body.statusId,
-      assignedTo: req.body.assignedTo,
+      assignedTo: req.body.assignedTo ?? currentUser(res).userId,
       comment: req.body.comment,
       notifyCustomer: req.body.notifyCustomer,
     };

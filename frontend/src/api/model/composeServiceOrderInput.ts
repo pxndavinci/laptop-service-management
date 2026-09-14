@@ -18,5 +18,4 @@ export interface ComposeServiceOrderInput {
   priorityLevel: number;
   issueDescription: ComposeServiceOrderInputIssueDescription;
   issueNotes?: string;
-  entryByUserId: string;
 }

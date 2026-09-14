@@ -94,7 +94,6 @@ export interface ComposeServiceOrderInput {
   priorityLevel: number;
   issueDescription: IssueType;
   issueNotes?: string;
-  entryByUserId: string;
 }
 
 export interface ComposeServiceOrderRequest {

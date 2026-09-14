@@ -6,11 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface CreateServiceStatuses {
-  serviceOrderId: string;
-  statusId: string;
-  /** Staff member responsible; defaults to the logged-in user */
-  assignedTo?: string;
-  comment?: string;
-  notifyCustomer?: boolean;
-}
+export type ErrorResponseDetailsItem = { [key: string]: unknown };
