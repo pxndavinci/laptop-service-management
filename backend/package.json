@@ -4,15 +4,17 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').cpSync('src/openapi','dist/src/openapi',{recursive:true})\"",
     "typecheck": "tsc --noEmit",
-    "start": "tsx src/server.ts",
+    "start": "node dist/scripts/start.js",
     "dev": "tsx watch ./src/server.ts",
     "seed": "tsx scripts/seed.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "staff:password": "tsx scripts/set-staff-password.ts"
+    "staff:password": "tsx scripts/set-staff-password.ts",
+    "start:dev": "tsx scripts/start.ts",
+    "migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

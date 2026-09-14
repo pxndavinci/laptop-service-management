@@ -2,7 +2,7 @@
  * Idempotent seed: inserts the reference data the app needs to work.
  * Safe to run any number of times; existing rows are left untouched.
  *
- *   npm run seed
+ *   npm run seed           (also runs, non-strict, every time the container starts)
  *
  * The staff login is created from STAFF_USERNAME / STAFF_PASSWORD on the first
  * run only. To change the password later use `npm run staff:password`.
@@ -12,11 +12,13 @@ import { CANONICAL_STATUSES } from '../src/lib/statuses';
 import { ROLE } from '../src/lib/roles';
 import { hashPassword, passwordProblem } from '../src/lib/password';
 
+type Log = (line: string) => void;
+
 const STAFF_NAME = process.env.STAFF_NAME || 'Shop Operator';
 const STAFF_USERNAME = process.env.STAFF_USERNAME?.trim();
 const STAFF_PASSWORD = process.env.STAFF_PASSWORD;
 
-async function seedRoles() {
+async function seedRoles(log: Log) {
   const result = await db
     .insertInto('role')
     .values([
@@ -25,19 +27,23 @@ async function seedRoles() {
     ])
     .onConflict((oc) => oc.doNothing())
     .executeTakeFirst();
-  console.log(`roles:    ${result.numInsertedOrUpdatedRows ?? 0n} inserted`);
+  log(`roles:    ${result.numInsertedOrUpdatedRows ?? 0n} inserted`);
 }
 
-async function seedStatuses() {
+async function seedStatuses(log: Log) {
   const result = await db
     .insertInto('status')
     .values(CANONICAL_STATUSES.map((statusName) => ({ statusName })))
     .onConflict((oc) => oc.column('statusName').doNothing())
     .executeTakeFirst();
-  console.log(`statuses: ${result.numInsertedOrUpdatedRows ?? 0n} inserted`);
+  log(`statuses: ${result.numInsertedOrUpdatedRows ?? 0n} inserted`);
 }
 
-async function seedStaff() {
+/**
+ * `strict` (CLI): fail when the staff login is missing and cannot be created.
+ * Non-strict (container start): warn instead, so the app still starts.
+ */
+async function seedStaff(strict: boolean, log: Log) {
   const existing = await db
     .selectFrom('user_data')
     .select(['userId', 'userName'])
@@ -52,7 +58,7 @@ async function seedStaff() {
       .values({ userName: STAFF_NAME, roleId: ROLE.STAFF })
       .returning(['userId', 'userName'])
       .executeTakeFirstOrThrow());
-  console.log(`staff:    ${existing ? 'exists' : 'created'} — ${staff.userName} (${staff.userId})`);
+  log(`staff:    ${existing ? 'exists' : 'created'} — ${staff.userName} (${staff.userId})`);
 
   const account = await db
     .selectFrom('staff_account')
@@ -60,16 +66,18 @@ async function seedStaff() {
     .where('userId', '=', staff.userId)
     .executeTakeFirst();
   if (account) {
-    console.log(`login:    exists — username "${account.username}"`);
+    log(`login:    exists — username "${account.username}"`);
     return;
   }
 
   const problem = !STAFF_USERNAME ? 'STAFF_USERNAME is empty' : passwordProblem(STAFF_PASSWORD);
   if (problem) {
-    throw new Error(
-      `Cannot create the staff login: ${problem}.\n` +
-        'Set STAFF_USERNAME and STAFF_PASSWORD (in .env or the shell) and run the seed again.'
-    );
+    const message =
+      `Cannot create the staff login: ${problem}. ` +
+      'Set STAFF_USERNAME and STAFF_PASSWORD and run the seed again.';
+    if (strict) throw new Error(message);
+    log(`WARNING: ${message} Nobody can log in until then.`);
+    return;
   }
 
   await db
@@ -80,19 +88,24 @@ async function seedStaff() {
       passwordHash: await hashPassword(STAFF_PASSWORD!),
     })
     .execute();
-  console.log(`login:    created — username "${STAFF_USERNAME}"`);
+  log(`login:    created — username "${STAFF_USERNAME}"`);
 }
 
-async function main() {
-  await seedRoles();
-  await seedStatuses();
-  await seedStaff();
+export async function seed({
+  strict = true,
+  log = console.log,
+}: { strict?: boolean; log?: Log } = {}) {
+  await seedRoles(log);
+  await seedStatuses(log);
+  await seedStaff(strict, log);
 }
 
-main()
-  .then(() => db.destroy())
-  .catch(async (error) => {
-    console.error(`Seed failed: ${error instanceof Error ? error.message : error}`);
-    await db.destroy();
-    process.exit(1);
-  });
+if (require.main === module) {
+  seed()
+    .then(() => db.destroy())
+    .catch(async (error) => {
+      console.error(`Seed failed: ${error instanceof Error ? error.message : error}`);
+      await db.destroy();
+      process.exit(1);
+    });
+}

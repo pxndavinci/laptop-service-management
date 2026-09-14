@@ -19,7 +19,12 @@ logs/
 
 # Custom
 *REFACTORING.md
-auto_deploy.log
+
 
 # Local scratch (test logs, cookies)
 .local/
+
+# Deploy runtime (release watcher state and database backups)
+.deploy/
+backups/
+__pycache__/

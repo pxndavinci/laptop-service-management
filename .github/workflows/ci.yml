@@ -52,3 +52,14 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Watcher script compiles
+        run: python3 -m py_compile deploy/auto_deploy.py
+      - name: Compose file is valid
+        run: POSTGRES_PASSWORD=ci JWT_SECRET=ci docker compose config --quiet
+      - name: Production images build
+        run: POSTGRES_PASSWORD=ci JWT_SECRET=ci docker compose build backend frontend deployer

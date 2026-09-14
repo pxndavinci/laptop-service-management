@@ -1,4 +1,6 @@
 import express from 'express';
+import { sql } from 'kysely';
+import db from '../db/index';
 import { Router } from 'express';
 import userRouter from './user.routes';
 import contactRouter from './contact.routes';
@@ -15,8 +17,14 @@ const router: Router = express.Router();
 
 /* Index */
 
-router.get('/health', (_req, res) => {
-  res.status(200).send('OK');
+// Liveness + database reachability; used by the container healthcheck and deploys
+router.get('/health', async (_req, res) => {
+  try {
+    await sql`select 1`.execute(db);
+    res.status(200).send('OK');
+  } catch {
+    res.status(503).send('Database unavailable');
+  }
 });
 
 // Auth (see PUBLIC_PATHS in app.ts for what is reachable without a session)

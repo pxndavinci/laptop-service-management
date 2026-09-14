@@ -14,7 +14,19 @@ const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts. Try again in 15 minutes.' },
 });
 
-router.post('/login', loginLimiter, AuthController.login);
+// Backstop across all clients: per-IP limits can be sidestepped by rotating
+// IPs or spoofing forwarded headers on the LAN; this caps total guesses.
+const globalLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  skipSuccessfulRequests: true,
+  keyGenerator: () => 'all-clients',
+  standardHeaders: false,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+});
+
+router.post('/login', globalLoginLimiter, loginLimiter, AuthController.login);
 router.post('/logout', AuthController.logout);
 router.get('/me', AuthController.me);
 
