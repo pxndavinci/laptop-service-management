@@ -16,6 +16,12 @@ const ServiceOrderController = {
       issueDescription: req.query.issueDescription as IssueType | undefined,
       entryBy: req.query.entryBy as string | undefined,
       userId: req.query.userId as string | undefined,
+      // The validator may already have coerced these from strings
+      overdue: String(req.query.overdue) === 'true' || undefined,
+      completedNotDeliveredDays:
+        req.query.completedNotDeliveredDays !== undefined
+          ? Number(req.query.completedNotDeliveredDays)
+          : undefined,
       page: req.query.page ? Number(req.query.page) : undefined,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
     };

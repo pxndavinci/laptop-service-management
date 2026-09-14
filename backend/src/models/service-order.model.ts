@@ -26,6 +26,8 @@ export interface ServiceOrderQueryParams {
   issueDescription?: IssueType;
   entryBy?: string;
   userId?: string;
+  overdue?: boolean;
+  completedNotDeliveredDays?: number;
   page?: number;
   limit?: number;
 }

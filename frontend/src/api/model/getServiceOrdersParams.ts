@@ -46,6 +46,16 @@ entryBy?: string;
  * Orders for devices owned by this customer
  */
 userId?: string;
+/**
+ * true = estimated completion is in the past and the latest status is not COMPLETED, DELIVERED or CANCELLED. Sorted by estimated completion, oldest first.
+ */
+overdue?: boolean;
+/**
+ * Orders whose latest status is COMPLETED and was set at least this many days ago (finished repairs waiting for pickup). Sorted by completion time, oldest first.
+ * @minimum 0
+ * @maximum 365
+ */
+completedNotDeliveredDays?: number;
 page?: number;
 limit?: number;
 };

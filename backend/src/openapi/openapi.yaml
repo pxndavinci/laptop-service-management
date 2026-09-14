@@ -23,6 +23,7 @@ tags:
   - name: Service Orders
   - name: Service Status
   - name: Reference Data
+  - name: Dashboard
 
 paths:
   # ==================== AUTH ====================
@@ -664,6 +665,22 @@ paths:
             type: string
             format: uuid
           description: Orders for devices owned by this customer
+        - name: overdue
+          in: query
+          schema:
+            type: boolean
+          description: >-
+            true = estimated completion is in the past and the latest status is not
+            COMPLETED, DELIVERED or CANCELLED. Sorted by estimated completion, oldest first.
+        - name: completedNotDeliveredDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+          description: >-
+            Orders whose latest status is COMPLETED and was set at least this many days ago
+            (finished repairs waiting for pickup). Sorted by completion time, oldest first.
         - name: page
           in: query
           schema:
@@ -992,6 +1009,23 @@ paths:
       responses:
         '204':
           description: Status update deleted successfully
+
+  # ==================== DASHBOARD ====================
+  /dashboard/metrics:
+    get:
+      tags: [Dashboard]
+      operationId: getDashboardMetrics
+      summary: Shop metrics for the dashboard
+      description: >-
+        Counts for the dashboard cards. Day, week (Monday start), month and year boundaries use
+        APP_TIMEZONE. See DashboardMetrics for how each number is defined.
+      responses:
+        '200':
+          description: Current metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
 
   # ==================== REFERENCE DATA ====================
   /references/roles:
@@ -2241,6 +2275,50 @@ components:
           nullable: true
         notifyCustomer:
           type: boolean
+
+    # ==================== DASHBOARD ====================
+    DashboardMetrics:
+      type: object
+      required: [received, open, completed, delivered, overdue, awaitingPickup]
+      properties:
+        received:
+          type: object
+          description: Orders created in the current period
+          required: [today, week, month, year]
+          properties:
+            today:
+              type: integer
+            week:
+              type: integer
+            month:
+              type: integer
+            year:
+              type: integer
+        open:
+          type: integer
+          description: Orders whose latest status is not DELIVERED or CANCELLED (no status = RECEIVED)
+        completed:
+          type: object
+          description: Orders that got a COMPLETED status entry in the period (counted once per order)
+          required: [today, week]
+          properties:
+            today:
+              type: integer
+            week:
+              type: integer
+        delivered:
+          type: object
+          description: Orders that got a DELIVERED status entry in the period
+          required: [week]
+          properties:
+            week:
+              type: integer
+        overdue:
+          type: integer
+          description: Same rule as GET /service-orders?overdue=true
+        awaitingPickup:
+          type: integer
+          description: Orders whose latest status is COMPLETED (repair done, not yet delivered)
 
     # ==================== ERROR ====================
     Error:

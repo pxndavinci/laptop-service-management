@@ -9,6 +9,7 @@ import serviceStatusRouter from './service-status.routes';
 import referenceRouter from './reference.routes';
 import serviceOrderComposerRouter from './service-order-composer.routes';
 import authRouter from './auth.routes';
+import dashboardRouter from './dashboard.routes';
 
 const router: Router = express.Router();
 
@@ -41,6 +42,9 @@ router.use('/service-order-composer', serviceOrderComposerRouter);
 
 // Service Status
 router.use('/service-status', serviceStatusRouter);
+
+// Dashboard
+router.use('/dashboard', dashboardRouter);
 
 // References
 router.use('/references', referenceRouter);

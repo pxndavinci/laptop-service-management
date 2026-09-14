@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 import db from '../db/index';
-import { DEFAULT_STATUS } from '../lib/statuses';
+import { DEFAULT_STATUS, STATUS, WORK_DONE_STATUSES } from '../lib/statuses';
 import * as ServiceOrder from '../models/service-order.model';
 
 /**
@@ -66,6 +66,10 @@ const orderSummary = () =>
 /** Latest status name, treating orders without any status entry as RECEIVED. */
 const effectiveStatus = sql<string>`coalesce(ls.status_name, ${DEFAULT_STATUS})`;
 
+/** Estimated completion has passed and repair work is not finished. */
+const isOverdue = sql<boolean>`so.estimated_completion_date < now()
+  and coalesce(ls.status_name, ${DEFAULT_STATUS}) not in (${sql.join(WORK_DONE_STATUSES)})`;
+
 export const serviceOrderRepo = {
   async getServiceOrders(
     params: ServiceOrder.ServiceOrderQueryParams & { limit: number; offset: number }
@@ -86,10 +90,27 @@ export const serviceOrderRepo = {
         qb.where('so.issueDescription', '=', params.issueDescription!)
       )
       .$if(!!params.entryBy, (qb) => qb.where('so.entryBy', '=', params.entryBy!))
-      .$if(!!params.userId, (qb) => qb.where('u.userId', '=', params.userId!));
+      .$if(!!params.userId, (qb) => qb.where('u.userId', '=', params.userId!))
+      .$if(!!params.overdue, (qb) => qb.where(isOverdue))
+      .$if(params.completedNotDeliveredDays !== undefined, (qb) =>
+        qb
+          .where(effectiveStatus, '=', STATUS.COMPLETED)
+          .where(
+            sql`ls.status_at`,
+            '<=',
+            sql`now() - make_interval(days => ${params.completedNotDeliveredDays})`
+          )
+      );
 
-    const orders = await filtered
-      .orderBy('so.createdAt', 'desc')
+    // Attention lists show the longest-waiting orders first; everything else newest first
+    const sorted = params.overdue
+      ? filtered.orderBy(sql`so.estimated_completion_date`, 'asc')
+      : params.completedNotDeliveredDays !== undefined
+        ? filtered.orderBy(sql`ls.status_at`, 'asc')
+        : filtered.orderBy('so.createdAt', 'desc');
+
+    const orders = await sorted
+      .orderBy('so.tagNo', 'desc')
       .limit(params.limit)
       .offset(params.offset)
       .execute();
