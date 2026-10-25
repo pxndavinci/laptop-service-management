@@ -1,0 +1,11 @@
+# archie only: lets the joatverse Cloudflare tunnel reach the app by name
+services:
+  frontend:
+    networks:
+      default: {}
+      joatverse_edge:
+        aliases: [lsm-frontend]
+networks:
+  joatverse_edge:
+    external: true
+    name: joatverse_edge
